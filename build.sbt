@@ -11,6 +11,7 @@ scalaVersion := "2.13.5"
 
 scalacOptions += "-Ywarn-value-discard"
 
+unmanagedSourceDirectories in Compile += baseDirectory.value / "src"
 unmanagedResourceDirectories in Test += baseDirectory ( _ /"target/web/public/test" ).value
 
 libraryDependencies ++= Seq( jdbc , ehcache , ws , specs2 % Test , guice )
