@@ -24,5 +24,8 @@ class Module() extends AbstractModule {
         bind(classOf[ApplicationTimer]).asEagerSingleton()
         // Set AtomicCounter as the implementation for Counter.
         bind(classOf[Counter]).to(classOf[AtomicCounter])
+
+        // Create the telnet client on startup, and it starts itself
+        bind(classOf[TelnetClient]).asEagerSingleton() // TODO: change this to some core game control class
     }
 }
