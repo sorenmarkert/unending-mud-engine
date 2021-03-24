@@ -3,7 +3,7 @@ package core
 import core.commands.Commands.executeCommand
 import core.ZoneData.north
 import core.GameState.runState
-import core.GameUnit.createPlayerCharacter
+import core.GameUnit.createPlayerCharacterIn
 import play.api.{Configuration, Logger}
 
 import java.io.{BufferedReader, InputStream, InputStreamReader, PrintWriter}
@@ -33,7 +33,7 @@ class TelnetClient @Inject()(conf: Configuration)(implicit exec: ExecutionContex
     }
 
     private def initConnection(socket: Socket) = {
-        val player = createPlayerCharacter(north, Connected, new PrintWriter(socket.getOutputStream, true))
+        val player = createPlayerCharacterIn(north, Connected, new PrintWriter(socket.getOutputStream, true))
         // TODO: load player data
         player.id = "player1"
         player.name = "klaus"

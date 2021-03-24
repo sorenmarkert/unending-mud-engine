@@ -1,7 +1,7 @@
 package core
 
 import core.GameState.global
-import core.GameUnit.createItemIn
+import core.GameUnit.{createItemIn, createNonPlayerCharacterIn, findUnit}
 import org.scalatest._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -97,10 +97,270 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         }
     }
 
+    "Equipping an item" should {
+
+        "Place the item as equipped on the character" in {
+
+            Given("A character with an item")
+            val room = Room()
+            val character = createNonPlayerCharacterIn(room)
+            val item = createItemIn(character)
+            item.itemSlot = Some(ItemSlotHead)
+
+            When("The character equips the item")
+            val result = character equip item
+
+            Then("It is placed in the character's equipped items")
+            character.equippedItems should contain (item)
+
+            And("The character no longer has the item in the inventory")
+            character.inventory should not contain item
+
+            And("The item is equipped")
+            item.isEquipped shouldBe true
+
+            And("No error message was returned")
+            result shouldBe None
+        }
+
+        "Return an error when it's not in the character's inventory" in {
+
+            Given("A character next to an item")
+            val room = Room()
+            val character = createNonPlayerCharacterIn(room)
+            val item = createItemIn(room)
+            item.itemSlot = Some(ItemSlotHead)
+
+            When("The character equips the item")
+            val result = character equip item
+
+            Then("An error message is returned")
+            result should contain ("You can only equip items from your inventory.")
+        }
+
+        "Return an error when the character already has an item equipped in that slot" in {
+
+            Given("A character with two item, where one is equipped")
+            val room = Room()
+            val character = createNonPlayerCharacterIn(room)
+            val equippedItem = createItemIn(character)
+            equippedItem.itemSlot = Some(ItemSlotHead)
+            character equip equippedItem
+            val unequippedItem = createItemIn(character)
+            unequippedItem.itemSlot = Some(ItemSlotHead)
+
+            When("The character equips the unequipped item")
+            val result = character equip unequippedItem
+
+            Then("An error message is returned")
+            result should contain ("You already have something equipped there.")
+        }
+
+        "Return an error when the item is unequippable" in {
+
+            Given("A character with two item, where one is equipped")
+            val room = Room()
+            val character = createNonPlayerCharacterIn(room)
+            val item = createItemIn(character)
+            item.itemSlot = None
+
+            When("The character equips the unequipped item")
+            val result = character equip item
+
+            Then("An error message is returned")
+            result should contain ("This item cannot be equipped.")
+        }
+    }
+
+    "Unequipping an item" should {
+
+        "Placed it in the inventory" in {
+
+            Given("A character with an equipped item")
+            val room = Room()
+            val character = createNonPlayerCharacterIn(room)
+            val item = createItemIn(character)
+            item.itemSlot = Some(ItemSlotHead)
+            character equip item
+
+            When("The character unequips the item")
+            val result = character unequip item
+
+            Then("It is placed in the character's inventory")
+            character.inventory should contain (item)
+
+            And("The character no longer has the item equipped")
+            character.equippedItems should not contain item
+
+            And("The item is not equipped")
+            item.isEquipped shouldBe false
+
+            And("No error message was returned")
+            result shouldBe None
+        }
+
+        "Return an error when it's not equipped" in {
+
+            Given("A character next to an item")
+            val room = Room()
+            val character = createNonPlayerCharacterIn(room)
+            val item = createItemIn(room)
+
+            When("The character unequips the item")
+            val result = character unequip item
+
+            Then("An error message is returned")
+            result should contain ("You don't have that item equipped.")
+        }
+    }
+
     "findUnit" should {
 
-        "Return a" in {
+        "Find an item next to the character" in {
 
+            Given("A player next to 3 items")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val bottomItem = createItemIn(room)
+            bottomItem.name = "itemname"
+            val itemToBeFound = createItemIn(room)
+            itemToBeFound.name = "itemname"
+            val topItem = createItemIn(room)
+            topItem.name = "othername"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "itemname", Left(FindNextToMe))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Find an item in the character's inventory" in {
+
+            Given("A player with 3 items")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val bottomItem = createItemIn(player)
+            bottomItem.name = "itemname"
+            val itemToBeFound = createItemIn(player)
+            itemToBeFound.name = "itemname"
+            val topItem = createItemIn(player)
+            topItem.name = "othername"
+            val equippedItem = createItemIn(player)
+            equippedItem.name = "itemname"
+            player equip equippedItem
+
+            When("The player searches for the item")
+            val result = findUnit(player, "itemname", Left(FindInInventory))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Find an item among the character's equipped items" in {
+
+            Given("A player with 3 equipped items")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val bottomItem = createItemIn(player)
+            bottomItem.name = "itemname"
+            bottomItem.itemSlot = Some(ItemSlotHead)
+            player equip bottomItem
+            val itemToBeFound = createItemIn(player)
+            itemToBeFound.name = "itemname"
+            itemToBeFound.itemSlot = Some(ItemSlotFeet)
+            player equip itemToBeFound
+            val topItem = createItemIn(player)
+            topItem.name = "othername"
+            topItem.itemSlot = Some(ItemSlotChest)
+            player equip topItem
+            val inventoryItem = createItemIn(player)
+            inventoryItem.name = "itemname"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "itemname", Left(FindInEquipped))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Find an item among all the character's items" in {
+
+            Given("A player with 3 out of 5 items equipped")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val bottomItem = createItemIn(player)
+            bottomItem.name = "itemname"
+            val bottomEquippedItem = createItemIn(player)
+            bottomEquippedItem.name = "itemname"
+            val itemToBeFound = createItemIn(player)
+            itemToBeFound.name = "itemname"
+            val topEquippedItem = createItemIn(player)
+            topEquippedItem.name = "othername"
+            val topItem = createItemIn(player)
+            topItem.name = "itemname"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "itemname", Left(FindInMe))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Find an item globally" in {
+
+            Given("A player with 3 out of 5 items equipped")
+            val playerRoom = Room()
+            val player = createNonPlayerCharacterIn(playerRoom)
+            val otherRoom = Room()
+            val bottomItem = createItemIn(otherRoom)
+            bottomItem.name = "itemname"
+            val itemToBeFound = createItemIn(otherRoom)
+            itemToBeFound.name = "itemname"
+            val topItem = createItemIn(otherRoom)
+            topItem.name = "othername"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "itemname", Left(FindGlobally))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Find an item inside a given container" in {
+
+            Given("A player with 3 out of 5 items equipped")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val container = createItemIn(player)
+            val bottomItem = createItemIn(container)
+            bottomItem.name = "itemname"
+            val itemToBeFound = createItemIn(container)
+            itemToBeFound.name = "itemname"
+            val topItem = createItemIn(container)
+            topItem.name = "othername"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "itemname", Right(container))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Not find an item that isn't there" in {
+
+            Given("A player with 3 out of 5 items equipped")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val container = createItemIn(player)
+            val itemToNotBeFound = createItemIn(container)
+            itemToNotBeFound.name = "othername"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "itemname", Right(container))
+
+            Then("The correct item is returned")
+            result shouldBe None
         }
     }
 }

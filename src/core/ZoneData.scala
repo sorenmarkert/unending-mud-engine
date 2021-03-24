@@ -1,6 +1,6 @@
 package core
 
-import core.GameUnit.{createItemIn, createNonPlayerCharacter}
+import core.GameUnit.{createItemIn, createNonPlayerCharacterIn}
 
 object ZoneData {
 
@@ -26,9 +26,22 @@ object ZoneData {
     book.title = "A book"
     book.description = "It's a small book, bound in leather."
 
-    val driver = createNonPlayerCharacter(north)
-    driver.id = "book1"
-    driver.name = "book"
-    driver.title = "A book"
-    driver.description = "It's a small book, bound in leather."
+    val hat = createItemIn(north)
+    hat.id = "hat1"
+    hat.name = "hat"
+    hat.title = "A white cowboy hat"
+    hat.description = "It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance."
+    hat.itemSlot = Some(ItemSlotHead)
+
+    val driver = createNonPlayerCharacterIn(north)
+    driver.id = "driver1"
+    driver.name = "driver"
+    driver.title = "The driver"
+    driver.description = "She's a short, plump woman wearing a light frown as if it was her most prized possession."
+
+    val boy = createNonPlayerCharacterIn(north)
+    boy.id = "boy1"
+    boy.name = "boy"
+    boy.title = "A boy"
+    boy.description = "He's a little boy, probably around the age of 10."
 }

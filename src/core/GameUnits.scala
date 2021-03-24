@@ -4,8 +4,7 @@ import core.GameState.global
 
 import java.io.PrintWriter
 import java.util.UUID
-import scala.collection.mutable.{Map => MMap}
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ListBuffer, Map => MMap}
 
 sealed abstract class GameUnit() {
 
@@ -49,36 +48,85 @@ object GameUnit {
         item
     }
 
-    def createPlayerCharacter(container: GameUnit, connectionState: ConnectionState, writer: PrintWriter) = {
+    def createPlayerCharacterIn(container: GameUnit, connectionState: ConnectionState, writer: PrintWriter) = {
         val playerCharacter = PlayerCharacter(connectionState, writer)
         container addUnit playerCharacter
         global prepend playerCharacter
         playerCharacter
     }
 
-    def createNonPlayerCharacter(container: GameUnit) = {
+    def createNonPlayerCharacterIn(container: GameUnit) = {
         val nonPlayerCharacter = NonPlayerCharacter()
         container addUnit nonPlayerCharacter
         global prepend nonPlayerCharacter
         nonPlayerCharacter
     }
 
-    def findUnit(character: Character, name: String, environment: Either[FindContext, GameUnit]) = ???
+    def findUnit(character: Character, name: String, environment: Either[FindContext, GameUnit]) = {
+        val listToSearch = environment match {
+            case Left(FindNextToMe) => character.outside.get.contents
+            case Left(FindInInventory) => character.inventory
+            case Left(FindInEquipped) => character.equippedItems
+            case Left(FindInMe) => character.contents
+            case Left(FindGlobally) => global
+            case Right(container) => container.contents
+        }
+
+        listToSearch find (_.name == name)
+    }
 }
 
-trait Character extends GameUnit
+
+trait Character extends GameUnit {
+
+    private val _equipped = MMap[ItemSlot, Item]()
+    private val _equippedReverse = MMap[Item, ItemSlot]()
+
+    def equippedItems = _equipped.values
+
+    def inventory = contents diff _equipped.values.toList
+
+    def equippedAt(itemSlot: ItemSlot) = _equipped get itemSlot
+
+    def equip(item: Item) = item.itemSlot match {
+        case Some(_) if !(inventory contains item) => Some("You can only equip items from your inventory.")
+        case Some(itemSlot) if _equipped contains itemSlot => Some("You already have something equipped there.")
+        case Some(itemSlot) => {
+            _equipped addOne (itemSlot -> item)
+            _equippedReverse addOne (item -> itemSlot)
+            None
+        }
+        case None => Some("This item cannot be equipped.")
+    }
+
+    def unequip(item: Item) = _equippedReverse remove item match {
+        case Some(value) => {
+            _equipped remove value
+            None
+        }
+        case None => Some("You don't have that item equipped.")
+    }
+}
 
 case class PlayerCharacter private(var connectionState: ConnectionState, private var writer: PrintWriter) extends Character()
 
 case class NonPlayerCharacter private() extends Character()
 
+
 case class Item private() extends GameUnit() {
-    var itemType = ""
+
+    var itemSlot: Option[ItemSlot] = None
+
+    def isEquipped = (this.itemSlot, this.outside) match {
+        case (Some(itemSlot), Some(character: Character)) => character equippedAt itemSlot contains this
+        case _ => false
+    }
 }
 
 case class Room() extends GameUnit {
     val exits = MMap[Direction, Room]()
 }
+
 
 sealed abstract class Direction(val name: String)
 
@@ -93,6 +141,24 @@ case object West extends Direction("west")
 case object Up extends Direction("up")
 
 case object Down extends Direction("down")
+
+
+sealed trait ItemSlot
+
+case object ItemSlotHead extends ItemSlot
+
+case object ItemSlotHands extends ItemSlot
+
+case object ItemSlotChest extends ItemSlot
+
+case object ItemSlotFeet extends ItemSlot
+
+case object ItemSlotMainHand extends ItemSlot
+
+case object ItemSlotOffHand extends ItemSlot
+
+case object ItemSlotBothHands extends ItemSlot
+
 
 sealed trait FindContext
 

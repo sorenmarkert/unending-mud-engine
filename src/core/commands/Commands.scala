@@ -6,13 +6,13 @@ sealed trait Command
 
 case class InstantCommand(func: (Character, String) => Unit) extends Command
 
-case class DurationCommand(duration: Int, beginFunc: (Character, String) => Unit, endFunc: (Character, String) => Unit) extends Command
+case class DurationCommand(duration: Int, beginFunc: (Character, String) => Option[String], endFunc: (Character, String) => Unit) extends Command
 
 object Commands {
 
     private val commandMap = Map(
         "look" -> InstantCommand(look),
-        "logout" -> InstantCommand(logout),
+        "quit" -> InstantCommand(quit),
     )
 
     private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
@@ -42,7 +42,7 @@ object Commands {
             case _ =>
         }
 
-    private[this] def logout(character: Character, arg: String) = {
+    private[this] def quit(character: Character, arg: String) = {
         character match {
             case pc: PlayerCharacter => {
                 sendMessage(character, "Goodbye.")
