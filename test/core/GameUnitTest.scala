@@ -67,6 +67,10 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
             And("On the global list")
             global should contain theSameElementsInOrderAs List(topItem, bottomItem)
         }
+
+        "Delete its contents recursively" in {
+            // TODO
+        }
     }
 
     "A moved item" should {

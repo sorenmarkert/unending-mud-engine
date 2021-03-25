@@ -1,9 +1,9 @@
 package core
 
 import core.commands.Commands.executeCommand
-import core.ZoneData.north
-import core.GameState.runState
-import core.GameUnit.createPlayerCharacterIn
+import core.ZoneData.{bag, north, tanto}
+import core.GameState.{players, runState}
+import core.GameUnit.{createItemIn, createPlayerCharacterIn}
 import play.api.{Configuration, Logger}
 
 import java.io.{BufferedReader, InputStream, InputStreamReader, PrintWriter}
@@ -39,6 +39,8 @@ class TelnetClient @Inject()(conf: Configuration)(implicit exec: ExecutionContex
         player.name = "klaus"
         player.title = "Klaus Hansen"
         player.connectionState = Connected
+        player addUnit bag
+
         serve(socket.getInputStream, player)
         socket.close()
         logger.warn("Connection closed from " + socket.getInetAddress.getHostAddress)

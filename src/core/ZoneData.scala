@@ -33,6 +33,19 @@ object ZoneData {
     hat.description = "It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance."
     hat.itemSlot = Some(ItemSlotHead)
 
+    val bag = createItemIn(north)
+    bag.id = "bag1"
+    bag.name = "bag"
+    bag.title = "a bag"
+    bag.description = "It's a small, red Eastpak."
+
+    val tanto = createItemIn(bag)
+    tanto.id = "tanto1"
+    tanto.name = "tanto"
+    tanto.title = "A black and gold plastic tanto"
+    tanto.description = "It's a very cheap looking tanto made of plastic. That design is quite flashy, though, provided you don't look too closely. It has a grey hilt wrapped in some black cloth ribbon."
+    tanto.itemSlot = Some(ItemSlotOffHand)
+
     val driver = createNonPlayerCharacterIn(north)
     driver.id = "driver1"
     driver.name = "driver"

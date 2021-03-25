@@ -68,6 +68,7 @@ object GameUnit {
             case Left(FindInInventory) => character.inventory
             case Left(FindInEquipped) => character.equippedItems
             case Left(FindInMe) => character.contents
+            case Left(FindInOrNextToMe) => character.contents concat character.outside.get.contents
             case Left(FindGlobally) => global
             case Right(container) => container.contents
         }
@@ -169,5 +170,7 @@ case object FindInEquipped extends FindContext
 case object FindInInventory extends FindContext
 
 case object FindInMe extends FindContext
+
+case object FindInOrNextToMe extends FindContext
 
 case object FindGlobally extends FindContext
