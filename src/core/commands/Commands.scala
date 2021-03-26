@@ -2,7 +2,6 @@ package core.commands
 
 import core.GameUnit.findUnit
 import core.{Character, Disconnecting, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
-import play.api.Logger
 
 sealed trait Command
 
@@ -13,8 +12,6 @@ case class DurationCommand(duration: Int,
                            endFunc: (Character, Seq[String]) => Unit) extends Command
 
 object Commands {
-
-    private val logger = Logger(this.getClass)
 
     private val commandMap = Map(
         "look" -> InstantCommand(look),
@@ -33,7 +30,7 @@ object Commands {
                 case commandPrefix :: arguments => commandMap
                     .keys
                     .find(_ startsWith commandPrefix)
-                    .map(commandString => (commandMap(commandString), arguments filterNot (_.isBlank)))
+                    .map(commandString => (commandMap(commandString), commandString :: arguments filterNot (_.isBlank)))
                     .getOrElse((unknownCommand, Nil))
             }
         }
@@ -58,11 +55,11 @@ object Commands {
         }
     }
 
-    private[this] def look(character: Character, argumentWords: Seq[String]) = {
+    private[this] def look(character: Character, commandWords: Seq[String]) = {
 
-        argumentWords match {
+        commandWords match {
 
-            case Nil => character.outside foreach {
+            case "look" :: Nil => character.outside foreach {
                 case room: Room => {
                     val (items, chars) = room.contents filterNot (_.isInstanceOf[Room]) partition (_.isInstanceOf[Item])
                     sendMessage(character, "%s\n   %s\nExits: %s\n%s\n%s".format(
@@ -90,9 +87,9 @@ object Commands {
                 case _ =>
             }
 
-            case "in" :: Nil | "inside" :: Nil => sendMessage(character, "Look inside what?")
-            case ("in" | "inside") :: args => {
-                findUnit(character, args mkString " ", Left(FindInOrNextToMe)) match {
+            case "look" :: "in" :: Nil | "look" :: "inside" :: Nil => sendMessage(character, "Look inside what?")
+            case "look" :: ("in" | "inside") :: argumentWords => {
+                findUnit(character, argumentWords mkString " ", Left(FindInOrNextToMe)) match {
                     case Some(unitToLookAt) => sendMessage(character, "You look inside the %s. It contains:\n%s".format(
                         unitToLookAt.name,
                         unitToLookAt.contents map (_.title) mkString "\n"))
@@ -100,9 +97,9 @@ object Commands {
                 }
             }
 
-            case "at" :: Nil => sendMessage(character, "Look at what?")
-            case _ => {
-                val arg = if (argumentWords.head == "at") argumentWords.tail else argumentWords
+            case "look" :: "at" :: Nil => sendMessage(character, "Look at what?")
+            case "look" :: "at" :: _ | "look" :: _ => {
+                val arg = if (commandWords(1) == "at") commandWords drop 2 else commandWords.tail
                 findUnit(character, arg mkString " ", Left(FindInOrNextToMe)) match {
                     case Some(unitToLookAt) => sendMessage(character, "You look at the %s\n%s".format(
                         unitToLookAt.name,
@@ -112,4 +109,8 @@ object Commands {
             }
         }
     }
+
+//    private[this] def movement(character: Character, commandWords: Seq[String]) = {
+//        val direction =
+//    }
 }
