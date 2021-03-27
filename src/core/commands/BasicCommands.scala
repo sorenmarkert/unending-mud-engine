@@ -1,7 +1,7 @@
 package core.commands
 
 import core.GameUnit.findUnit
-import core.commands.Commands.sendMessage
+import core.commands.Commands.{joinOrElse, sendMessage}
 import core.{Character, Direction, Disconnecting, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
 
 object BasicCommands {
@@ -22,10 +22,7 @@ object BasicCommands {
             case "look" :: Nil => character.outside foreach {
                 case room: Room => {
                     val (items, chars) = room.contents filterNot (_.isInstanceOf[Room]) partition (_.isInstanceOf[Item])
-                    val exits = Option(room.exits.keys)
-                        .filterNot(_.isEmpty)
-                        .map(_ mkString ", ")
-                        .getOrElse("none")
+                    val exits = joinOrElse(room.exits.keys map (_.toString), ", ", "none")
                     val titles = exits +: (items ++ chars filterNot (_ == character) map (_.title))
                     sendMessage(character, "%s\n   %s\nExits:  %s".format(
                         room.title,
@@ -53,9 +50,10 @@ object BasicCommands {
             case "look" :: "in" :: Nil | "look" :: "inside" :: Nil => sendMessage(character, "Look inside what?")
             case "look" :: ("in" | "inside") :: argumentWords => {
                 findUnit(character, argumentWords mkString " ", Left(FindInOrNextToMe)) match {
-                    case Some(unitToLookAt) => sendMessage(character, "You look inside the %s. It contains:\n%s".format(
-                        unitToLookAt.name,
-                        unitToLookAt.contents map (_.title) mkString "\n"))
+                    case Some(unitToLookAt) =>
+                        sendMessage(character, "You look inside the %s. It contains:\n%s".format(
+                            unitToLookAt.name,
+                            joinOrElse(unitToLookAt.contents map (_.title), "\n", "Nothing.")))
                     case None => sendMessage(character, "No such thing here to look inside.")
                 }
             }

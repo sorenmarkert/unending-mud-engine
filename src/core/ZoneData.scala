@@ -30,13 +30,13 @@ object ZoneData {
     val book = createItemIn(north)
     book.id = "book1"
     book.name = "book"
-    book.title = "A book"
+    book.title = "a book"
     book.description = "It's a small book, bound in leather."
 
     val hat = createItemIn(north)
     hat.id = "hat1"
     hat.name = "hat"
-    hat.title = "A white cowboy hat"
+    hat.title = "a white cowboy hat"
     hat.description = "It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance."
     hat.itemSlot = Some(ItemSlotHead)
 
@@ -49,7 +49,7 @@ object ZoneData {
     val tanto = createItemIn(bag)
     tanto.id = "tanto1"
     tanto.name = "tanto"
-    tanto.title = "A black and gold plastic tanto"
+    tanto.title = "a black and gold plastic tanto"
     tanto.description = "It's a very cheap looking tanto made of plastic. That design is quite flashy, though, provided you don't look too closely. It has a grey hilt wrapped in some black cloth ribbon."
     tanto.itemSlot = Some(ItemSlotOffHand)
 
