@@ -1,5 +1,6 @@
 package core
 
+import core.Direction.{North, South, West}
 import core.GameUnit.{createItemIn, createNonPlayerCharacterIn}
 
 object ZoneData {
@@ -14,11 +15,17 @@ object ZoneData {
     south.id = "id2"
     south.name = "The South Room"
     south.title = "The South Room"
-    south.description = "It's a room. There's nothing in it. Not even a door."
+    south.description = "It's a room. There's nothing in it. Not even a door. You can head west from here, but BEWARE, you can NOT go back."
 
-    north.exits += (North -> north)
+    val void = Room()
+    void.id = "void1"
+    void.name = "The Void"
+    void.title = "The Void"
+    void.description = "It's a room. There's nothing in it. Not even a door."
+
     north.exits += (South -> south)
-    north.exits += (West -> south)
+    south.exits += (North -> north)
+    south.exits += (West -> void)
 
     val book = createItemIn(north)
     book.id = "book1"

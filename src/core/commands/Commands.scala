@@ -1,7 +1,7 @@
 package core.commands
 
 import core.GameUnit.findUnit
-import core.{Character, Disconnecting, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
+import core.{Character, Direction, Disconnecting, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
 
 sealed trait Command
 
@@ -14,8 +14,14 @@ case class DurationCommand(duration: Int,
 object Commands {
 
     private val commandMap = Map(
-        "look" -> InstantCommand(look),
         "quit" -> InstantCommand(quit),
+        "look" -> InstantCommand(look),
+        "north" -> InstantCommand(movement),
+        "south" -> InstantCommand(movement),
+        "east" -> InstantCommand(movement),
+        "west" -> InstantCommand(movement),
+        "up" -> InstantCommand(movement),
+        "down" -> InstantCommand(movement),
     )
 
     private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
@@ -39,11 +45,10 @@ object Commands {
         command.func(character, argument)
     }
 
-    def sendMessage(character: Character, message: String) =
-        character match {
-            case PlayerCharacter(_, writer) => writer println (message + "\n\n(12)fake-prompt(12)")
-            case _ =>
-        }
+    def sendMessage(character: Character, message: String) = character match {
+        case PlayerCharacter(_, writer) => writer println (message + "\n\n(12/20)fake-prompt(12/20)")
+        case _ =>
+    }
 
     private[this] def quit(character: Character, arg: Seq[String]) = {
         character match {
@@ -62,12 +67,15 @@ object Commands {
             case "look" :: Nil => character.outside foreach {
                 case room: Room => {
                     val (items, chars) = room.contents filterNot (_.isInstanceOf[Room]) partition (_.isInstanceOf[Item])
-                    sendMessage(character, "%s\n   %s\nExits: %s\n%s\n%s".format(
+                    val exits = Option(room.exits.keys)
+                        .filterNot(_.isEmpty)
+                        .map(_ mkString ", ")
+                        .getOrElse("none")
+                    val titles = exits +: (items ++ chars filterNot (_ == character) map (_.title))
+                    sendMessage(character, "%s\n   %s\nExits:  %s".format(
                         room.title,
                         room.description,
-                        room.exits.keys.mkString(", "),
-                        items map (_.title) mkString "\n",
-                        chars filterNot (_ == character) map (_.title) mkString "\n"))
+                        titles mkString "\n"))
                 }
                 case item: Item =>
                     sendMessage(character, "\nYou are inside:\n%s\n%s\n%s".format(
@@ -110,7 +118,20 @@ object Commands {
         }
     }
 
-//    private[this] def movement(character: Character, commandWords: Seq[String]) = {
-//        val direction =
-//    }
+    private[this] def movement(character: Character, commandWords: Seq[String]) = {
+        // TODO: check if allowed to move
+        val direction = Direction.values find (_.toString == commandWords.head)
+        character.outside match {
+            case Some(room: Room) => {
+                room.exits.get(direction.get) match {
+                    case Some(toRoom) => {
+                        toRoom addUnit character
+                        look(character, "look" :: Nil)
+                    }
+                    case None => sendMessage(character, "No such exit here.")
+                }
+            }
+            case _ => sendMessage(character, "You can't do that in here.")
+        }
+    }
 }

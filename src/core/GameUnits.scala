@@ -1,6 +1,6 @@
 package core
 
-import core.GameState.global
+import core.GameState.{global, players}
 
 import java.io.PrintWriter
 import java.util.UUID
@@ -52,6 +52,7 @@ object GameUnit {
         val playerCharacter = PlayerCharacter(connectionState, writer)
         container addUnit playerCharacter
         global prepend playerCharacter
+        players prepend playerCharacter
         playerCharacter
     }
 
@@ -109,7 +110,12 @@ trait Character extends GameUnit {
     }
 }
 
-case class PlayerCharacter private(var connectionState: ConnectionState, private var writer: PrintWriter) extends Character()
+case class PlayerCharacter private(var connectionState: ConnectionState, private var writer: PrintWriter) extends Character() {
+    override def removeUnit: Unit = {
+        super.removeUnit
+        players subtractOne this
+    }
+}
 
 case class NonPlayerCharacter private() extends Character()
 
@@ -125,23 +131,18 @@ case class Item private() extends GameUnit() {
 }
 
 case class Room() extends GameUnit {
-    val exits = MMap[Direction, Room]()
+    val exits = MMap[Direction.Value, Room]()
 }
 
 
-sealed abstract class Direction(val name: String)
-
-case object North extends Direction("north")
-
-case object South extends Direction("south")
-
-case object East extends Direction("east")
-
-case object West extends Direction("west")
-
-case object Up extends Direction("up")
-
-case object Down extends Direction("down")
+object Direction extends Enumeration {
+    val North = Value("north")
+    val South = Value("south")
+    val East = Value("east")
+    val West = Value("west")
+    val Up = Value("up")
+    val Down = Value("down")
+}
 
 
 sealed trait ItemSlot
