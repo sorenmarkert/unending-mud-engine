@@ -1,7 +1,7 @@
 package core.commands
 
 import core.commands.BasicCommands.{look, movement, quit}
-import core.commands.EquipmentCommands.{drop, equipment, get, inventory}
+import core.commands.EquipmentCommands.{drop, equipment, get, inventory, put}
 import core.{Character, PlayerCharacter}
 
 sealed trait Command
@@ -28,6 +28,8 @@ object Commands {
         "get" -> InstantCommand(get),
         "take" -> InstantCommand(get),
         "drop" -> InstantCommand(drop),
+        "put" -> InstantCommand(put),
+        "place" -> InstantCommand(put),
     )
 
     private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))

@@ -58,4 +58,25 @@ object EquipmentCommands {
             case None => sendMessage(character, "You don't seem to have any such thing.")
         }
     }
+
+    private[commands] def put(character: Character, commandWords: Seq[String]) = {
+
+        commandWords splitAt (commandWords indexOf "in") match {
+            case (_ :: targetWords, "in" :: containerWords) => {
+                val targetOption = findUnit(character, targetWords mkString " ", Left(FindInInventory))
+                val containerOption = findUnit(character, containerWords mkString " ", Left(FindInOrNextToMe))
+                (targetOption, containerOption) match {
+                    case (Some(target), Some(container)) if target.uuid == container.uuid =>
+                        sendMessage(character, s"You fail to ${commandWords.head} your ${target.name} into itself...")
+                    case (Some(target), Some(container)) => {
+                        container addUnit target
+                        sendMessage(character, s"You ${commandWords.head} your ${target.name} into the ${container.name}.")
+                    }
+                    case (None, _) => sendMessage(character, s"You don't have any such thing on you.")
+                    case _ => sendMessage(character, s"No such thing here to ${commandWords.head} things in.")
+                }
+            }
+            case _ => sendMessage(character, commandWords.head + " 'what' in 'what' ?")
+        }
+    }
 }
