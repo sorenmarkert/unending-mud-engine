@@ -36,8 +36,8 @@ class TelnetClient @Inject()(conf: Configuration)(implicit exec: ExecutionContex
         val player = createPlayerCharacterIn(north, Connected, new PrintWriter(socket.getOutputStream, true))
         // TODO: load player data
         player.id = "player1"
-        player.name = "klaus"
-        player.title = "Klaus Hansen"
+        player.name = "Klaus"
+        player.title = "Klaus Hansen the Rude"
         player.connectionState = Connected
         player addUnit bag
         executeCommand(player, "look")

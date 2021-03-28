@@ -108,6 +108,8 @@ trait Character extends GameUnit {
         }
         case None => Some("You don't have that item equipped.")
     }
+
+    def canSee(unit: GameUnit) = true // TODO: implement visibility check
 }
 
 case class PlayerCharacter private(var connectionState: ConnectionState, private var writer: PrintWriter) extends Character() {

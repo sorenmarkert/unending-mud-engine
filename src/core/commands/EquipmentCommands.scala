@@ -2,7 +2,7 @@ package core.commands
 
 import core.{Character, FindInInventory, FindInOrNextToMe, FindNextToMe}
 import core.GameUnit.findUnit
-import core.commands.Commands.{joinOrElse, sendMessage}
+import core.commands.Commands.{act, joinOrElse, sendMessage}
 
 object EquipmentCommands {
 
@@ -26,7 +26,10 @@ object EquipmentCommands {
                         findUnit(character, targetWords mkString " ", Right(container)) match {
                             case Some(target) => {
                                 character addUnit target
-                                sendMessage(character, s"You ${commandWords.head} the ${target.name} from the ${container.name}.")
+                                act("You $1t $2n from $3n.", Always,
+                                    Some(character), Some(target), Some(container), ToActor, Some(commandWords.head))
+                                act("$1n $1ts $2n from $3n.", Always,
+                                    Some(character), Some(target), Some(container), ToAllExceptActor, Some(commandWords.head))
                             }
                             case None => sendMessage(character, s"The ${container.name} does not seem to contain such a thing.")
                         }
@@ -39,7 +42,8 @@ object EquipmentCommands {
                 findUnit(character, targetWords mkString " ", Left(FindNextToMe)) match {
                     case Some(target) => {
                         character addUnit target
-                        sendMessage(character, s"You ${commandWords.head} the ${target.name}.")
+                        act("You $1t $2n.", Always, Some(character), Some(target), None, ToActor, Some(commandWords.head))
+                        act("$1n $1ts $2n.", Always, Some(character), Some(target), None, ToAllExceptActor, Some(commandWords.head))
                     }
                     case None => sendMessage(character, s"No such thing here to ${commandWords.head}.")
                 }
@@ -53,7 +57,8 @@ object EquipmentCommands {
         findUnit(character, commandWords.tail mkString " ", Left(FindInInventory)) match {
             case Some(target) => {
                 character.outside foreach (_ addUnit target)
-                sendMessage(character, s"You drop your ${target.name}.")
+                act("You drop your $2N.", Always, Some(character), Some(target), None, ToActor, None)
+                act("$1n drops $2s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
             }
             case None => sendMessage(character, "You don't seem to have any such thing.")
         }
@@ -70,7 +75,10 @@ object EquipmentCommands {
                         sendMessage(character, s"You fail to ${commandWords.head} your ${target.name} into itself...")
                     case (Some(target), Some(container)) => {
                         container addUnit target
-                        sendMessage(character, s"You ${commandWords.head} your ${target.name} into the ${container.name}.")
+                        act("You $1t your $2N in $3n.", Always,
+                            Some(character), Some(target), Some(container), ToActor, Some(commandWords.head))
+                        act("$1n $1ts $2s $2N in $3n.", Always,
+                            Some(character), Some(target), Some(container), ToAllExceptActor, Some(commandWords.head))
                     }
                     case (None, _) => sendMessage(character, s"You don't have any such thing on you.")
                     case _ => sendMessage(character, s"No such thing here to ${commandWords.head} things in.")

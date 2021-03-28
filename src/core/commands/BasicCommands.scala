@@ -1,7 +1,7 @@
 package core.commands
 
 import core.GameUnit.findUnit
-import core.commands.Commands.{joinOrElse, sendMessage}
+import core.commands.Commands.{act, joinOrElse, sendMessage}
 import core.{Character, Direction, Disconnecting, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
 
 object BasicCommands {
@@ -10,6 +10,7 @@ object BasicCommands {
         character match {
             case pc: PlayerCharacter => {
                 sendMessage(character, "Goodbye.")
+                act("$1N has left the game.", Always, Some(character), None, None, ToAllExceptActor, None)
                 pc.connectionState = Disconnecting
             }
             case _ =>
@@ -23,7 +24,7 @@ object BasicCommands {
                 case room: Room => {
                     val (items, chars) = room.contents filterNot (_.isInstanceOf[Room]) partition (_.isInstanceOf[Item])
                     val exits = joinOrElse(room.exits.keys map (_.toString), ", ", "none")
-                    val titles = exits +: (items ++ chars filterNot (_ == character) map (_.title))
+                    val titles = exits +: (items ++ chars filterNot (_ == character) map (_.title)) // TODO: adjust for position
                     sendMessage(character, "%s\n   %s\nExits:  %s".format(
                         room.title,
                         room.description,
@@ -78,7 +79,9 @@ object BasicCommands {
             case Some(room: Room) => {
                 room.exits.get(direction.get) match {
                     case Some(toRoom) => {
+                        act("$1n leaves $1t.", Always, Some(character), None, None, ToAllExceptActor, Some(direction.get.toString))
                         toRoom addUnit character
+                        act("$1n has arrived from the $1t.", Always, Some(character), None, None, ToAllExceptActor, Some(direction.get.toString))
                         look(character, "look" :: Nil)
                     }
                     case None => sendMessage(character, "No such exit here.")
