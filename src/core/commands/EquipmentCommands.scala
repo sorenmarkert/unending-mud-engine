@@ -58,7 +58,7 @@ object EquipmentCommands {
             case Some(target) => {
                 character.outside foreach (_ addUnit target)
                 act("You drop your $2N.", Always, Some(character), Some(target), None, ToActor, None)
-                act("$1n drops $2s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
+                act("$1n drops $1s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
             }
             case None => sendMessage(character, "You don't seem to have any such thing.")
         }
@@ -77,7 +77,7 @@ object EquipmentCommands {
                         container addUnit target
                         act("You $1t your $2N in $3n.", Always,
                             Some(character), Some(target), Some(container), ToActor, Some(commandWords.head))
-                        act("$1n $1ts $2s $2N in $3n.", Always,
+                        act("$1n $1ts $1s $2N in $3n.", Always,
                             Some(character), Some(target), Some(container), ToAllExceptActor, Some(commandWords.head))
                     }
                     case (None, _) => sendMessage(character, s"You don't have any such thing on you.")

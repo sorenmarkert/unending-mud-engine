@@ -3,7 +3,8 @@ package core
 import core.GameState.runState
 import core.GameUnit.createPlayerCharacterIn
 import core.ZoneData.{bag, north}
-import core.commands.Commands.executeCommand
+import core.commands.{Always, ToAllExceptActor}
+import core.commands.Commands.{act, executeCommand}
 import play.api.{Configuration, Logger}
 
 import java.io.{BufferedReader, InputStream, InputStreamReader, PrintWriter}
@@ -37,10 +38,11 @@ class TelnetClient @Inject()(conf: Configuration)(implicit exec: ExecutionContex
         // TODO: load player data
         player.id = "player1"
         player.name = "Klaus"
-        player.title = "Klaus Hansen the Rude"
+        player.title = "the Rude"
         player.connectionState = Connected
         player addUnit bag
         executeCommand(player, "look")
+        act("$1N has entered the game.", Always, Some(player), None, None, ToAllExceptActor, None)
 
         serve(socket.getInputStream, player)
         socket.close()
@@ -54,7 +56,7 @@ class TelnetClient @Inject()(conf: Configuration)(implicit exec: ExecutionContex
         executeCommand(player, input)
 
         if (player.connectionState == Disconnecting) {
-            // TODO: save player and remove the player object
+            // TODO: save player data
             player.removeUnit
         } else {
             serve(in, player)

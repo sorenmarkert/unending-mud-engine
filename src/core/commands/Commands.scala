@@ -2,7 +2,7 @@ package core.commands
 
 import core.commands.BasicCommands.{look, movement, quit}
 import core.commands.EquipmentCommands._
-import core.{Character, GameUnit, PlayerCharacter}
+import core.{Character, GameUnit, Item, PlayerCharacter, Room, Gender, GenderFemale, GenderMale, GenderNeutral}
 
 import scala.collection.mutable.ListBuffer
 
@@ -82,11 +82,16 @@ object Commands {
             case ToEntireRoom => charactersInRoom
         }
 
+        def formatGender(unit: GameUnit, genderMap: Map[Gender, String]) = unit match {
+            case character: Character => genderMap(character.gender)
+            case _ => genderMap(GenderNeutral)
+        }
+
         def formatUnit(unit: GameUnit, formatter: String) = formatter match { // TODO: visibility
             case "a" => if (Set('a', 'e', 'i', 'o') contains unit.name.head) "an" else "a"
-            case "e" => "he" // TODO: genders
-            case "m" => "him" // TODO: genders
-            case "s" => "his" // TODO: genders
+            case "e" => formatGender(unit, Map(GenderMale -> "he", GenderFemale -> "she", GenderNeutral -> "it"))
+            case "m" => formatGender(unit, Map(GenderMale -> "him", GenderFemale -> "her", GenderNeutral -> "it"))
+            case "s" => formatGender(unit, Map(GenderMale -> "his", GenderFemale -> "her", GenderNeutral -> "its"))
             case "n" => unit.title
             case "N" => unit.name
             case "p" => "unit.position" // TODO: positions

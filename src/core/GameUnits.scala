@@ -84,6 +84,8 @@ trait Character extends GameUnit {
     private val _equipped = MMap[ItemSlot, Item]()
     private val _equippedReverse = MMap[Item, ItemSlot]()
 
+    var gender: Gender = GenderMale
+
     def equippedItems = _equipped.values
 
     def inventory = contents diff _equipped.values.toList
@@ -177,3 +179,12 @@ case object FindInMe extends FindContext
 case object FindInOrNextToMe extends FindContext
 
 case object FindGlobally extends FindContext
+
+
+sealed abstract class Gender
+
+case object GenderMale extends Gender
+
+case object GenderFemale extends Gender
+
+case object GenderNeutral extends Gender
