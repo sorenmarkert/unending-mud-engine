@@ -37,6 +37,11 @@ sealed abstract class GameUnit() {
     private def removeUnitFromContainer = {
         outside foreach (_._contents subtractOne this)
     }
+
+    override def equals(other: Any) = other match {
+        case unit: GameUnit => unit.uuid == uuid
+        case _ => false
+    }
 }
 
 object GameUnit {
