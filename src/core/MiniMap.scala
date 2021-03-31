@@ -6,17 +6,19 @@ import scala.collection.mutable.{Set => MSet}
 
 object MiniMap {
 
-    def miniMap(room: Room, range: Int): List[String] = {
+    def miniMap(room: Room, range: Int) = {
 
         val theMap = Array.tabulate(4 * range + 1, 6 * range + 1)((_, _) => ' ')
         val traversedRooms = MSet[Room]()
 
         def mapRoom(currentRoom: Room, y: Int, x: Int, distance: Int): Unit = {
 
-            if (distance < range && !(traversedRooms contains currentRoom)) {
+            if (distance < range) {
                 traversedRooms += currentRoom
 
-                val directionsToMap = Set(North, South, East, West) intersect currentRoom.exits.keySet
+                val directionsToMap = Set(North, South, East, West)
+                    .intersect(currentRoom.exits.keySet)
+                    .filterNot(traversedRooms contains currentRoom.exits(_))
                 directionsToMap.foreach {
                     case North =>
                         theMap(y - 1)(x) = '|'
@@ -43,5 +45,13 @@ object MiniMap {
         theMap(2 * range)(3 * range) = 'X'
         mapRoom(room, 2 * range, 3 * range, 0)
         theMap.map(_.mkString).toList
+    }
+
+    def frameMap(map: List[String]) = {
+        val line = Array.tabulate(map(0).size)((_) => '-').mkString
+        val header = "/" + line + "\\"
+        val footer = "\\" + line + "/"
+
+        header :: (map map ("|" + _ + "|")) appended footer
     }
 }

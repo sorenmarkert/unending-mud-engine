@@ -42,6 +42,8 @@ sealed abstract class GameUnit() {
         case unit: GameUnit => unit.uuid == uuid
         case _ => false
     }
+
+    override def toString: String = this.getClass.getSimpleName + "(" + name + ", " + id + ", " + uuid + ")"
 }
 
 object GameUnit {
@@ -73,8 +75,8 @@ object GameUnit {
             case Left(FindNextToMe) => character.outside.get.contents
             case Left(FindInInventory) => character.inventory
             case Left(FindInEquipped) => character.equippedItems
-            case Left(FindInMe) => character.contents
-            case Left(FindInOrNextToMe) => character.contents concat character.outside.get.contents
+            case Left(FindInMe) => character.equippedItems concat character.inventory
+            case Left(FindInOrNextToMe) => character.equippedItems concat character.inventory concat character.outside.get.contents
             case Left(FindGlobally) => global
             case Right(container) => container.contents
         }
@@ -91,7 +93,7 @@ trait Character extends GameUnit {
 
     var gender: Gender = GenderMale
 
-    def equippedItems = _equipped.values
+    def equippedItems = contents filter _equipped.values.toList.contains
 
     def inventory = contents diff _equipped.values.toList
 
@@ -140,7 +142,10 @@ case class Item private() extends GameUnit() {
 }
 
 case class Room() extends GameUnit {
+
     val exits = MMap[Direction.Value, Room]()
+
+    description = "It's a room. There's nothing in it. Not even a door."
 }
 
 

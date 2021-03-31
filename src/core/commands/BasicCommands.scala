@@ -1,8 +1,11 @@
 package core.commands
 
 import core.GameUnit.findUnit
+import core.MiniMap.{frameMap, miniMap}
 import core.commands.Commands.{act, joinOrElse, sendMessage}
-import core.{Character, Direction, Disconnecting, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
+import core.{Character, Direction, Disconnecting, FindInOrNextToMe, Item, MiniMap, NonPlayerCharacter, PlayerCharacter, Room}
+
+import scala.util.{Failure, Success, Try}
 
 object BasicCommands {
 
@@ -88,6 +91,21 @@ object BasicCommands {
                 }
             }
             case _ => sendMessage(character, "You can't do that in here.")
+        }
+    }
+
+    private[commands] def minimap(character: Character, commandWords: Seq[String]) = {
+
+        val range = Try(commandWords(1).toInt) match {
+            case Success(value) => value
+            case Failure(_) => 2
+        }
+
+        character.outside match {
+            case Some(room: Room) => {
+                sendMessage(character, frameMap(miniMap(room, range.toInt)) mkString "\n")
+            }
+            case _ => sendMessage(character, "You can't see from in here.")
         }
     }
 }

@@ -1,8 +1,8 @@
 package core.commands
 
-import core.commands.BasicCommands.{look, movement, quit}
+import core.commands.BasicCommands.{look, minimap, movement, quit}
 import core.commands.EquipmentCommands._
-import core.{Character, GameUnit, Item, PlayerCharacter, Room, Gender, GenderFemale, GenderMale, GenderNeutral}
+import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, Item, PlayerCharacter, Room}
 
 import scala.collection.mutable.ListBuffer
 
@@ -32,6 +32,7 @@ object Commands {
         "down" -> InstantCommand(movement),
 
         "look" -> InstantCommand(look),
+        "minimap" -> InstantCommand(minimap),
         "inventory" -> InstantCommand(inventory),
         "equipment" -> InstantCommand(equipment),
         "get" -> InstantCommand(get),

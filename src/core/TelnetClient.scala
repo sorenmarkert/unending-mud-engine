@@ -2,9 +2,9 @@ package core
 
 import core.GameState.runState
 import core.GameUnit.createPlayerCharacterIn
-import core.ZoneData.{bag, north}
-import core.commands.{Always, ToAllExceptActor}
+import core.ZoneData.roomCenter
 import core.commands.Commands.{act, executeCommand}
+import core.commands.{Always, ToAllExceptActor}
 import play.api.{Configuration, Logger}
 
 import java.io.{BufferedReader, InputStream, InputStreamReader, PrintWriter}
@@ -34,13 +34,12 @@ class TelnetClient @Inject()(conf: Configuration)(implicit exec: ExecutionContex
     }
 
     private def initConnection(socket: Socket) = {
-        val player = createPlayerCharacterIn(north, Connected, new PrintWriter(socket.getOutputStream, true))
+        val player = createPlayerCharacterIn(roomCenter, Connected, new PrintWriter(socket.getOutputStream, true))
         // TODO: load player data
         player.id = "player1"
         player.name = "Klaus"
         player.title = "the Rude"
         player.connectionState = Connected
-        player addUnit bag
         executeCommand(player, "look")
         act("$1N has entered the game.", Always, Some(player), None, None, ToAllExceptActor, None)
 
