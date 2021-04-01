@@ -68,9 +68,9 @@ object EquipmentCommands {
 
         commandWords splitAt (commandWords indexOf "in") match {
             case (_ :: targetWords, "in" :: containerWords) => {
-                val targetOption = findUnit(character, targetWords mkString " ", Left(FindInInventory))
+                val mediumOption = findUnit(character, targetWords mkString " ", Left(FindInInventory))
                 val containerOption = findUnit(character, containerWords mkString " ", Left(FindInOrNextToMe))
-                (targetOption, containerOption) match {
+                (mediumOption, containerOption) match {
                     case (Some(target), Some(container)) if target.uuid == container.uuid =>
                         sendMessage(character, s"You fail to ${commandWords.head} your ${target.name} into itself...")
                     case (Some(target), Some(container)) => {
@@ -85,6 +85,34 @@ object EquipmentCommands {
                 }
             }
             case _ => sendMessage(character, commandWords.head + " 'what' in 'what' ?")
+        }
+    }
+
+    private[commands] def give(character: Character, commandWords: Seq[String]) = {
+
+        commandWords splitAt (commandWords indexOf "to") match {
+            case (_ :: mediumWords, "to" :: targetWords) => {
+                val mediumOption = findUnit(character, mediumWords mkString " ", Left(FindInInventory))
+                val targetOption = findUnit(character, targetWords mkString " ", Left(FindNextToMe))
+                (mediumOption, targetOption) match {
+                    case (Some(medium), Some(target: Character)) => {
+                        target addUnit medium
+                        act("You $1t $2a to $3n.", Always,
+                            Some(character), Some(medium), Some(target), ToActor, Some(commandWords.head))
+                        act("$1n $1ts you $2n.", Always,
+                            Some(character), Some(medium), Some(target), ToTarget, Some(commandWords.head))
+                        act("$1n $1ts $2n to $3n.", Always,
+                            Some(character), Some(medium), Some(target), ToBystanders, Some(commandWords.head))
+                    }
+                    case (Some(medium), Some(target)) =>
+                        sendMessage(character, s"You can't ${commandWords.head} the ${target.name} your ${medium.name}. Try using 'put' instead?")
+                    case (None, _) =>
+                        sendMessage(character, s"You don't have any such thing on you.")
+                    case _ =>
+                        sendMessage(character, s"There's nobody here by that name to ${commandWords.head} things to.")
+                }
+            }
+            case _ => sendMessage(character, commandWords.head + " 'what' to 'whom' ?")
         }
     }
 }

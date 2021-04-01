@@ -32,11 +32,14 @@ sealed abstract class GameUnit() {
     def removeUnit = {
         global subtractOne this
         removeUnitFromContainer
+        // TODO: remove contents recursively
     }
 
     private def removeUnitFromContainer = {
         outside foreach (_._contents subtractOne this)
     }
+
+    def canContain(unit: GameUnit) = true // TODO: check if can contain/carry
 
     override def equals(other: Any) = other match {
         case unit: GameUnit => unit.uuid == uuid
@@ -71,6 +74,7 @@ object GameUnit {
     }
 
     def findUnit(character: Character, name: String, environment: Either[FindContext, GameUnit]) = {
+
         val listToSearch = environment match {
             case Left(FindNextToMe) => character.outside.get.contents
             case Left(FindInInventory) => character.inventory
@@ -81,7 +85,8 @@ object GameUnit {
             case Right(container) => container.contents
         }
 
-        listToSearch find (_.name == name)
+        // TODO: find 3.book
+        listToSearch filter (character canSee _) find (_.name equalsIgnoreCase name)
     }
 }
 

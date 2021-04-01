@@ -220,6 +220,8 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
 
     "findUnit" should {
 
+        // TODO: find is case insensitive
+
         "Find an item next to the character" in {
 
             Given("A player next to 3 items")

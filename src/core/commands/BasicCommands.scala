@@ -27,27 +27,28 @@ object BasicCommands {
                 case room: Room => {
                     val (items, chars) = room.contents filterNot (_.isInstanceOf[Room]) partition (_.isInstanceOf[Item])
                     val exits = joinOrElse(room.exits.keys map (_.toString), ", ", "none")
-                    val titles = exits +: (items ++ chars filterNot (_ == character) map mapContent) // TODO: adjust for character position
+                    val titles = exits +: (items ++ chars filterNot (_ == character) map (mapContent(_)))
+                    // TODO: adjust for character position
                     sendMessage(character, "%s\n   %s\nExits:  %s".format(
                         room.title,
                         room.description,
-                        titles mkString "\n"), true)
+                        titles mkString "\n"), addMap = true)
                 }
                 case item: Item =>
                     sendMessage(character, "\nYou are inside:\n%s\n%s\n%s".format(
                         item.title,
                         item.description,
-                        item.contents map mapContent mkString "\n"))
+                        item.contents map (mapContent(_)) mkString "\n"))
                 case character: PlayerCharacter =>
                     sendMessage(character, "\nYou are being carried by:\n%s\n%s\n%s".format(
                         character.name + " " + character.title,
                         character.description,
-                        character.contents map mapContent mkString "\n"))
+                        character.contents map (mapContent(_)) mkString "\n"))
                 case character: NonPlayerCharacter =>
                     sendMessage(character, "\nYou are being carried by:\n%s\n%s\n%s".format(
                         character.title,
                         character.description,
-                        character.contents map mapContent mkString "\n"))
+                        character.contents map (mapContent(_)) mkString "\n"))
                 case _ =>
             }
 
@@ -57,7 +58,7 @@ object BasicCommands {
                     case Some(unitToLookAt) =>
                         sendMessage(character, "You look inside the %s. It contains:\n%s".format(
                             unitToLookAt.name,
-                            joinOrElse(unitToLookAt.contents map mapContent, "\n", "Nothing.")))
+                            joinOrElse(unitToLookAt.contents map (mapContent(_)), "\n", "Nothing.")))
                     case None => sendMessage(character, "No such thing here to look inside.")
                 }
             }
@@ -66,7 +67,7 @@ object BasicCommands {
             case "look" :: "at" :: _ | "look" :: _ => {
                 val arg = if (commandWords(1) == "at") commandWords drop 2 else commandWords.tail
                 findUnit(character, arg mkString " ", Left(FindInOrNextToMe)) match {
-                    case Some(unitToLookAt) => sendMessage(character, "You look at the %s\n%s".format(
+                    case Some(unitToLookAt) => sendMessage(character, "You look at %s.\n%s".format(
                         unitToLookAt.name,
                         unitToLookAt.description))
                     case None => sendMessage(character, "No such thing here to look at.")

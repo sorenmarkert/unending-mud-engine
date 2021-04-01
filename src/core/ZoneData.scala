@@ -95,12 +95,12 @@ object ZoneData {
     val driver = createNonPlayerCharacterIn(roomCenter)
     driver.id = "driver1"
     driver.name = "driver"
-    driver.title = "The driver"
+    driver.title = "the driver"
     driver.description = "She's a short, plump woman wearing a light frown as if it was her most prized possession."
 
     val boy = createNonPlayerCharacterIn(roomCenter)
     boy.id = "boy1"
     boy.name = "boy"
-    boy.title = "A boy"
+    boy.title = "a boy"
     boy.description = "He's a little boy, probably around the age of 10."
 }
