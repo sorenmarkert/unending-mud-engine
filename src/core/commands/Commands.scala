@@ -1,9 +1,11 @@
 package core.commands
 
+import core.MiniMap.{frameMap, miniMap}
 import core.commands.BasicCommands.{look, minimap, movement, quit}
 import core.commands.EquipmentCommands._
-import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, Item, PlayerCharacter, Room}
+import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, PlayerCharacter, Room}
 
+import scala.Array.tabulate
 import scala.collection.mutable.ListBuffer
 
 sealed trait Command
@@ -58,9 +60,37 @@ object Commands {
         command.func(character, argument)
     }
 
-    def sendMessage(character: Character, message: String) = character match {
-        case PlayerCharacter(_, writer) => writer println (message + "\n\n(12/20)fake-prompt(12/20)")
-        case _ =>
+    def sendMessage(character: Character, message: String, addMap: Boolean = false) = {
+
+        val textWidth = 50
+
+        val formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
+
+        def prompt = "\n\n(12/20) fake-prompt (12/20)"
+        def formattedPromptLines = (prompt grouped textWidth mkString "\n").linesIterator
+
+        val addedMap = (addMap, character.outside) match {
+            case (true, Some(room: Room)) =>
+                val mapLines = frameMap(miniMap(room, 3))
+                formattedOutput
+                    .linesIterator
+                    .padTo(mapLines.size - formattedPromptLines.size, "")
+                    .toList
+                    .appendedAll(formattedPromptLines)
+                    .map(_.padTo(textWidth, ' '))
+                    .zipAll(
+                        mapLines,
+                        tabulate(textWidth)(_ => ' ').mkString,
+                        "")
+                    .map(a => a._1 + "  " + a._2)
+                    .mkString("\n")
+            case _ => formattedOutput
+        }
+
+        character match {
+            case PlayerCharacter(_, writer) => writer println addedMap
+            case _ => // TODO: send to controlling admin
+        }
     }
 
     def act(message: String, visibility: ActVisibility, actor: Option[GameUnit], medium: Option[GameUnit],
@@ -116,6 +146,11 @@ object Commands {
             .filterNot(_.isEmpty)
             .map(_ mkString separator)
             .getOrElse(default)
+    }
+
+    private[commands] def mapContent(unit: GameUnit) = unit match {
+        case player: PlayerCharacter => player.name + " " + player.title
+        case _ => unit.title
     }
 }
 

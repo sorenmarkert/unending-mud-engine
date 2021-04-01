@@ -2,6 +2,7 @@ package core
 
 import core.Direction.{East, North, South, West}
 
+import scala.Array.tabulate
 import scala.collection.mutable.{Set => MSet}
 import scala.math.{abs, max, min}
 
@@ -41,7 +42,7 @@ object MiniMap {
         val maxPair = maxCoordinates(graphMap)
         val (maxX, maxY) = (max(2, maxPair._1), max(2, maxPair._2))
         val (centerX, centerY) = (3 * maxX, 2 * maxY)
-        val theMap = Array.tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
+        val theMap = tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
 
         def drawMap(mapNode: MapNode): Unit = {
             val (fromX, fromY) = (centerX + 3 * mapNode.x, centerY + 2 * mapNode.y)
