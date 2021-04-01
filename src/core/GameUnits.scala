@@ -143,7 +143,7 @@ case class Item private() extends GameUnit() {
 
 case class Room() extends GameUnit {
 
-    val exits = MMap[Direction.Value, Room]()
+    val exits = MMap[Direction.Value, Exit]()
 
     description = "It's a room. There's nothing in it. Not even a door."
 }
@@ -157,6 +157,8 @@ object Direction extends Enumeration {
     val Up = Value("up")
     val Down = Value("down")
 }
+
+case class Exit(toRoom: Room, distance: Int = 1)
 
 
 sealed trait ItemSlot

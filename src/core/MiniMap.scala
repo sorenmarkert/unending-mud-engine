@@ -3,47 +3,65 @@ package core
 import core.Direction.{East, North, South, West}
 
 import scala.collection.mutable.{Set => MSet}
+import scala.math.{abs, max, min}
 
 object MiniMap {
 
     def miniMap(room: Room, range: Int) = {
 
-        val theMap = Array.tabulate(4 * range + 1, 6 * range + 1)((_, _) => ' ')
         val traversedRooms = MSet[Room]()
 
-        def mapRoom(currentRoom: Room, y: Int, x: Int, distance: Int): Unit = {
+        def mapToGraph(currentRoom: Room, x: Int, y: Int, currentRange: Int): MapNode = {
 
-            if (distance < range) {
-                traversedRooms += currentRoom
+            traversedRooms += currentRoom
 
-                val directionsToMap = Set(North, South, East, West)
-                    .intersect(currentRoom.exits.keySet)
-                    .filterNot(traversedRooms contains currentRoom.exits(_))
-                directionsToMap.foreach {
-                    case North =>
-                        theMap(y - 1)(x) = '|'
-                        theMap(y - 2)(x) = '#'
-                        mapRoom(currentRoom.exits(North), y - 2, x, distance + 1)
-                    case South =>
-                        theMap(y + 1)(x) = '|'
-                        theMap(y + 2)(x) = '#'
-                        mapRoom(currentRoom.exits(South), y + 2, x, distance + 1)
-                    case East =>
-                        theMap(y)(x + 1) = '-'
-                        theMap(y)(x + 2) = '-'
-                        theMap(y)(x + 3) = '#'
-                        mapRoom(currentRoom.exits(East), y, x + 3, distance + 1)
-                    case West =>
-                        theMap(y)(x - 1) = '-'
-                        theMap(y)(x - 2) = '-'
-                        theMap(y)(x - 3) = '#'
-                        mapRoom(currentRoom.exits(West), y, x - 3, distance + 1)
-                }
-            }
+            val unvisitedExits =
+                if (currentRange < range)
+                    currentRoom.exits.filterNot { case (_, v) => traversedRooms contains v.toRoom }.toMap
+                else
+                    Map.empty[Direction.Value, Exit]
+
+            MapNode(
+                unvisitedExits.get(North) map (exit => mapToGraph(exit.toRoom, x, y - exit.distance, currentRange + 1)),
+                unvisitedExits.get(South) map (exit => mapToGraph(exit.toRoom, x, y + exit.distance, currentRange + 1)),
+                unvisitedExits.get(East) map (exit => mapToGraph(exit.toRoom, x + exit.distance, y, currentRange + 1)),
+                unvisitedExits.get(West) map (exit => mapToGraph(exit.toRoom, x - exit.distance, y, currentRange + 1)),
+                currentRoom, x, y)
         }
 
-        theMap(2 * range)(3 * range) = 'X'
-        mapRoom(room, 2 * range, 3 * range, 0)
+        def maxCoordinates(mapNode: MapNode): (Int, Int) =
+            Vector(mapNode.north map maxCoordinates,
+                mapNode.south map maxCoordinates,
+                mapNode.east map maxCoordinates,
+                mapNode.west map maxCoordinates)
+                .flatten
+                .fold(abs(mapNode.x), abs(mapNode.y))((pairA, pairB) => (max(pairA._1, pairB._1), max(pairA._2, pairB._2)))
+
+        val graphMap = mapToGraph(room, 0, 0, 0)
+        val maxPair = maxCoordinates(graphMap)
+        val (maxX, maxY) = (max(2, maxPair._1), max(2, maxPair._2))
+        val (centerX, centerY) = (3 * maxX, 2 * maxY)
+        val theMap = Array.tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
+
+        def drawMap(mapNode: MapNode): Unit = {
+            val (fromX, fromY) = (centerX + 3 * mapNode.x, centerY + 2 * mapNode.y)
+
+            Vector(mapNode.north, mapNode.south, mapNode.east, mapNode.west)
+                .flatten
+                .foreach { currentMapNode =>
+                    drawMap(currentMapNode)
+                    val (toX, toY) = (centerX + 3 * currentMapNode.x, centerY + 2 * currentMapNode.y)
+                    if (fromX == toX) {
+                        min(fromY, toY) until max(fromY, toY) foreach (theMap(_)(toX) = '|')
+                    } else {
+                        min(fromX, toX) until max(fromX, toX) foreach (theMap(toY)(_) = '-')
+                    }
+                    theMap(toY)(toX) = '#'
+                }
+        }
+
+        drawMap(graphMap)
+        theMap(centerY)(centerX) = 'X'
         theMap.map(_.mkString).toList
     }
 
@@ -55,3 +73,7 @@ object MiniMap {
         header :: (map map ("|" + _ + "|")) appended footer
     }
 }
+
+case class MapNode(north: Option[MapNode], south: Option[MapNode],
+                   east: Option[MapNode], west: Option[MapNode],
+                   room: Room, x: Int, y: Int)

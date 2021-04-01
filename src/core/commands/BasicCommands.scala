@@ -3,7 +3,7 @@ package core.commands
 import core.GameUnit.findUnit
 import core.MiniMap.{frameMap, miniMap}
 import core.commands.Commands.{act, joinOrElse, sendMessage}
-import core.{Character, Direction, Disconnecting, FindInOrNextToMe, Item, MiniMap, NonPlayerCharacter, PlayerCharacter, Room}
+import core.{Character, Direction, Disconnecting, Exit, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
 
 import scala.util.{Failure, Success, Try}
 
@@ -81,7 +81,7 @@ object BasicCommands {
         character.outside match {
             case Some(room: Room) => {
                 room.exits.get(direction.get) match {
-                    case Some(toRoom) => {
+                    case Some(Exit(toRoom, _)) => {
                         act("$1n leaves $1t.", Always, Some(character), None, None, ToAllExceptActor, Some(direction.get.toString))
                         toRoom addUnit character
                         act("$1n has arrived from the $1t.", Always, Some(character), None, None, ToAllExceptActor, Some(direction.get.toString))
@@ -103,7 +103,7 @@ object BasicCommands {
 
         character.outside match {
             case Some(room: Room) => {
-                sendMessage(character, frameMap(miniMap(room, range.toInt)) mkString "\n")
+                sendMessage(character, frameMap(miniMap(room, range)) mkString "\n")
             }
             case _ => sendMessage(character, "You can't see from in here.")
         }

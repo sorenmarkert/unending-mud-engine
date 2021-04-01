@@ -1,7 +1,6 @@
 package core
 
 import core.Direction.{East, North, South, West}
-import core.Rooms.{roomCenter, roomEast, roomEastSouth, roomNorth, roomNorthEast, roomNorthNorth, roomNorthNorthEast, roomNorthNorthEastEast, roomSouth, roomSouthSouth, roomWest}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
@@ -15,8 +14,8 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
             Given("A room with an exit")
             val roomCenter = Room()
             val roomWest = Room()
-            roomCenter.exits += (West -> roomWest)
-            roomWest.exits += (East -> roomCenter)
+            roomCenter.exits += (West -> Exit(roomWest))
+            roomWest.exits += (East -> Exit(roomCenter))
 
             When("Mapping the area")
             val result = MiniMap.miniMap(roomCenter, 0)
@@ -49,10 +48,10 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
             val roomCenter = Room()
             val roomWest = Room()
             val roomSouth = Room()
-            roomCenter.exits += (West -> roomWest)
-            roomCenter.exits += (South -> roomSouth)
-            roomWest.exits += (East -> roomCenter)
-            roomSouth.exits += (North -> roomCenter)
+            roomCenter.exits += (West -> Exit(roomWest))
+            roomCenter.exits += (South -> Exit(roomSouth))
+            roomWest.exits += (East -> Exit(roomCenter))
+            roomSouth.exits += (North -> Exit(roomCenter))
 
             When("Mapping the area")
             val result = MiniMap.miniMap(roomCenter, 1)
@@ -76,15 +75,15 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
             val roomWest = Room()
             val roomSouth = Room()
             val roomSouthWest = Room()
-            roomCenter.exits += (North -> roomNorth)
-            roomCenter.exits += (East -> roomEast)
-            roomCenter.exits += (West -> roomWest)
-            roomCenter.exits += (South -> roomSouth)
-            roomSouth.exits += (West -> roomSouthWest) // Should not be included
-            roomNorth.exits += (South -> roomCenter)
-            roomEast.exits += (West -> roomCenter)
-            roomWest.exits += (East -> roomCenter)
-            roomSouth.exits += (North -> roomCenter)
+            roomCenter.exits += (North -> Exit(roomNorth))
+            roomCenter.exits += (East -> Exit(roomEast))
+            roomCenter.exits += (West -> Exit(roomWest))
+            roomCenter.exits += (South -> Exit(roomSouth))
+            roomSouth.exits += (West -> Exit(roomSouthWest)) // Should not be included
+            roomNorth.exits += (South -> Exit(roomCenter))
+            roomEast.exits += (West -> Exit(roomCenter))
+            roomWest.exits += (East -> Exit(roomCenter))
+            roomSouth.exits += (North -> Exit(roomCenter))
 
             When("Mapping the area")
             val result = MiniMap.miniMap(roomCenter, 1)
@@ -107,14 +106,14 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
             val roomEast = Room()
             val roomWest = Room()
             val roomSouth = Room()
-            roomCenter.exits += (North -> roomNorth)
-            roomCenter.exits += (East -> roomEast)
-            roomCenter.exits += (West -> roomWest)
-            roomCenter.exits += (South -> roomSouth)
-            roomNorth.exits += (South -> roomCenter)
-            roomEast.exits += (West -> roomCenter)
-            roomWest.exits += (East -> roomCenter)
-            roomSouth.exits += (North -> roomCenter)
+            roomCenter.exits += (North -> Exit(roomNorth))
+            roomCenter.exits += (East -> Exit(roomEast))
+            roomCenter.exits += (West -> Exit(roomWest))
+            roomCenter.exits += (South -> Exit(roomSouth))
+            roomNorth.exits += (South -> Exit(roomCenter))
+            roomEast.exits += (West -> Exit(roomCenter))
+            roomWest.exits += (East -> Exit(roomCenter))
+            roomSouth.exits += (North -> Exit(roomCenter))
 
             val roomNorthNorth = Room()
             val roomNorthNorthEast = Room() // Should not be included
@@ -122,33 +121,28 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
             val roomEastSouth = Room()
             val roomSouthSouth = Room()
 
-            roomCenter.exits += (North -> roomNorth)
-            roomCenter.exits += (South -> roomSouth)
-            roomCenter.exits += (East -> roomEast)
-            roomCenter.exits += (West -> roomWest)
+            roomNorth.exits += (North -> Exit(roomNorthNorth))
+            roomNorth.exits += (South -> Exit(roomCenter))
+            roomNorth.exits += (East -> Exit(roomNorthEast))
 
-            roomNorth.exits += (North -> roomNorthNorth)
-            roomNorth.exits += (South -> roomCenter)
-            roomNorth.exits += (East -> roomNorthEast)
+            roomSouth.exits += (North -> Exit(roomCenter))
+            roomSouth.exits += (South -> Exit(roomSouthSouth))
 
-            roomSouth.exits += (North -> roomCenter)
-            roomSouth.exits += (South -> roomSouthSouth)
+            roomEast.exits += (South -> Exit(roomEastSouth))
+            roomEast.exits += (West -> Exit(roomCenter))
 
-            roomEast.exits += (South -> roomEastSouth)
-            roomEast.exits += (West -> roomCenter)
+            roomWest.exits += (East -> Exit(roomCenter))
 
-            roomWest.exits += (East -> roomCenter)
+            roomNorthNorth.exits += (East -> Exit(roomNorthNorthEast))
+            roomNorthNorth.exits += (South -> Exit(roomNorth))
 
-            roomNorthNorth.exits += (East -> roomNorthNorthEast)
-            roomNorthNorth.exits += (South -> roomNorth)
+            roomNorthEast.exits += (West -> Exit(roomNorth))
 
-            roomNorthEast.exits += (West -> roomNorth)
+            roomSouthSouth.exits += (North -> Exit(roomSouth))
 
-            roomSouthSouth.exits += (North -> roomSouth)
+            roomEastSouth.exits += (North -> Exit(roomEast))
 
-            roomEastSouth.exits += (North -> roomEast)
-
-            roomNorthNorthEast.exits += (West -> roomNorthNorth)
+            roomNorthNorthEast.exits += (West -> Exit(roomNorthNorth))
 
             When("Mapping the area")
             val result = MiniMap.miniMap(roomCenter, 2)
@@ -164,6 +158,64 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
                 "      #  #   ",
                 "      |      ",
                 "      #      ",
+            ).mkString("\n", "\n", "\n")
+        }
+
+        "Map a range 2 map correctly distancing rooms" in {
+
+            Given("An area of rooms, some of which have distance > 1")
+            val roomCenter = Room()
+            roomCenter.id = "roomCenter"
+            val roomNorth = Room()
+            roomNorth.id = "roomNorth"
+            val roomEast = Room()
+            roomEast.id = "roomEast"
+            val roomWest = Room()
+            roomWest.id = "roomWest"
+            val roomSouth = Room()
+            roomSouth.id = "roomSouth"
+            roomCenter.exits += (North -> Exit(roomNorth))
+            roomCenter.exits += (East -> Exit(roomEast, 2))
+            roomCenter.exits += (West -> Exit(roomWest, 3))
+            roomCenter.exits += (South -> Exit(roomSouth))
+            roomNorth.exits += (South -> Exit(roomCenter))
+            roomEast.exits += (West -> Exit(roomCenter, 2))
+            roomWest.exits += (East -> Exit(roomCenter, 3))
+            roomSouth.exits += (North -> Exit(roomCenter))
+
+            val roomNorthEast = Room()
+            roomNorthEast.id = "roomNorthEast"
+            val roomEastNorth = Room()
+            roomEastNorth.id = "roomEastNorth"
+            val roomSouthWest = Room()
+            roomSouthWest.id = "roomSouthWest"
+            val roomWestSouth = Room()
+            roomWestSouth.id = "roomWestSouth"
+
+            roomNorth.exits += (East -> Exit(roomNorthEast))
+            roomEast.exits += (North -> Exit(roomEastNorth))
+            roomSouth.exits += (West -> Exit(roomSouthWest))
+            roomWest.exits += (South -> Exit(roomWestSouth))
+
+            roomNorthEast.exits += (West -> Exit(roomNorth))
+            roomEastNorth.exits += (South -> Exit(roomEast))
+            roomSouthWest.exits += (East -> Exit(roomSouth))
+            roomWestSouth.exits += (North -> Exit(roomWest))
+
+            When("Mapping the area")
+            val result = MiniMap.miniMap(roomCenter, 2)
+
+            Then("The resulting map is correct")
+            result.mkString("\n", "\n", "\n") shouldBe List(
+                "                   ",
+                "                   ",
+                "         #--#  #   ",
+                "         |     |   ",
+                "#--------X-----#   ",
+                "|        |         ",
+                "#     #--#         ",
+                "                   ",
+                "                   ",
             ).mkString("\n", "\n", "\n")
         }
     }

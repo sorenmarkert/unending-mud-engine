@@ -27,39 +27,44 @@ object ZoneData {
 
     val roomNorthNorthEast = Room()
     roomNorthNorthEast.title = "The Room to the NorthNorthEast"
+    val roomNorthEastSouth = Room()
+    roomNorthEastSouth.title = "The Room to the NorthEastSouth"
     val roomNorthNorthEastEast = Room()
     roomNorthNorthEastEast.title = "The Room to the NorthNorthEastEast"
 
-    roomCenter.exits += (North -> roomNorth)
-    roomCenter.exits += (South -> roomSouth)
-    roomCenter.exits += (East -> roomEast)
-    roomCenter.exits += (West -> roomWest)
+    roomCenter.exits += (North -> Exit(roomNorth))
+    roomCenter.exits += (South -> Exit(roomSouth))
+    roomCenter.exits += (East -> Exit(roomEast))
+    roomCenter.exits += (West -> Exit(roomWest))
 
-    roomNorth.exits += (North -> roomNorthNorth)
-    roomNorth.exits += (South -> roomCenter)
-    roomNorth.exits += (East -> roomNorthEast)
+    roomNorth.exits += (North -> Exit(roomNorthNorth))
+    roomNorth.exits += (South -> Exit(roomCenter))
+    roomNorth.exits += (East -> Exit(roomNorthEast, 2))
 
-    roomSouth.exits += (North -> roomCenter)
-    roomSouth.exits += (South -> roomSouthSouth)
+    roomSouth.exits += (North -> Exit(roomCenter))
+    roomSouth.exits += (South -> Exit(roomSouthSouth))
 
-    roomEast.exits += (South -> roomEastSouth)
-    roomEast.exits += (West -> roomCenter)
+    roomEast.exits += (South -> Exit(roomEastSouth))
+    roomEast.exits += (West -> Exit(roomCenter))
 
-    roomWest.exits += (East -> roomCenter)
+    roomWest.exits += (East -> Exit(roomCenter))
 
-    roomNorthNorth.exits += (East -> roomNorthNorthEast)
-    roomNorthNorth.exits += (South -> roomNorth)
+    roomNorthNorth.exits += (East -> Exit(roomNorthNorthEast))
+    roomNorthNorth.exits += (South -> Exit(roomNorth))
 
-    roomNorthEast.exits += (West -> roomNorth)
+    roomNorthEast.exits += (West -> Exit(roomNorth, 2))
+    roomNorthEast.exits += (South -> Exit(roomNorthEastSouth))
 
-    roomSouthSouth.exits += (North -> roomSouth)
+    roomSouthSouth.exits += (North -> Exit(roomSouth))
 
-    roomEastSouth.exits += (North -> roomEast)
+    roomEastSouth.exits += (North -> Exit(roomEast))
 
-    roomNorthNorthEast.exits += (East -> roomNorthNorthEastEast)
-    roomNorthNorthEast.exits += (West -> roomNorthNorth)
+    roomNorthNorthEast.exits += (East -> Exit(roomNorthNorthEastEast))
+    roomNorthNorthEast.exits += (West -> Exit(roomNorthNorth))
 
-    roomNorthNorthEastEast.exits += (West -> roomNorthNorthEast)
+    roomNorthEastSouth.exits += (North -> Exit(roomNorthEast))
+
+    roomNorthNorthEastEast.exits += (West -> Exit(roomNorthNorthEast))
 
     val book = createItemIn(roomCenter)
     book.id = "book1"
