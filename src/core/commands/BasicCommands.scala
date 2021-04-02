@@ -1,7 +1,7 @@
 package core.commands
 
 import core.GameUnit.findUnit
-import core.MiniMap.{frameMap, miniMap}
+import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
 import core.commands.Commands.{act, joinOrElse, mapContent, sendMessage}
 import core.{Character, Direction, Disconnecting, Exit, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
 
@@ -104,7 +104,7 @@ object BasicCommands {
 
         character.outside match {
             case Some(room: Room) => {
-                sendMessage(character, frameMap(miniMap(room, range)) mkString "\n")
+                sendMessage(character, colourMiniMap(frameMiniMap(miniMap(room, range))) mkString "\n")
             }
             case _ => sendMessage(character, "You can't see from in here.")
         }

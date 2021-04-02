@@ -1,6 +1,6 @@
 package core.commands
 
-import core.MiniMap.{frameMap, miniMap}
+import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
 import core.commands.BasicCommands.{look, minimap, movement, quit}
 import core.commands.EquipmentCommands._
 import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, PlayerCharacter, Room}
@@ -23,7 +23,7 @@ object Commands {
     private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
     private val unknownCommand = InstantCommand((char, _) => sendMessage(char, "What's that?"))
 
-    private val commandMap = Map(
+    private val commandList = Seq(
         "quit" -> InstantCommand(quit),
 
         "north" -> InstantCommand(movement),
@@ -47,15 +47,15 @@ object Commands {
 
     def executeCommand(character: Character, input: String) = {
 
-        val inputWords = input.split(" ").toList
+        val inputWords = (input split " ").toList filterNot (_.isBlank)
 
         val (command, argument) = inputWords match {
             case "" :: _ | Nil => (emptyInput, Nil)
-            case commandPrefix :: arguments => commandMap
-                .keys
-                .find(_ startsWith commandPrefix) // TODO: use a trie
-                .map(commandString => (commandMap(commandString), commandString :: arguments filterNot (_.isBlank)))
-                .getOrElse((unknownCommand, Nil))
+            case commandPrefix :: arguments =>
+                commandList
+                    .find { case (k, _) => k startsWith commandPrefix } // TODO: use a trie
+                    .map { case (commandString, command) => (command, commandString :: arguments) }
+                    .getOrElse((unknownCommand, Nil))
         }
 
         command.func(character, argument)
@@ -66,14 +66,16 @@ object Commands {
         // TODO: don't send prompt until all messages have been sent
         val textWidth = 50
 
-        val formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
+        def formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
 
-        def prompt = "\n(12/20) fake-prompt (12/20)"
+        lazy val prompt = "\n(12/20) fake-prompt (12/20)"
 
-        val addedMap = (addMap, character.outside) match {
+        def addedMap = (addMap, character.outside) match {
             case (true, Some(room: Room)) =>
-                val mapLines = frameMap(miniMap(room, 3))
+
+                val mapLines = colourMiniMap(frameMiniMap(miniMap(room, 3)))
                 def formattedPromptLines = (prompt grouped textWidth mkString "\n").linesIterator
+
                 formattedOutput
                     .linesIterator
                     .padTo(mapLines.size - formattedPromptLines.size, "")
@@ -90,7 +92,7 @@ object Commands {
         }
 
         character match {
-            case PlayerCharacter(_, writer) => writer println addedMap
+            case PlayerCharacter(_, writer) => writer println (addedMap + "\u001b[0m")
             case _ => // TODO: send to controlling admin
         }
     }
@@ -164,7 +166,7 @@ object Commands {
         }
 
     private[commands] def firstCharToUpper(message: String) =
-        message.head.toUpper + message.tail
+        s"${message.head.toUpper}${message.tail}"
 }
 
 

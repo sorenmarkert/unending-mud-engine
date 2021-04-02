@@ -6,7 +6,7 @@ import java.io.PrintWriter
 import java.util.UUID
 import scala.collection.mutable.{ListBuffer, Map => MMap}
 
-sealed abstract class GameUnit() {
+sealed trait GameUnit {
 
     val uuid = UUID.randomUUID()
 
@@ -15,7 +15,7 @@ sealed abstract class GameUnit() {
     var title = ""
     var description = ""
 
-    private val _contents = ListBuffer[GameUnit]()
+    private val _contents = ListBuffer.empty[GameUnit]
     private var _outside: Option[GameUnit] = None
 
     def contents = _contents
@@ -29,10 +29,10 @@ sealed abstract class GameUnit() {
         unitToAdd
     }
 
-    def removeUnit = {
+    def removeUnit: Unit = {
+        contents foreach (_.removeUnit)
         global subtractOne this
         removeUnitFromContainer
-        // TODO: remove contents recursively
     }
 
     private def removeUnitFromContainer = {
@@ -166,21 +166,23 @@ object Direction extends Enumeration {
 case class Exit(toRoom: Room, distance: Int = 1)
 
 
-sealed trait ItemSlot
+sealed trait ItemSlot {
+    val display: String
+}
 
-case object ItemSlotHead extends ItemSlot
+case object ItemSlotHead extends ItemSlot { override val display = "Worn on head" }
 
-case object ItemSlotHands extends ItemSlot
+case object ItemSlotHands extends ItemSlot { override val display = "Worn on hands" }
 
-case object ItemSlotChest extends ItemSlot
+case object ItemSlotChest extends ItemSlot { override val display = "Worn on chest" }
 
-case object ItemSlotFeet extends ItemSlot
+case object ItemSlotFeet extends ItemSlot { override val display = "Worn on feet" }
 
-case object ItemSlotMainHand extends ItemSlot
+case object ItemSlotMainHand extends ItemSlot { override val display = "Wielded in main-hand" }
 
-case object ItemSlotOffHand extends ItemSlot
+case object ItemSlotOffHand extends ItemSlot { override val display = "Wielded in off hand" }
 
-case object ItemSlotBothHands extends ItemSlot
+case object ItemSlotBothHands extends ItemSlot { override val display = "Two hand wielded" }
 
 
 sealed trait FindContext

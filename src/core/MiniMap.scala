@@ -44,13 +44,13 @@ object MiniMap {
         val (centerX, centerY) = (3 * maxX, 2 * maxY)
         val theMap = tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
 
-        def drawMap(mapNode: MapNode): Unit = {
+        def drawMiniMap(mapNode: MapNode): Unit = {
             val (fromX, fromY) = (centerX + 3 * mapNode.x, centerY + 2 * mapNode.y)
 
             Vector(mapNode.north, mapNode.south, mapNode.east, mapNode.west)
                 .flatten
                 .foreach { currentMapNode =>
-                    drawMap(currentMapNode)
+                    drawMiniMap(currentMapNode)
                     val (toX, toY) = (centerX + 3 * currentMapNode.x, centerY + 2 * currentMapNode.y)
                     if (fromX == toX) {
                         min(fromY, toY) until max(fromY, toY) foreach (theMap(_)(toX) = '|')
@@ -61,17 +61,24 @@ object MiniMap {
                 }
         }
 
-        drawMap(graphMap)
+        drawMiniMap(graphMap)
         theMap(centerY)(centerX) = 'X'
         theMap.map(_.mkString).toList
     }
 
-    def frameMap(map: List[String]) = {
-        val line = Array.tabulate(map(0).size)((_) => '-').mkString
+    def frameMiniMap(miniMap: List[String]) = {
+        val line = Array.tabulate(miniMap(0).size)((_) => '-').mkString
         val header = "/" + line + "\\"
         val footer = "\\" + line + "/"
 
-        header :: (map map ("|" + _ + "|")) appended footer
+        header :: (miniMap map ("|" + _ + "|")) appended footer
+    }
+
+    def colourMiniMap(miniMap: List[String]) = {
+        miniMap map {
+            _.replace("X", "\u001b[31;1mX\u001b[0m")
+                .replace("#", "\u001b[33m#\u001b[0m")
+        }
     }
 }
 

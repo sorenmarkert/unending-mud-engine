@@ -65,7 +65,7 @@ object EquipmentCommands {
     }
 
     private[commands] def put(character: Character, commandWords: Seq[String]) = {
-
+        // TODO: check if can contain
         commandWords splitAt (commandWords indexOf "in") match {
             case (_ :: targetWords, "in" :: containerWords) => {
                 val mediumOption = findUnit(character, targetWords mkString " ", Left(FindInInventory))
@@ -89,7 +89,7 @@ object EquipmentCommands {
     }
 
     private[commands] def give(character: Character, commandWords: Seq[String]) = {
-
+        // TODO: check if can carry
         commandWords splitAt (commandWords indexOf "to") match {
             case (_ :: mediumWords, "to" :: targetWords) => {
                 val mediumOption = findUnit(character, mediumWords mkString " ", Left(FindInInventory))
@@ -97,7 +97,7 @@ object EquipmentCommands {
                 (mediumOption, targetOption) match {
                     case (Some(medium), Some(target: Character)) => {
                         target addUnit medium
-                        act("You $1t $2a to $3n.", Always,
+                        act("You $1t $2n to $3n.", Always,
                             Some(character), Some(medium), Some(target), ToActor, Some(commandWords.head))
                         act("$1n $1ts you $2n.", Always,
                             Some(character), Some(medium), Some(target), ToTarget, Some(commandWords.head))
