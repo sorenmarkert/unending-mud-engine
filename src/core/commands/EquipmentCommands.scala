@@ -1,8 +1,8 @@
 package core.commands
 
-import core.{Character, FindInInventory, FindInOrNextToMe, FindNextToMe}
 import core.GameUnit.findUnit
-import core.commands.Commands.{act, joinOrElse, sendMessage}
+import core.commands.Commands.{act, joinOrElse, mapContent, sendMessage}
+import core.{Character, FindInInventory, FindInOrNextToMe, FindNextToMe}
 
 object EquipmentCommands {
 
@@ -113,6 +113,24 @@ object EquipmentCommands {
                 }
             }
             case _ => sendMessage(character, commandWords.head + " 'what' to 'whom' ?")
+        }
+    }
+
+    private[commands] def examine(character: Character, commandWords: Seq[String]) = {
+
+        commandWords match {
+            case "examine" :: Nil => sendMessage(character, "Examine 'what'?")
+
+            case "examine" :: argumentWords => {
+                findUnit(character, argumentWords mkString " ", Left(FindInOrNextToMe)) match {
+                    case Some(unitToLookAt) =>
+                        sendMessage(character, "You examine the %s.\n%s\nIt contains:\n%s".format(
+                            unitToLookAt.name,
+                            unitToLookAt.description,
+                            joinOrElse(unitToLookAt.contents map (mapContent(_)), "\n", "Nothing.")))
+                    case None => sendMessage(character, "No such thing here to look inside.")
+                }
+            }
         }
     }
 }

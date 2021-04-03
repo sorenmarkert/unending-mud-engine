@@ -35,8 +35,10 @@ object Commands {
 
         "look" -> InstantCommand(look),
         "minimap" -> InstantCommand(minimap),
+
         "inventory" -> InstantCommand(inventory),
         "equipment" -> InstantCommand(equipment),
+        "examine" -> InstantCommand(examine),
         "get" -> InstantCommand(get),
         "take" -> InstantCommand(get),
         "drop" -> InstantCommand(drop),

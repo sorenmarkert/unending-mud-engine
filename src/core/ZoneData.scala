@@ -72,12 +72,19 @@ object ZoneData {
     book.title = "a book"
     book.description = "It's a small book, bound in leather."
 
-    val hat = createItemIn(roomCenter)
-    hat.id = "hat1"
-    hat.name = "hat"
-    hat.title = "a white cowboy hat"
-    hat.description = "It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance."
-    hat.itemSlot = Some(ItemSlotHead)
+    val cowboyHat = createItemIn(roomCenter)
+    cowboyHat.id = "hat1"
+    cowboyHat.name = "hat"
+    cowboyHat.title = "a white cowboy hat"
+    cowboyHat.description = "It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance."
+    cowboyHat.itemSlot = Some(ItemSlotHead)
+
+    val topHat = createItemIn(roomCenter)
+    topHat.id = "hat2"
+    topHat.name = "hat"
+    topHat.title = "a black top hat"
+    topHat.description = "It's a very fancy hat, about one hand tall with a flat top and a narrow brim. And it's completely black."
+    topHat.itemSlot = Some(ItemSlotHead)
 
     val bag = createItemIn(roomCenter)
     bag.id = "bag1"

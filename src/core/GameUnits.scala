@@ -5,6 +5,7 @@ import core.GameState.{global, players}
 import java.io.PrintWriter
 import java.util.UUID
 import scala.collection.mutable.{ListBuffer, Map => MMap}
+import scala.util.{Failure, Success, Try}
 
 sealed trait GameUnit {
 
@@ -30,7 +31,7 @@ sealed trait GameUnit {
     }
 
     def removeUnit: Unit = {
-        contents foreach (_.removeUnit)
+        while (contents.nonEmpty) contents.head.removeUnit
         global subtractOne this
         removeUnitFromContainer
     }
@@ -73,7 +74,7 @@ object GameUnit {
         nonPlayerCharacter
     }
 
-    def findUnit(character: Character, name: String, environment: Either[FindContext, GameUnit]) = {
+    def findUnit(character: Character, searchString: String, environment: Either[FindContext, GameUnit]) = {
 
         val listToSearch = environment match {
             case Left(FindNextToMe) => character.outside.get.contents
@@ -85,8 +86,19 @@ object GameUnit {
             case Right(container) => container.contents
         }
 
-        // TODO: find 3.book
-        listToSearch filter (character canSee _) find (_.name equalsIgnoreCase name)
+        val (index, name) = {
+            val terms = searchString.split('.').toList
+            Try(terms.head.toInt) match {
+                case Success(value) => (value, terms.tail mkString ".")
+                case Failure(_) => (1, searchString)
+            }
+        }
+
+        listToSearch
+            .filter(_.name equalsIgnoreCase name)
+            .filter(character.canSee)
+            .drop(index - 1)
+            .headOption
     }
 }
 
@@ -170,19 +182,33 @@ sealed trait ItemSlot {
     val display: String
 }
 
-case object ItemSlotHead extends ItemSlot { override val display = "Worn on head" }
+case object ItemSlotHead extends ItemSlot {
+    override val display = "Worn on head"
+}
 
-case object ItemSlotHands extends ItemSlot { override val display = "Worn on hands" }
+case object ItemSlotHands extends ItemSlot {
+    override val display = "Worn on hands"
+}
 
-case object ItemSlotChest extends ItemSlot { override val display = "Worn on chest" }
+case object ItemSlotChest extends ItemSlot {
+    override val display = "Worn on chest"
+}
 
-case object ItemSlotFeet extends ItemSlot { override val display = "Worn on feet" }
+case object ItemSlotFeet extends ItemSlot {
+    override val display = "Worn on feet"
+}
 
-case object ItemSlotMainHand extends ItemSlot { override val display = "Wielded in main-hand" }
+case object ItemSlotMainHand extends ItemSlot {
+    override val display = "Wielded in main-hand"
+}
 
-case object ItemSlotOffHand extends ItemSlot { override val display = "Wielded in off hand" }
+case object ItemSlotOffHand extends ItemSlot {
+    override val display = "Wielded in off hand"
+}
 
-case object ItemSlotBothHands extends ItemSlot { override val display = "Two hand wielded" }
+case object ItemSlotBothHands extends ItemSlot {
+    override val display = "Two hand wielded"
+}
 
 
 sealed trait FindContext

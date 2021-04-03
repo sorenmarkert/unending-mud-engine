@@ -69,7 +69,21 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         }
 
         "Delete its contents recursively" in {
-            // TODO
+
+            Given("An room containing an item containing another item")
+            val room = Room()
+            val itemToBeDeleted = createItemIn(room)
+            val containedItem = createItemIn(itemToBeDeleted)
+
+            When("The outer item is removed")
+            itemToBeDeleted.removeUnit
+
+            Then("The the inner item is also removed")
+            room.contents shouldBe empty
+            containedItem.contents shouldBe empty
+
+            And("On the global list")
+            global shouldBe empty
         }
     }
 
@@ -220,8 +234,6 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
 
     "findUnit" should {
 
-        // TODO: find is case insensitive
-
         "Find an item next to the character" in {
 
             Given("A player next to 3 items")
@@ -338,7 +350,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
 
         "Find an item globally" in {
 
-            Given("A player with 3 out of 5 items equipped")
+            Given("3 items in another room than the character")
             val playerRoom = Room()
             val player = createNonPlayerCharacterIn(playerRoom)
             val otherRoom = Room()
@@ -361,7 +373,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
 
         "Find an item inside a given container" in {
 
-            Given("A player with 3 out of 5 items equipped")
+            Given("A player with 3 items in a container")
             val room = Room()
             val player = createNonPlayerCharacterIn(room)
             val container = createItemIn(player)
@@ -377,6 +389,47 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
 
             When("The player searches for the item")
             val result = findUnit(player, "itemname", Right(container))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Ignore case" in {
+
+            Given("A player next to 3 items")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val bottomItem = createItemIn(room)
+            bottomItem.id = "bottomItem"
+            bottomItem.name = "itemname"
+            val itemToBeFound = createItemIn(room)
+            itemToBeFound.id = "itemToBeFound"
+            itemToBeFound.name = "itemNAME"
+            val topItem = createItemIn(room)
+            topItem.id = "topItem"
+            topItem.name = "othername"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "ITEMname", Left(FindNextToMe))
+
+            Then("The correct item is returned")
+            result shouldBe Some(itemToBeFound)
+        }
+
+        "Find same name items by a given index" in {
+
+            Given("A player next to 3 items")
+            val room = Room()
+            val player = createNonPlayerCharacterIn(room)
+            val itemToBeFound = createItemIn(room)
+            itemToBeFound.id = "itemToBeFound"
+            itemToBeFound.name = "itemname"
+            val topItem = createItemIn(room)
+            topItem.id = "topItem"
+            topItem.name = "itemname"
+
+            When("The player searches for the item")
+            val result = findUnit(player, "2.itemname", Left(FindNextToMe))
 
             Then("The correct item is returned")
             result shouldBe Some(itemToBeFound)
