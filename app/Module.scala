@@ -1,5 +1,5 @@
 import com.google.inject.AbstractModule
-import core.TelnetClient
+import core.GameEngineSetup
 import services.{ApplicationTimer, AtomicCounter, Counter}
 
 import java.time.Clock
@@ -25,7 +25,7 @@ class Module() extends AbstractModule {
         // Set AtomicCounter as the implementation for Counter.
         bind(classOf[Counter]).to(classOf[AtomicCounter])
 
-        // Create the telnet client on startup, and it starts itself
-        bind(classOf[TelnetClient]).asEagerSingleton() // TODO: change this to some core game control class
+        // Create the game engine on startup, and it starts itself
+        bind(classOf[GameEngineSetup]).asEagerSingleton()
     }
 }

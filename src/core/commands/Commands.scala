@@ -1,9 +1,11 @@
 package core.commands
 
+import akka.actor.typed.ActorSystem
 import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
+import core.StateActor.CommandExecution
 import core.commands.BasicCommands.{look, minimap, movement, quit}
 import core.commands.EquipmentCommands._
-import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, PlayerCharacter, Room}
+import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, PlayerCharacter, Room, StateActor}
 
 import scala.Array.tabulate
 import scala.collection.mutable.ListBuffer
@@ -47,7 +49,7 @@ object Commands {
         "give" -> InstantCommand(give),
     )
 
-    def executeCommand(character: Character, input: String) = {
+    def executeCommand(character: Character, input: String, actorSystem: ActorSystem[StateActor.StateActorMessage]) = {
 
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 
@@ -60,7 +62,7 @@ object Commands {
                     .getOrElse((unknownCommand, Nil))
         }
 
-        command.func(character, argument)
+        actorSystem ! CommandExecution(command, character, argument)
     }
 
     def sendMessage(character: Character, message: String, addMap: Boolean = false) = {
