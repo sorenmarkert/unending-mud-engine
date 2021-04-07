@@ -4,19 +4,21 @@ import akka.actor.typed.ActorSystem
 import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
 import core.StateActor.CommandExecution
 import core.commands.BasicCommands.{look, minimap, movement, quit}
+import core.commands.CombatCommands.{doSlash, prepareSlash}
 import core.commands.EquipmentCommands._
 import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, PlayerCharacter, Room, StateActor}
 
 import scala.Array.tabulate
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 sealed trait Command
 
 case class InstantCommand(func: (Character, Seq[String]) => Unit) extends Command
 
-case class DurationCommand(duration: Int,
-                           beginFunc: (Character, Seq[String]) => Option[String],
-                           endFunc: (Character, Seq[String]) => Unit) extends Command
+case class TimedCommand(baseDuration: FiniteDuration,
+                        beginFunc: (Character, Seq[String]) => Option[String],
+                        endFunc: (Character, Seq[String]) => Unit) extends Command
 
 object Commands {
 
@@ -25,7 +27,7 @@ object Commands {
     private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
     private val unknownCommand = InstantCommand((char, _) => sendMessage(char, "What's that?"))
 
-    private val commandList = Seq(
+    private val commandList: Seq[(String, Command)] = Seq(
         "quit" -> InstantCommand(quit),
 
         "north" -> InstantCommand(movement),
@@ -47,6 +49,8 @@ object Commands {
         "put" -> InstantCommand(put),
         "place" -> InstantCommand(put),
         "give" -> InstantCommand(give),
+
+        "slash" -> TimedCommand(3.seconds, prepareSlash, doSlash),
     )
 
     def executeCommand(character: Character, input: String, actorSystem: ActorSystem[StateActor.StateActorMessage]) = {
@@ -78,6 +82,7 @@ object Commands {
             case (true, Some(room: Room)) =>
 
                 val mapLines = colourMiniMap(frameMiniMap(miniMap(room, 3)))
+
                 def formattedPromptLines = (prompt grouped textWidth mkString "\n").linesIterator
 
                 formattedOutput

@@ -3,7 +3,7 @@ package core
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors.{receiveMessage, setup, withTimers}
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import core.commands.{Command, DurationCommand, InstantCommand}
+import core.commands.{Command, TimedCommand, InstantCommand}
 import play.api.Logger
 
 import scala.collection.mutable.{ListBuffer, Map => MMap, Set => MSet, SortedMap => MSortedMap}
@@ -22,9 +22,10 @@ object StateActor {
 
     private val logger = Logger(this.getClass)
 
+    private val tickInterval = 100.milliseconds
     private var tickCounter = 0
     private val commandQueue = ListBuffer.empty[CommandExecution]
-    private val durationCommandsWaitingMap = MSortedMap.empty[Int, ListBuffer[CommandExecution]].withDefaultValue(ListBuffer())
+    private val timedCommandsWaitingMap = MSortedMap.empty[Int, Vector[CommandExecution]]
     private val charactersInActionMap = MMap.empty[Character, Int]
 
 
@@ -32,7 +33,6 @@ object StateActor {
         setup { context =>
             withTimers { timers =>
 
-                val tickInterval = 100.milliseconds
                 logger.warn("Starting state actor with tick interval " + tickInterval)
                 timers.startTimerAtFixedRate(Tick, tickInterval)
                 handleMessage(context)
@@ -45,8 +45,8 @@ object StateActor {
                 commandQueue append command
                 Behaviors.same
             case Interrupt(character) =>
-                charactersInActionMap remove character foreach {
-                    durationCommandsWaitingMap(_) filterInPlace (_.character != character)
+                charactersInActionMap remove character foreach { tick =>
+                    timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
                 }
                 Behaviors.same
             case Tick =>
@@ -59,25 +59,28 @@ object StateActor {
 
         val charactersWhoActed = MSet.empty[Character]
 
-        durationCommandsWaitingMap(tickCounter) foreach {
-            case CommandExecution(DurationCommand(_, _, endFunc), character, argument) =>
-                endFunc(character, argument)
-                charactersWhoActed addOne character
-            case _ =>
+        timedCommandsWaitingMap get tickCounter foreach {
+            _ foreach {
+                case CommandExecution(TimedCommand(_, _, endFunc), character, argument) =>
+                    endFunc(character, argument)
+                    charactersWhoActed addOne character
+                case _ =>
+            }
         }
-        durationCommandsWaitingMap remove tickCounter
+        timedCommandsWaitingMap remove tickCounter
 
         commandQueue foreach {
-            // TODO: check if need to block if waiting for a DurationCommand
+            // TODO: check if need to block if waiting for a TimedCommand
             case CommandExecution(InstantCommand(func), character, argument) =>
                 func(character, argument)
                 charactersWhoActed addOne character
-            case commandExecution@CommandExecution(DurationCommand(duration, beginFunc, _), character, argument) =>
+            case commandExecution@CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
                 beginFunc(character, argument) match {
                     case Some(_) => // TODO: error case
                     case None =>
-                        val executeAtTick = tickCounter + duration
-                        durationCommandsWaitingMap(executeAtTick) append commandExecution
+                        val executeAtTick = tickCounter + (duration / tickInterval).toInt
+                        val commandsEndingAtTick = timedCommandsWaitingMap.getOrElse(executeAtTick, Vector.empty[CommandExecution])
+                        timedCommandsWaitingMap(executeAtTick) = commandsEndingAtTick appended commandExecution
                         charactersInActionMap(character) = executeAtTick
                         charactersWhoActed addOne character
                 }
