@@ -3,7 +3,7 @@ package core.commands
 import core.GameUnit.findUnit
 import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
 import core.commands.Commands.{act, joinOrElse, mapContent, sendMessage}
-import core.{Character, Direction, Disconnecting, Exit, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
+import core.{Character, Direction, Exit, FindInOrNextToMe, Item, NonPlayerCharacter, PlayerCharacter, Room}
 
 import scala.util.{Failure, Success, Try}
 
@@ -14,9 +14,9 @@ object BasicCommands {
             case pc: PlayerCharacter => {
                 sendMessage(character, "Goodbye.")
                 act("$1N has left the game.", Always, Some(character), None, None, ToAllExceptActor, None)
-                pc.connectionState = Disconnecting
+                pc.quit()
             }
-            case _ =>
+            case _ => // TODO: un-control mob and quit controlling player
         }
     }
 

@@ -1,9 +1,10 @@
 package core
 
 import akka.actor.typed.Behavior
-import akka.actor.typed.scaladsl.Behaviors.{receiveMessage, setup, withTimers}
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import core.commands.{Command, TimedCommand, InstantCommand}
+import akka.actor.typed.scaladsl.ActorContext
+import akka.actor.typed.scaladsl.Behaviors._
+import core.GameState.{Closing, runState}
+import core.commands.{Command, InstantCommand, TimedCommand}
 import play.api.Logger
 
 import scala.collection.mutable.{ListBuffer, Map => MMap, Set => MSet, SortedMap => MSortedMap}
@@ -43,16 +44,17 @@ object StateActor {
         receiveMessage {
             case command: CommandExecution =>
                 commandQueue append command
-                Behaviors.same
+                same
             case Interrupt(character) =>
                 charactersInActionMap remove character foreach { tick =>
                     timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
                 }
-                Behaviors.same
+                same
             case Tick =>
                 executeQueuedCommands()
                 tickCounter += 1
-                Behaviors.same
+                if (runState == Closing) stopped
+                else same
         }
 
     private def executeQueuedCommands() = {

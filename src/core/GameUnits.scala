@@ -1,8 +1,10 @@
 package core
 
 import core.GameState.{global, players}
+import core.commands.Commands.{act, executeCommand}
+import core.commands.{Always, ToAllExceptActor}
+import core.connection.Connection
 
-import java.io.PrintWriter
 import java.util.UUID
 import scala.collection.mutable.{ListBuffer, Map => MMap}
 import scala.util.{Failure, Success, Try}
@@ -59,11 +61,19 @@ object GameUnit {
         item
     }
 
-    def createPlayerCharacterIn(container: GameUnit, connectionState: ConnectionState, writer: PrintWriter) = {
-        val playerCharacter = PlayerCharacter(connectionState, writer)
+    def createPlayerCharacterIn(container: GameUnit, connection: Connection) = {
+        val playerCharacter = PlayerCharacter(connection)
         container addUnit playerCharacter
         global prepend playerCharacter
         players prepend playerCharacter
+        playerCharacter
+
+        // TODO: load player data
+        playerCharacter.id = "player1"
+        playerCharacter.name = "Klaus"
+        playerCharacter.title = "the Rude"
+        executeCommand(playerCharacter, "look", connection.actorSystem)
+        act("$1N has entered the game.", Always, Some(playerCharacter), None, None, ToAllExceptActor, None)
         playerCharacter
     }
 
@@ -138,11 +148,16 @@ trait Character extends GameUnit {
     def canSee(unit: GameUnit) = true // TODO: implement visibility check
 }
 
-case class PlayerCharacter private(var connectionState: ConnectionState, private var writer: PrintWriter) extends Character() {
+case class PlayerCharacter private(var connection: Connection) extends Character() {
+
     override def removeUnit: Unit = {
         super.removeUnit
         players subtractOne this
     }
+
+    def quit() =
+    // TODO: save player data
+        connection.close()
 }
 
 case class NonPlayerCharacter private() extends Character()

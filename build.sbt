@@ -1,3 +1,5 @@
+
+
 name := "unending"
 
 version := "1.0" 
@@ -16,4 +18,6 @@ unmanagedResourceDirectories in Test += baseDirectory ( _ /"target/web/public/te
 
 libraryDependencies ++= Seq( jdbc , ehcache , ws , specs2 % Test , guice )
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.5"
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.5" % "test"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.10" % Test

@@ -57,7 +57,7 @@ object Commands {
 
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 
-        val (command, argument) = inputWords match {
+        val (command, commandWords) = inputWords match {
             case "" :: _ | Nil => (emptyInput, Nil)
             case commandPrefix :: arguments =>
                 commandList
@@ -66,7 +66,8 @@ object Commands {
                     .getOrElse((unknownCommand, Nil))
         }
 
-        actorSystem ! CommandExecution(command, character, argument)
+        actorSystem ! CommandExecution(command, character, commandWords)
+        commandWords.head
     }
 
     def sendMessage(character: Character, message: String, addMap: Boolean = false) = {
@@ -101,7 +102,7 @@ object Commands {
         }
 
         character match {
-            case PlayerCharacter(_, writer) => writer println (addedMap + "\u001b[0m")
+            case PlayerCharacter(connection) => connection.write(addedMap + "\u001b[0m")
             case _ => // TODO: send to controlling admin
         }
     }

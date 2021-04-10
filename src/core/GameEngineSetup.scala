@@ -1,7 +1,8 @@
 package core
 
 import akka.actor.typed.ActorSystem
-import core.GameState.runState
+import core.GameState.{Running, runState}
+import core.connection.TelnetServer
 import play.api.{Configuration, Logger}
 
 import javax.inject.{Inject, Singleton}
@@ -22,6 +23,6 @@ class GameEngineSetup @Inject()(conf: Configuration)(implicit exec: ExecutionCon
         val telnetPort = conf.get[Int]("engine.telnet.port")
 
         runState = Running
-        TelnetClient(telnetPort, actorSystem)
+        TelnetServer(telnetPort, actorSystem)
     }
 }
