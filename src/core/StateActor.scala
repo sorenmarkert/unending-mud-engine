@@ -3,7 +3,7 @@ package core
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors._
-import core.GameState.{Closing, runState}
+import core.GlobalState.{Closing, runState}
 import core.commands.{Command, InstantCommand, TimedCommand}
 import play.api.Logger
 
@@ -43,6 +43,7 @@ object StateActor {
     private def handleMessage(context: ActorContext[StateActorMessage]): Behavior[StateActorMessage] =
         receiveMessage {
             case command: CommandExecution =>
+                logger.warn("Received command: " + command.argument.mkString(" "))
                 commandQueue append command
                 same
             case Interrupt(character) =>
@@ -59,13 +60,13 @@ object StateActor {
 
     private def executeQueuedCommands() = {
 
-        val charactersWhoActed = MSet.empty[Character]
+        val charactersWhoReceivedMessages = MSet.empty[Character]
 
         timedCommandsWaitingMap get tickCounter foreach {
             _ foreach {
                 case CommandExecution(TimedCommand(_, _, endFunc), character, argument) =>
                     endFunc(character, argument)
-                    charactersWhoActed addOne character
+                    charactersWhoReceivedMessages addOne character
                 case _ =>
             }
         }
@@ -73,10 +74,10 @@ object StateActor {
 
         commandQueue foreach {
             // TODO: check if need to block if waiting for a TimedCommand
-            case CommandExecution(InstantCommand(func), character, argument) =>
+            case CommandExecution(InstantCommand(func, canInterrupt), character, argument) =>
                 func(character, argument)
-                charactersWhoActed addOne character
-            case commandExecution@CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
+                charactersWhoReceivedMessages addOne character
+            case commandExecution @ CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
                 beginFunc(character, argument) match {
                     case Some(_) => // TODO: error case
                     case None =>
@@ -84,7 +85,7 @@ object StateActor {
                         val commandsEndingAtTick = timedCommandsWaitingMap.getOrElse(executeAtTick, Vector.empty[CommandExecution])
                         timedCommandsWaitingMap(executeAtTick) = commandsEndingAtTick appended commandExecution
                         charactersInActionMap(character) = executeAtTick
-                        charactersWhoActed addOne character
+                        charactersWhoReceivedMessages addOne character
                 }
         }
         commandQueue.clear()

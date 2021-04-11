@@ -1,6 +1,6 @@
 package controllers
 
-import core.GameState.{players, rooms}
+import core.GlobalState.{players, rooms}
 import play.api.mvc._
 
 import javax.inject._

@@ -1,12 +1,12 @@
 package core.commands
 
-import akka.actor.typed.ActorSystem
+import core.GlobalState.actorSystem
 import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
 import core.StateActor.CommandExecution
 import core.commands.BasicCommands.{look, minimap, movement, quit}
 import core.commands.CombatCommands.{doSlash, prepareSlash}
 import core.commands.EquipmentCommands._
-import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, PlayerCharacter, Room, StateActor}
+import core.{Character, GameUnit, Gender, GenderFemale, GenderMale, GenderNeutral, PlayerCharacter, Room}
 
 import scala.Array.tabulate
 import scala.collection.mutable.ListBuffer
@@ -14,7 +14,7 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 sealed trait Command
 
-case class InstantCommand(func: (Character, Seq[String]) => Unit) extends Command
+case class InstantCommand(func: (Character, Seq[String]) => Unit, canInterrupt: Boolean = false) extends Command
 
 case class TimedCommand(baseDuration: FiniteDuration,
                         beginFunc: (Character, Seq[String]) => Option[String],
@@ -37,12 +37,12 @@ object Commands {
         "up" -> InstantCommand(movement),
         "down" -> InstantCommand(movement),
 
-        "look" -> InstantCommand(look),
-        "minimap" -> InstantCommand(minimap),
+        "look" -> InstantCommand(look, canInterrupt = true),
+        "minimap" -> InstantCommand(minimap, canInterrupt = true),
 
-        "inventory" -> InstantCommand(inventory),
-        "equipment" -> InstantCommand(equipment),
-        "examine" -> InstantCommand(examine),
+        "inventory" -> InstantCommand(inventory, canInterrupt = true),
+        "equipment" -> InstantCommand(equipment, canInterrupt = true),
+        "examine" -> InstantCommand(examine, canInterrupt = true),
         "get" -> InstantCommand(get),
         "take" -> InstantCommand(get),
         "drop" -> InstantCommand(drop),
@@ -53,7 +53,7 @@ object Commands {
         "slash" -> TimedCommand(3.seconds, prepareSlash, doSlash),
     )
 
-    def executeCommand(character: Character, input: String, actorSystem: ActorSystem[StateActor.StateActorMessage]) = {
+    def executeCommand(character: Character, input: String) = {
 
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 
@@ -67,7 +67,7 @@ object Commands {
         }
 
         actorSystem ! CommandExecution(command, character, commandWords)
-        commandWords.head
+        commandWords.headOption getOrElse ""
     }
 
     def sendMessage(character: Character, message: String, addMap: Boolean = false) = {

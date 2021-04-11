@@ -1,6 +1,6 @@
 package core
 
-import core.GameState.global
+import core.GlobalState.global
 import core.GameUnit.{createItemIn, createNonPlayerCharacterIn, findUnit}
 import org.scalatest._
 import org.scalatest.matchers.should.Matchers

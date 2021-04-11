@@ -1,8 +1,10 @@
 package core
 
+import akka.actor.typed.ActorSystem
+
 import scala.collection.mutable.ListBuffer
 
-object GameState {
+object GlobalState {
 
     sealed trait RunState
 
@@ -14,7 +16,12 @@ object GameState {
 
     var runState: RunState = Starting
 
+
     val global = ListBuffer[GameUnit]()
+
     val players = ListBuffer[PlayerCharacter]()
+
     val rooms = ListBuffer[Room]()
+
+    val actorSystem = ActorSystem(StateActor(), "unending")
 }

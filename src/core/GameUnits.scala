@@ -1,8 +1,8 @@
 package core
 
-import core.GameState.{global, players}
+import core.GlobalState.{global, players, rooms}
 import core.commands.Commands.{act, executeCommand}
-import core.commands.{Always, ToAllExceptActor}
+import core.commands.{Always, TimedCommand, ToAllExceptActor}
 import core.connection.Connection
 
 import java.util.UUID
@@ -62,18 +62,20 @@ object GameUnit {
     }
 
     def createPlayerCharacterIn(container: GameUnit, connection: Connection) = {
+
         val playerCharacter = PlayerCharacter(connection)
         container addUnit playerCharacter
         global prepend playerCharacter
         players prepend playerCharacter
-        playerCharacter
 
         // TODO: load player data
         playerCharacter.id = "player1"
         playerCharacter.name = "Klaus"
         playerCharacter.title = "the Rude"
-        executeCommand(playerCharacter, "look", connection.actorSystem)
+
+        executeCommand(playerCharacter, "look")
         act("$1N has entered the game.", Always, Some(playerCharacter), None, None, ToAllExceptActor, None)
+
         playerCharacter
     }
 
@@ -119,6 +121,10 @@ trait Character extends GameUnit {
     private val _equippedReverse = MMap[Item, ItemSlot]()
 
     var gender: Gender = GenderMale
+    var position: Position = Standing
+    var doing: Option[(String, TimedCommand)] = None
+    var target: Option[Character] = None
+    var targetOf: Option[Character] = None
 
     def equippedItems = contents filter _equipped.values.toList.contains
 
@@ -155,9 +161,11 @@ case class PlayerCharacter private(var connection: Connection) extends Character
         players subtractOne this
     }
 
-    def quit() =
-    // TODO: save player data
+    def quit() = {
+        // TODO: save player data
+        this.removeUnit
         connection.close()
+    }
 }
 
 case class NonPlayerCharacter private() extends Character()
@@ -178,6 +186,8 @@ case class Room() extends GameUnit {
     val exits = MMap[Direction.Value, Exit]()
 
     description = "It's a room. There's nothing in it. Not even a door."
+
+    rooms append this
 }
 
 
@@ -248,3 +258,12 @@ case object GenderMale extends Gender
 case object GenderFemale extends Gender
 
 case object GenderNeutral extends Gender
+
+
+trait Position
+
+case object Standing extends Position
+
+case object Sitting extends Position
+
+case object Lying extends Position
