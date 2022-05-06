@@ -1,5 +1,2 @@
-logLevel := Level.Warn
-
-resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
-
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.7")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.7.1")
+addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.1.0")

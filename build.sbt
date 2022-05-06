@@ -1,23 +1,37 @@
 
+ThisBuild / version := "1.0"
+ThisBuild / scalaVersion := "3.1.2"
 
-name := "unending"
+lazy val webpage = project
+    .in(file("web-app"))
+    .enablePlugins(ScalaJSPlugin)
+    .settings(
+        name := "Unending Web App",
+        scalaJSUseMainModuleInitializer := true,
+        libraryDependencies ++= Seq(
+            "org.scala-js" %%% "scalajs-dom" % "2.1.0",
+        ),
+    )
+    .dependsOn(models.js)
 
-version := "1.0" 
+lazy val engine = project
+    .in(file("engine"))
+    .dependsOn(models.jvm)
+    .settings(
+        name := "Unending Engine",
 
-lazy val `unending` = (project in file(".")).enablePlugins(PlayScala)
+        libraryDependencies ++= Seq(
+            "com.typesafe.akka" %% "akka-actor-typed" % "2.6.19",
+            "ch.qos.logback" % "logback-classic" % "1.2.11",
+            "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+            "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.19" % Test,
+        ),
+        Test / unmanagedResourceDirectories += baseDirectory(_ / "target/web/public/test").value,
+    )
 
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
-
-scalaVersion := "2.13.5"
-
-scalacOptions += "-Ywarn-value-discard"
-
-unmanagedSourceDirectories in Compile += baseDirectory.value / "src"
-unmanagedResourceDirectories in Test += baseDirectory ( _ /"target/web/public/test" ).value
-
-libraryDependencies ++= Seq( jdbc , ehcache , ws , specs2 % Test , guice )
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.5"
-
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.5" % "test"
-libraryDependencies += "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.10" % Test
+lazy val models = crossProject(JSPlatform, JVMPlatform)
+    .crossType(CrossType.Pure)
+    .in(file("dto"))
+    .settings(
+        name := "Unending Data Models",
+    )
