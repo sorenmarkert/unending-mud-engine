@@ -27,7 +27,7 @@ object StateActor {
 
     private val logger = Logger("State")
 
-    private val tickInterval            = 100.milliseconds
+    private val tickInterval            = 100.milliseconds // TODO: make configurable
     private var tickCounter             = 0
     private val commandQueue            = ListBuffer.empty[CommandExecution]
     private val timedCommandsWaitingMap = MSortedMap.empty[Int, Vector[CommandExecution]]
@@ -37,7 +37,7 @@ object StateActor {
         setup { context =>
             withTimers { timers =>
 
-                logger.warn("Starting state actor with tick interval " + tickInterval)
+                logger.info("Starting state actor with tick interval " + tickInterval)
                 timers.startTimerAtFixedRate(Tick, tickInterval)
                 handleMessage(context)
             }
@@ -45,23 +45,24 @@ object StateActor {
 
     private def handleMessage(context: ActorContext[StateActorMessage]): Behavior[StateActorMessage] =
         receiveMessage {
-            case command: CommandExecution =>
-                logger.warn("Received command: " + command.argument.mkString(" "))
+            case command@CommandExecution(_, _, argument)
+            => logger.info("Received command: " + argument.mkString(" "))
                 commandQueue append command
                 same
-            case Interrupt(character)      =>
-                charactersInActionMap remove character foreach { tick =>
-                    timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
-                }
+            case Interrupt(character)
+            => charactersInActionMap remove character foreach { tick =>
+                timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
+            }
                 same
-            case Tick                      =>
-                executeQueuedCommands()
+            case Tick
+            => executeQueuedCommands()
                 tickCounter += 1
+                if tickCounter == Int.MaxValue then tickCounter = 0
                 if runState == Closing then stopped
                 else same
         }
 
-    private def executeQueuedCommands() = {
+    private def executeQueuedCommands(): Unit = {
 
         val charactersWhoReceivedMessages = MSet.empty[gameunit.Character]
 

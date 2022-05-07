@@ -1,10 +1,10 @@
 package core
 
 import core.ZoneData.roomSouth
-import core.gameunit.Direction.{South, *}
+import core.gameunit.Direction.*
 import core.gameunit.GameUnit.{createItemIn, createNonPlayerCharacterIn}
 import core.gameunit.ItemSlot.{ItemSlotHead, ItemSlotOffHand}
-import core.gameunit.{Exit, ItemSlot, Room}
+import core.gameunit.*
 
 object ZoneData {
 

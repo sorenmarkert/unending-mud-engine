@@ -2,11 +2,11 @@ package core.connection
 
 import akka.event.slf4j.Logger
 import com.typesafe.config.Config
-import core.gameunit.GameUnit.createPlayerCharacterIn
 import core.GlobalState.runState
 import core.RunState.Running
 import core.ZoneData.roomCenter
 import core.commands.Commands.executeCommand
+import core.gameunit.GameUnit.createPlayerCharacterIn
 import core.gameunit.PlayerCharacter
 
 import java.net.{ServerSocket, Socket}
@@ -21,14 +21,14 @@ object TelnetServer:
 
         val port = config.getInt("telnet.port")
 
-        logger.warn("Starting telnet client on port " + port)
+        logger.info("Starting telnet client on port " + port)
 
         def initConnection(socket: Socket) =
             val player = createPlayerCharacterIn(roomCenter, TelnetConnection(socket))
-            logger.warn(s"Connection from ${player.name}@${socket.getInetAddress.getHostAddress}")
+            logger.info(s"Connection from ${player.name}@${socket.getInetAddress.getHostAddress}")
             serve(player)
             socket.close()
-            logger.warn(s"Connection closed ${player.name}@${socket.getInetAddress.getHostAddress}")
+            logger.info(s"Connection closed ${player.name}@${socket.getInetAddress.getHostAddress}")
 
         def serve(player: PlayerCharacter): Unit =
             val input       = player.connection.readLine()

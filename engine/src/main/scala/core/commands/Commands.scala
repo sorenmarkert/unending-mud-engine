@@ -76,7 +76,7 @@ object Commands:
                         .getOrElse((unknownCommand, Nil))
             }
 
-        actorSystem ! CommandExecution(command, character, commandWords)
+        actorSystem tell CommandExecution(command, character, commandWords)
 
         commandWords.headOption getOrElse ""
 

@@ -2,13 +2,13 @@ package core.gameunit
 
 import core.*
 import core.GlobalState.*
-import core.gameunit.Position.Standing
 import core.commands.*
 import core.commands.Commands.{act, executeCommand}
 import core.connection.Connection
 import core.gameunit.Direction.*
 import core.gameunit.FindContext.*
 import core.gameunit.Gender.GenderMale
+import core.gameunit.Position.Standing
 
 import java.util.UUID
 import scala.collection.mutable

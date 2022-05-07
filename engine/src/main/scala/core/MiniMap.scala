@@ -1,11 +1,11 @@
 package core
 
-import core.gameunit.Direction.{East, North, South, West}
-import core.gameunit.{Direction, Exit, Room}
+import core.gameunit.Direction.*
+import core.gameunit.*
 
 import scala.Array.tabulate
 import scala.collection.mutable.Set as MSet
-import scala.math.{abs, max, min}
+import scala.math.*
 
 object MiniMap:
 

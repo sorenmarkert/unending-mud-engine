@@ -1,6 +1,6 @@
 package core.connection
 
-import java.io.{BufferedReader, InputStreamReader, PrintWriter}
+import java.io.*
 import java.net.Socket
 
 case class TelnetConnection(private val socket: Socket) extends Connection :

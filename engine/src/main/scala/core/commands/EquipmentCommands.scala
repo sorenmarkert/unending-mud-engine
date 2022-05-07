@@ -1,10 +1,10 @@
 package core.commands
 
-import core.gameunit.FindContext.*
-import core.gameunit.GameUnit.findUnit
 import core.commands.ActRecipient.*
 import core.commands.ActVisibility.*
 import core.commands.Commands.*
+import core.gameunit.FindContext.*
+import core.gameunit.GameUnit.findUnit
 import core.gameunit.{Character, FindContext, Item}
 
 object EquipmentCommands:

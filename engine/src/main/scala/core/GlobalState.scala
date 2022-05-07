@@ -2,7 +2,7 @@ package core
 
 import akka.actor.typed.ActorSystem
 import core.RunState.Starting
-import core.gameunit.{GameUnit, PlayerCharacter, Room}
+import core.gameunit.*
 
 import scala.collection.mutable.ListBuffer
 
