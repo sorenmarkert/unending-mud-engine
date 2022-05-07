@@ -6,6 +6,7 @@ import core.gameunit.Position.Standing
 import core.commands.*
 import core.commands.Commands.{act, executeCommand}
 import core.connection.Connection
+import core.gameunit.Direction.*
 import core.gameunit.FindContext.*
 import core.gameunit.Gender.GenderMale
 
@@ -14,11 +15,10 @@ import scala.collection.mutable
 import scala.collection.mutable.{ListBuffer, Map as MMap}
 import scala.util.{Failure, Success, Try}
 
-sealed trait GameUnit:
+sealed trait GameUnit(val id: String):
 
     val uuid = UUID.randomUUID()
 
-    var id          = ""
     var name        = ""
     var title       = ""
     var description = ""
@@ -58,21 +58,20 @@ end GameUnit
 
 object GameUnit:
 
-    def createItemIn(container: GameUnit): Item =
-        val item = Item()
+    def createItemIn(container: GameUnit, id: String): Item =
+        val item = Item(id)
         container addUnit item
         global prepend item
         item
 
     def createPlayerCharacterIn(container: GameUnit, connection: Connection): PlayerCharacter =
 
-        val playerCharacter = PlayerCharacter(connection)
+        // TODO: load player data
+        val playerCharacter = PlayerCharacter("player1", connection)
         container addUnit playerCharacter
         global prepend playerCharacter
         players prepend playerCharacter
 
-        // TODO: load player data
-        playerCharacter.id = "player1"
         playerCharacter.name = "Klaus"
         playerCharacter.title = "the Rude"
 
@@ -82,8 +81,8 @@ object GameUnit:
         playerCharacter
     end createPlayerCharacterIn
 
-    def createNonPlayerCharacterIn(container: GameUnit): NonPlayerCharacter =
-        val nonPlayerCharacter = NonPlayerCharacter()
+    def createNonPlayerCharacterIn(container: GameUnit, id: String): NonPlayerCharacter =
+        val nonPlayerCharacter = NonPlayerCharacter(id)
         container addUnit nonPlayerCharacter
         global prepend nonPlayerCharacter
         nonPlayerCharacter
@@ -117,7 +116,7 @@ object GameUnit:
 end GameUnit
 
 
-sealed abstract class Character extends GameUnit :
+sealed abstract class Character(val _id: String) extends GameUnit(_id) :
 
     private val _equipped        = MMap[ItemSlot, Item]()
     private val _equippedReverse = MMap[Item, ItemSlot]()
@@ -159,7 +158,7 @@ sealed abstract class Character extends GameUnit :
 end Character
 
 
-case class PlayerCharacter private[gameunit](var connection: Connection) extends Character :
+case class PlayerCharacter private[gameunit](__id: String, var connection: Connection) extends Character(__id) :
 
     override def removeUnit: Unit =
         super.removeUnit
@@ -173,10 +172,10 @@ case class PlayerCharacter private[gameunit](var connection: Connection) extends
 end PlayerCharacter
 
 
-case class NonPlayerCharacter private[gameunit]() extends Character
+case class NonPlayerCharacter private[gameunit](__id: String) extends Character(__id)
 
 
-case class Item private[gameunit]() extends GameUnit :
+case class Item private[gameunit](_id: String) extends GameUnit(_id) :
 
     var itemSlot: Option[ItemSlot] = None
 
@@ -188,13 +187,53 @@ case class Item private[gameunit]() extends GameUnit :
 end Item
 
 
-case class Room() extends GameUnit :
+case class Room private(_id: String) extends GameUnit(_id) :
 
     // TODO: builder pattern
-    val exits: MMap[Direction, Exit] = MMap[Direction, Exit]()
+    private val _exits: MMap[Direction, Exit] = MMap[Direction, Exit]()
 
-    description = "It's a room. There's nothing in it. Not even a door."
+    def exits: Map[Direction, Exit] = _exits.toMap
 
-    rooms append this
+    def withTitle(title: String): Room =
+        this.title = title
+        this
+
+    def withDescription(description: String): Room =
+        this.description = description
+        this
+
+    def northTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
+        addLink(toRoom, distance, bidirectional, North)
+
+    def southTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
+        addLink(toRoom, distance, bidirectional, South)
+
+    def eastTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
+        addLink(toRoom, distance, bidirectional, East)
+
+    def westTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
+        addLink(toRoom, distance, bidirectional, West)
+
+    def upTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
+        addLink(toRoom, distance, bidirectional, Up)
+
+    def downTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
+        addLink(toRoom, distance, bidirectional, Down)
+
+    private def addLink(toRoom: Room, distance: Int, bidirectional: Boolean, direction: Direction) =
+        _exits += (direction -> Exit(toRoom, distance))
+        if bidirectional then toRoom._exits += direction.opposite -> Exit(this, distance)
+        this
+
+end Room
+
+
+object Room:
+
+    def apply(id: String): Room =
+        val newRoom = new Room(id)
+        rooms append newRoom
+        newRoom.description = "It's a room. There's nothing in it. Not even a door."
+        newRoom
 
 end Room

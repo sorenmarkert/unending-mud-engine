@@ -1,114 +1,93 @@
 package core
 
-import core.gameunit.Direction.*
+import core.ZoneData.roomSouth
+import core.gameunit.Direction.{South, *}
 import core.gameunit.GameUnit.{createItemIn, createNonPlayerCharacterIn}
 import core.gameunit.ItemSlot.{ItemSlotHead, ItemSlotOffHand}
 import core.gameunit.{Exit, ItemSlot, Room}
 
 object ZoneData {
 
-    val roomCenter = Room()
-    roomCenter.title = "The Room in the Center"
-    val roomNorth = Room()
-    roomNorth.title = "The Room to the North"
-    val roomEast = Room()
-    roomEast.title = "The Room to the East"
-    val roomWest = Room()
-    roomWest.title = "The Room to the West"
-    val roomSouth = Room()
-    roomSouth.title = "The Room to the South"
+    val roomCenter: Room = Room("The Room in the Center")
+        .northTo(roomNorth)
+        .southTo(roomSouth)
+        .eastTo(roomEast)
+        .westTo(roomWest)
 
-    val roomNorthNorth = Room()
-    roomNorthNorth.title = "The Room to the NorthNorth"
-    val roomNorthEast = Room()
-    roomNorthEast.title = "The Room to the NorthEast"
-    val roomEastSouth = Room()
-    roomEastSouth.title = "The Room to the EastSouth"
-    val roomSouthSouth = Room()
-    roomSouthSouth.title = "The Room to the SouthSouth"
+    val roomNorth: Room = Room("The Room to the North")
+        .northTo(roomNorthNorth)
+        .southTo(roomCenter)
+        .eastTo(roomNorthEast, 2)
 
-    val roomNorthNorthEast = Room()
-    roomNorthNorthEast.title = "The Room to the NorthNorthEast"
-    val roomNorthEastSouth = Room()
-    roomNorthEastSouth.title = "The Room to the NorthEastSouth"
-    val roomNorthNorthEastEast = Room()
-    roomNorthNorthEastEast.title = "The Room to the NorthNorthEastEast"
+    val roomSouth: Room = Room("The Room to the South")
+        .northTo(roomCenter)
+        .southTo(roomSouthSouth)
 
-    roomCenter.exits += (North -> Exit(roomNorth))
-    roomCenter.exits += (South -> Exit(roomSouth))
-    roomCenter.exits += (East -> Exit(roomEast))
-    roomCenter.exits += (West -> Exit(roomWest))
+    val roomEast: Room = Room("The Room to the East")
+        .southTo(roomEastSouth)
+        .westTo(roomCenter)
 
-    roomNorth.exits += (North -> Exit(roomNorthNorth))
-    roomNorth.exits += (South -> Exit(roomCenter))
-    roomNorth.exits += (East -> Exit(roomNorthEast, 2))
+    val roomWest: Room = Room("The Room to the West")
+        .eastTo(roomCenter)
 
-    roomSouth.exits += (North -> Exit(roomCenter))
-    roomSouth.exits += (South -> Exit(roomSouthSouth))
+    val roomNorthNorth: Room = Room("The Room to the NorthNorth")
+        .eastTo(roomNorthNorthEast)
+        .southTo(roomNorth)
 
-    roomEast.exits += (South -> Exit(roomEastSouth))
-    roomEast.exits += (West -> Exit(roomCenter))
+    val roomNorthEast: Room = Room("The Room to the NorthEast")
+        .westTo(roomNorth, 2)
+        .southTo(roomNorthEastSouth)
 
-    roomWest.exits += (East -> Exit(roomCenter))
+    val roomSouthSouth: Room = Room("The Room to the SouthSouth")
+        .northTo(roomSouth)
 
-    roomNorthNorth.exits += (East -> Exit(roomNorthNorthEast))
-    roomNorthNorth.exits += (South -> Exit(roomNorth))
+    val roomEastSouth: Room = Room("The Room to the EastSouth")
+        .northTo(roomEast)
 
-    roomNorthEast.exits += (West -> Exit(roomNorth, 2))
-    roomNorthEast.exits += (South -> Exit(roomNorthEastSouth))
+    val roomNorthNorthEast: Room = Room("The Room to the NorthNorthEast")
+        .eastTo(roomNorthNorthEastEast)
+        .westTo(roomNorthNorth)
 
-    roomSouthSouth.exits += (North -> Exit(roomSouth))
+    val roomNorthEastSouth: Room = Room("The Room to the NorthEastSouth")
+        .northTo(roomNorthEast)
 
-    roomEastSouth.exits += (North -> Exit(roomEast))
+    val roomNorthNorthEastEast: Room = Room("The Room to the NorthNorthEastEast")
+        .westTo(roomNorthNorthEast)
 
-    roomNorthNorthEast.exits += (East -> Exit(roomNorthNorthEastEast))
-    roomNorthNorthEast.exits += (West -> Exit(roomNorthNorth))
-
-    roomNorthEastSouth.exits += (North -> Exit(roomNorthEast))
-
-    roomNorthNorthEastEast.exits += (West -> Exit(roomNorthNorthEast))
-
-    val book = createItemIn(roomCenter)
-    book.id = "book1"
+    val book = createItemIn(roomCenter, "book1")
     book.name = "book"
     book.title = "a book"
     book.description = "It's a small book, bound in leather."
 
-    val cowboyHat = createItemIn(roomCenter)
-    cowboyHat.id = "hat1"
+    val cowboyHat = createItemIn(roomCenter, "hat1")
     cowboyHat.name = "hat"
     cowboyHat.title = "a white cowboy hat"
     cowboyHat.description = "It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance."
     cowboyHat.itemSlot = Some(ItemSlotHead)
 
-    val topHat = createItemIn(roomCenter)
-    topHat.id = "hat2"
+    val topHat = createItemIn(roomCenter, "hat2")
     topHat.name = "hat"
     topHat.title = "a black top hat"
     topHat.description = "It's a very fancy hat, about one hand tall with a flat top and a narrow brim. And it's completely black."
     topHat.itemSlot = Some(ItemSlotHead)
 
-    val bag = createItemIn(roomCenter)
-    bag.id = "bag1"
+    val bag = createItemIn(roomCenter, "bag1")
     bag.name = "bag"
     bag.title = "a bag"
     bag.description = "It's a small, red Eastpak."
 
-    val tanto = createItemIn(bag)
-    tanto.id = "tanto1"
+    val tanto = createItemIn(bag, "tanto1")
     tanto.name = "tanto"
     tanto.title = "a black and gold plastic tanto"
     tanto.description = "It's a very cheap looking tanto made of plastic. That design is quite flashy, though, provided you don't look too closely. It has a grey hilt wrapped in some black cloth ribbon."
     tanto.itemSlot = Some(ItemSlotOffHand)
 
-    val driver = createNonPlayerCharacterIn(roomCenter)
-    driver.id = "driver1"
+    val driver = createNonPlayerCharacterIn(roomCenter, "driver1")
     driver.name = "driver"
     driver.title = "the driver"
     driver.description = "She's a short, plump woman wearing a light frown as if it was her most prized possession."
 
-    val boy = createNonPlayerCharacterIn(roomCenter)
-    boy.id = "boy1"
+    val boy = createNonPlayerCharacterIn(roomCenter, "boy1")
     boy.name = "boy"
     boy.title = "a boy"
     boy.description = "He's a little boy, probably around the age of 10."

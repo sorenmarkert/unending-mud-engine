@@ -114,8 +114,8 @@ object Commands:
             }
 
         character match {
-            case PlayerCharacter(connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
-            case _                           => // TODO: send to controlling admin
+            case PlayerCharacter(_, connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
+            case _                              => // TODO: send to controlling admin
         }
 
     end sendMessage

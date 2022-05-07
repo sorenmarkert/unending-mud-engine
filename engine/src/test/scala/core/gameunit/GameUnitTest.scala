@@ -20,10 +20,10 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "be the only unit in an empty unit" in {
 
             Given("An empty room")
-            val room = Room()
+            val room = Room("Some Title")
 
             When("An item is created inside it")
-            val newItem = createItemIn(room)
+            val newItem = createItemIn(room, "newItem")
 
             Then("The item is the only thing inside the room")
             room.contents should contain only newItem
@@ -36,11 +36,11 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "be before other units in a non-empty unit" in {
 
             Given("An room containing an item")
-            val room = Room()
-            val oldItem = createItemIn(room)
+            val room = Room("Some Title")
+            val oldItem = createItemIn(room, "oldItem")
 
             When("A new item is created inside the room")
-            val newItem = createItemIn(room)
+            val newItem = createItemIn(room, "newItem")
 
             Then("The new item is the top thing inside the room")
             room.contents should contain theSameElementsInOrderAs List(newItem, oldItem)
@@ -56,10 +56,10 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Leave the order of its siblings unchanged" in {
 
             Given("An room containing three items")
-            val room = Room()
-            val bottomItem = createItemIn(room)
-            val itemToBeDeleted = createItemIn(room)
-            val topItem = createItemIn(room)
+            val room = Room("Some Title")
+            val bottomItem = createItemIn(room, "bottomItem")
+            val itemToBeDeleted = createItemIn(room, "itemToBeDeleted")
+            val topItem = createItemIn(room, "topItem")
 
             When("The middle item is removed")
             itemToBeDeleted.removeUnit
@@ -74,9 +74,9 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Delete its contents recursively" in {
 
             Given("An room containing an item containing another item")
-            val room = Room()
-            val itemToBeDeleted = createItemIn(room)
-            val containedItem = createItemIn(itemToBeDeleted)
+            val room = Room("Some Title")
+            val itemToBeDeleted = createItemIn(room, "itemToBeDeleted")
+            val containedItem = createItemIn(itemToBeDeleted, "containedItem")
 
             When("The outer item is removed")
             itemToBeDeleted.removeUnit
@@ -95,12 +95,12 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Leave the order of its old siblings unchanged" in {
 
             Given("An room containing three items")
-            val fromRoom = Room()
-            val bottomItem = createItemIn(fromRoom)
-            val itemToBeMoved = createItemIn(fromRoom)
-            val topItem = createItemIn(fromRoom)
-            val toRoom = Room()
-            val oldItem = createItemIn(toRoom)
+            val fromRoom = Room("Some Title")
+            val bottomItem = createItemIn(fromRoom, "bottomItem")
+            val itemToBeMoved = createItemIn(fromRoom, "itemToBeMoved")
+            val topItem = createItemIn(fromRoom, "topItem")
+            val toRoom = Room("Some Title")
+            val oldItem = createItemIn(toRoom, "oldItem")
 
             When("The middle item is moved to another room")
             toRoom addUnit itemToBeMoved
@@ -122,9 +122,9 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Place the item as equipped on the character" in {
 
             Given("A character with an item")
-            val room = Room()
-            val character = createNonPlayerCharacterIn(room)
-            val item = createItemIn(character)
+            val room = Room("Some Title")
+            val character = createNonPlayerCharacterIn(room, "character")
+            val item = createItemIn(character, "val item = createItemIn(character)")
             item.itemSlot = Some(ItemSlotHead)
 
             When("The character equips the item")
@@ -146,9 +146,9 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Return an error when it's not in the character's inventory" in {
 
             Given("A character next to an item")
-            val room = Room()
-            val character = createNonPlayerCharacterIn(room)
-            val item = createItemIn(room)
+            val room = Room("Some Title")
+            val character = createNonPlayerCharacterIn(room, "character")
+            val item = createItemIn(room, "val item = createItemIn(room)")
             item.itemSlot = Some(ItemSlotHead)
 
             When("The character equips the item")
@@ -161,14 +161,14 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Return an error when the character already has an item equipped in that slot" in {
 
             Given("A character with two item, where one is equipped")
-            val room = Room()
-            val character = createNonPlayerCharacterIn(room)
+            val room = Room("Some Title")
+            val character = createNonPlayerCharacterIn(room, "character")
 
-            val equippedItem = createItemIn(character)
+            val equippedItem = createItemIn(character, "equippedItem")
             equippedItem.itemSlot = Some(ItemSlotHead)
             character equip equippedItem
 
-            val unequippedItem = createItemIn(character)
+            val unequippedItem = createItemIn(character, "unequippedItem")
             unequippedItem.itemSlot = Some(ItemSlotHead)
 
             When("The character equips the unequipped item")
@@ -181,9 +181,9 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Return an error when the item is unequippable" in {
 
             Given("A character with two item, where one is equipped")
-            val room = Room()
-            val character = createNonPlayerCharacterIn(room)
-            val item = createItemIn(character)
+            val room = Room("Some Title")
+            val character = createNonPlayerCharacterIn(room, "character")
+            val item = createItemIn(character, "val item = createItemIn(character)")
             item.itemSlot = None
 
             When("The character equips the unequipped item")
@@ -199,9 +199,9 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Placed it in the inventory" in {
 
             Given("A character with an equipped item")
-            val room = Room()
-            val character = createNonPlayerCharacterIn(room)
-            val item = createItemIn(character)
+            val room = Room("Some Title")
+            val character = createNonPlayerCharacterIn(room, "character")
+            val item = createItemIn(character, "val item = createItemIn(character)")
             item.itemSlot = Some(ItemSlotHead)
             character equip item
 
@@ -224,9 +224,9 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Return an error when it's not equipped" in {
 
             Given("A character next to an item")
-            val room = Room()
-            val character = createNonPlayerCharacterIn(room)
-            val item = createItemIn(room)
+            val room = Room("Some Title")
+            val character = createNonPlayerCharacterIn(room, "character")
+            val item = createItemIn(room, "val item = createItemIn(room)")
 
             When("The character unequips the item")
             val result = character unequip item
@@ -241,16 +241,13 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Find an item next to the character" in {
 
             Given("A player next to 3 items")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val bottomItem = createItemIn(room)
-            bottomItem.id = "bottomItem"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val bottomItem = createItemIn(room, "bottomItem")
             bottomItem.name = "itemname"
-            val itemToBeFound = createItemIn(room)
-            itemToBeFound.id = "itemToBeFound"
+            val itemToBeFound = createItemIn(room, "itemToBeFound")
             itemToBeFound.name = "itemname"
-            val topItem = createItemIn(room)
-            topItem.id = "topItem"
+            val topItem = createItemIn(room, "topItem")
             topItem.name = "othername"
 
             When("The player searches for the item")
@@ -263,19 +260,15 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Find an item in the character's inventory" in {
 
             Given("A player with 3 items")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val bottomItem = createItemIn(player)
-            bottomItem.id = "bottomItem"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val bottomItem = createItemIn(player, "bottomItem")
             bottomItem.name = "itemname"
-            val itemToBeFound = createItemIn(player)
-            itemToBeFound.id = "itemToBeFound"
+            val itemToBeFound = createItemIn(player, "itemToBeFound")
             itemToBeFound.name = "itemname"
-            val topItem = createItemIn(player)
-            topItem.id = "topItem"
+            val topItem = createItemIn(player, "topItem")
             topItem.name = "othername"
-            val equippedItem = createItemIn(player)
-            equippedItem.id = "equippedItem"
+            val equippedItem = createItemIn(player, "equippedItem")
             equippedItem.name = "itemname"
             equippedItem.itemSlot = Some(ItemSlotHead)
             player equip equippedItem
@@ -290,25 +283,21 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Find an item among the character's equipped items" in {
 
             Given("A player with 3 equipped items")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val bottomItem = createItemIn(player)
-            bottomItem.id = "bottomItem"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val bottomItem = createItemIn(player, "bottomItem")
             bottomItem.name = "itemname"
             bottomItem.itemSlot = Some(ItemSlotHead)
             player equip bottomItem
-            val itemToBeFound = createItemIn(player)
-            itemToBeFound.id = "itemToBeFound"
+            val itemToBeFound = createItemIn(player, "itemToBeFound")
             itemToBeFound.name = "itemname"
             itemToBeFound.itemSlot = Some(ItemSlotFeet)
             player equip itemToBeFound
-            val topItem = createItemIn(player)
-            topItem.id = "topItem"
+            val topItem = createItemIn(player, "topItem")
             topItem.name = "othername"
             topItem.itemSlot = Some(ItemSlotChest)
             player equip topItem
-            val inventoryItem = createItemIn(player)
-            inventoryItem.id = "inventoryItem"
+            val inventoryItem = createItemIn(player, "inventoryItem")
             inventoryItem.name = "itemname"
 
             When("The player searches for the item")
@@ -321,28 +310,23 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Find an item among all the character's items" in {
 
             Given("A player with 3 out of 5 items equipped")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val bottomItem = createItemIn(player)
-            bottomItem.id = "bottomItem"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val bottomItem = createItemIn(player, "bottomItem")
             bottomItem.name = "itemname"
-            val bottomEquippedItem = createItemIn(player)
-            bottomEquippedItem.id = "bottomEquippedItem"
+            val bottomEquippedItem = createItemIn(player, "bottomEquippedItem")
             bottomEquippedItem.name = "itemname"
             bottomEquippedItem.itemSlot = Some(ItemSlotChest)
             player equip bottomEquippedItem
-            val itemToBeFound = createItemIn(player)
-            itemToBeFound.id = "itemToBeFound"
+            val itemToBeFound = createItemIn(player, "itemToBeFound")
             itemToBeFound.name = "itemname"
             itemToBeFound.itemSlot = Some(ItemSlotFeet)
             player equip itemToBeFound
-            val topEquippedItem = createItemIn(player)
-            topEquippedItem.id = "topEquippedItem"
+            val topEquippedItem = createItemIn(player, "topEquippedItem")
             topEquippedItem.name = "othername"
             topEquippedItem.itemSlot = Some(ItemSlotHands)
             player equip topEquippedItem
-            val topItem = createItemIn(player)
-            topItem.id = "topItem"
+            val topItem = createItemIn(player, "topItem")
             topItem.name = "itemname"
 
             When("The player searches for the item")
@@ -355,17 +339,14 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Find an item globally" in {
 
             Given("3 items in another room than the character")
-            val playerRoom = Room()
-            val player = createNonPlayerCharacterIn(playerRoom)
-            val otherRoom = Room()
-            val bottomItem = createItemIn(otherRoom)
-            bottomItem.id = "bottomItem"
+            val playerRoom = Room("Some Title")
+            val player = createNonPlayerCharacterIn(playerRoom, "player")
+            val otherRoom = Room("Some Title")
+            val bottomItem = createItemIn(otherRoom, "bottomItem")
             bottomItem.name = "itemname"
-            val itemToBeFound = createItemIn(otherRoom)
-            itemToBeFound.id = "itemToBeFound"
+            val itemToBeFound = createItemIn(otherRoom, "itemToBeFound")
             itemToBeFound.name = "itemname"
-            val topItem = createItemIn(otherRoom)
-            topItem.id = "topItem"
+            val topItem = createItemIn(otherRoom, "topItem")
             topItem.name = "othername"
 
             When("The player searches for the item")
@@ -378,17 +359,14 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Find an item inside a given container" in {
 
             Given("A player with 3 items in a container")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val container = createItemIn(player)
-            val bottomItem = createItemIn(container)
-            bottomItem.id = "bottomItem"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val container = createItemIn(player, "val container = createItemIn(player)")
+            val bottomItem = createItemIn(container, "bottomItem")
             bottomItem.name = "itemname"
-            val itemToBeFound = createItemIn(container)
-            itemToBeFound.id = "itemToBeFound"
+            val itemToBeFound = createItemIn(container, "itemToBeFound")
             itemToBeFound.name = "itemname"
-            val topItem = createItemIn(container)
-            topItem.id = "topItem"
+            val topItem = createItemIn(container, "topItem")
             topItem.name = "othername"
 
             When("The player searches for the item")
@@ -401,16 +379,13 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Ignore case" in {
 
             Given("A player next to 3 items")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val bottomItem = createItemIn(room)
-            bottomItem.id = "bottomItem"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val bottomItem = createItemIn(room, "bottomItem")
             bottomItem.name = "itemname"
-            val itemToBeFound = createItemIn(room)
-            itemToBeFound.id = "itemToBeFound"
+            val itemToBeFound = createItemIn(room, "itemToBeFound")
             itemToBeFound.name = "itemNAME"
-            val topItem = createItemIn(room)
-            topItem.id = "topItem"
+            val topItem = createItemIn(room, "topItem")
             topItem.name = "othername"
 
             When("The player searches for the item")
@@ -423,13 +398,11 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Find same name items by a given index" in {
 
             Given("A player next to 3 items")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val itemToBeFound = createItemIn(room)
-            itemToBeFound.id = "itemToBeFound"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val itemToBeFound = createItemIn(room, "itemToBeFound")
             itemToBeFound.name = "itemname"
-            val topItem = createItemIn(room)
-            topItem.id = "topItem"
+            val topItem = createItemIn(room, "topItem")
             topItem.name = "itemname"
 
             When("The player searches for the item")
@@ -442,11 +415,10 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
         "Not find an item that isn't there" in {
 
             Given("A player with 3 out of 5 items equipped")
-            val room = Room()
-            val player = createNonPlayerCharacterIn(room)
-            val container = createItemIn(player)
-            val itemToNotBeFound = createItemIn(container)
-            itemToNotBeFound.id = "itemToNotBeFound"
+            val room = Room("Some Title")
+            val player = createNonPlayerCharacterIn(room, "player")
+            val container = createItemIn(player, "val container = createItemIn(player)")
+            val itemToNotBeFound = createItemIn(container, "itemToNotBeFound")
             itemToNotBeFound.name = "othername"
 
             When("The player searches for the item")
