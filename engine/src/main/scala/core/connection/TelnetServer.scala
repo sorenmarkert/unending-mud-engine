@@ -33,7 +33,7 @@ object TelnetServer:
         def serve(player: PlayerCharacter): Unit =
             val input       = player.connection.readLine()
             val commandWord = executeCommand(player, input)
-            if commandWord != "quit" then serve(player)
+            if commandWord != "quit" then serve(player) //  TODO: don't close until quit command completes
 
         Future {
             val serverSocket = new ServerSocket(port)

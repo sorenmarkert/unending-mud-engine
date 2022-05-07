@@ -5,7 +5,7 @@ import core.gameunit.GameUnit.findUnit
 import core.commands.ActRecipient.*
 import core.commands.ActVisibility.*
 import core.commands.Commands.*
-import core.gameunit.{Character, FindContext}
+import core.gameunit.{Character, FindContext, Item}
 
 object EquipmentCommands:
 
@@ -120,6 +120,30 @@ object EquipmentCommands:
                             joinOrElse(unitToLookAt.contents map (mapContent(_)), "\n", "Nothing.")))
                     case None               => sendMessage(character, "No such thing here to look inside.")
                 }
+        }
+
+    private[commands] def wear(character: Character, commandWords: Seq[String]) =
+        findUnit(character, commandWords.tail mkString " ", Left(FindInInventory)) match {
+            case Some(target: Item) =>
+                character equip target match {
+                    case None               =>
+                        act("You wear your $2N.", ActVisibility.Always, Some(character), Some(target), None, ToActor, None)
+                        act("$1N wears $1s $2N.", ActVisibility.Always, Some(character), Some(target), None, ToAllExceptActor, None)
+                    case Some(errorMessage) => sendMessage(character, errorMessage)
+                }
+            case None               => sendMessage(character, "You don't seem to have any such thing.")
+        }
+
+    private[commands] def remove(character: Character, commandWords: Seq[String]) =
+        findUnit(character, commandWords.tail mkString " ", Left(FindInEquipped)) match {
+            case Some(target: Item) =>
+                character unequip target match {
+                    case None               =>
+                        act("You remove your $2N.", ActVisibility.Always, Some(character), Some(target), None, ToActor, None)
+                        act("$1N removes $1s $2N.", ActVisibility.Always, Some(character), Some(target), None, ToAllExceptActor, None)
+                    case Some(errorMessage) => sendMessage(character, errorMessage)
+                }
+            case None               => sendMessage(character, "You don't seem to have any such thing equipped.")
         }
 
 end EquipmentCommands

@@ -56,6 +56,8 @@ object Commands:
         "put" -> InstantCommand(put),
         "place" -> InstantCommand(put),
         "give" -> InstantCommand(give),
+        "wear" -> InstantCommand(wear),
+        "remove" -> InstantCommand(remove),
 
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
         )
@@ -64,14 +66,15 @@ object Commands:
 
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 
-        val (command, commandWords) = inputWords match {
-            case "" :: _ | Nil              => (emptyInput, Nil)
-            case commandPrefix :: arguments =>
-                commandList
-                    .find { case (k, _) => k startsWith commandPrefix } // TODO: use a trie
-                    .map { case (commandString, command) => (command, commandString :: arguments) }
-                    .getOrElse((unknownCommand, Nil))
-        }
+        val (command, commandWords) =
+            inputWords match {
+                case "" :: _ | Nil              => (emptyInput, Nil)
+                case commandPrefix :: arguments =>
+                    commandList
+                        .find { case (k, _) => k startsWith commandPrefix.toLowerCase } // TODO: use a trie
+                        .map { case (commandString, command) => (command, commandString :: arguments) }
+                        .getOrElse((unknownCommand, Nil))
+            }
 
         actorSystem ! CommandExecution(command, character, commandWords)
 
@@ -84,30 +87,31 @@ object Commands:
 
         // TODO: exclude color codes when counting width
         // TODO: hyphenation
-        lazy val formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
+        val formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
 
-        lazy val prompt = "\n(12/20) fake-prompt (12/20)"
+        val prompt = "(12/20) fake-prompt (12/20)"
 
-        lazy val formattedOutputWithPromptAndMap = (addMap, character.outside) match {
-            case (true, Some(room: Room)) =>
+        val formattedOutputWithPromptAndMap =
+            (addMap, character.outside) match {
+                case (true, Some(room: Room)) =>
 
-                val mapLines             = colourMiniMap(frameMiniMap(miniMap(room, 3)))
-                val formattedPromptLines = (prompt grouped textWidth mkString "\n").linesIterator
+                    val mapLines    = colourMiniMap(frameMiniMap(miniMap(room, 3)))
+                    val promptLines = (prompt grouped textWidth).toList
 
-                formattedOutput
-                    .linesIterator
-                    .padTo(mapLines.size - formattedPromptLines.size, "")
-                    .toList
-                    .appendedAll(formattedPromptLines)
-                    .map(_.padTo(textWidth, ' '))
-                    .zipAll(
-                        mapLines,
-                        tabulate(textWidth)(_ => ' ').mkString,
-                        "")
-                    .map(a => a._1 + "  " + a._2)
-                    .mkString("\n")
-            case _                        => formattedOutput + "\n" + prompt
-        }
+                    formattedOutput
+                        .linesIterator
+                        .padTo(mapLines.size - promptLines.size, "")
+                        .toList
+                        .appendedAll(promptLines)
+                        .map(_.padTo(textWidth, ' '))
+                        .zipAll(
+                            mapLines,
+                            tabulate(textWidth)(_ => ' ').mkString,
+                            "")
+                        .map(a => a._1 + "  " + a._2)
+                        .mkString("\n")
+                case _                        => formattedOutput + "\n\n" + prompt
+            }
 
         character match {
             case PlayerCharacter(connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
@@ -169,7 +173,7 @@ object Commands:
         })
 
         recipients foreach (sendMessage(_, firstCharToUpper(replacement(message))))
-        
+
     end act
 
     private[commands] def joinOrElse(strings: Iterable[String], separator: String, default: String) =

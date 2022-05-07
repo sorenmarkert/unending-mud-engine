@@ -134,23 +134,25 @@ sealed abstract class Character extends GameUnit :
 
     def equippedAt(itemSlot: ItemSlot): Option[Item] = _equipped get itemSlot
 
-    def equip(item: Item): Option[String] = item.itemSlot match {
-        case Some(_) if !(inventory contains item)         => Some("You can only equip items from your inventory.")
-        case Some(itemSlot) if _equipped contains itemSlot => Some("You already have something equipped there.")
-        case Some(itemSlot)                                =>
-            _equipped addOne (itemSlot -> item)
-            _equippedReverse addOne (item -> itemSlot)
-            None
-        case None                                          => Some("This item cannot be equipped.")
-    }
-
-    def unequip(item: Item): Option[String] = _equippedReverse remove item match {
-        case Some(value) => {
-            _equipped remove value
-            None
+    def equip(item: Item): Option[String] =
+        item.itemSlot match {
+            case Some(_) if !(inventory contains item)         => Some("You can only equip items from your inventory.")
+            case Some(itemSlot) if _equipped contains itemSlot => Some("You already have something equipped there.")
+            case Some(itemSlot)                                =>
+                _equipped addOne (itemSlot -> item)
+                _equippedReverse addOne (item -> itemSlot)
+                None
+            case None                                          => Some("This item cannot be equipped.")
         }
-        case None        => Some("You don't have that item equipped.")
-    }
+
+    def unequip(item: Item): Option[String] =
+        _equippedReverse remove item match {
+            case Some(value) => {
+                _equipped remove value
+                None
+            }
+            case None        => Some("You don't have that item equipped.")
+        }
 
     def canSee(unit: GameUnit) = true // TODO: implement visibility check
 
@@ -188,6 +190,7 @@ end Item
 
 case class Room() extends GameUnit :
 
+    // TODO: builder pattern
     val exits: MMap[Direction, Exit] = MMap[Direction, Exit]()
 
     description = "It's a room. There's nothing in it. Not even a door."
