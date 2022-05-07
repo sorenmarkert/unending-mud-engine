@@ -29,7 +29,7 @@ case class TimedCommand(baseDuration: FiniteDuration,
 
 object Commands:
 
-    private val pattern = "\\$([1-3])([aemsnNpt])".r
+    private val nounPattern = "\\$([1-3])([aemsnNpt])".r
 
     private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
     private val unknownCommand = InstantCommand((char, _) => sendMessage(char, "What's that?"))
@@ -57,7 +57,7 @@ object Commands:
         "place" -> InstantCommand(put),
         "give" -> InstantCommand(give),
 
-        "slash" -> TimedCommand(3.seconds, prepareSlash, doSlash),
+        "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
     )
 
     def executeCommand(character: Character, input: String): String =
@@ -160,8 +160,8 @@ object Commands:
 
         val units = Array(actor, medium, target)
 
-        def replacement(msg: String) = pattern.replaceAllIn(msg, _ match {
-            case pattern(unitIndex, formatter) => units(unitIndex.toInt - 1)
+        def replacement(msg: String) = nounPattern.replaceAllIn(msg, _ match {
+            case nounPattern(unitIndex, formatter) => units(unitIndex.toInt - 1)
                 .map(formatUnit(_, formatter))
                 .getOrElse("null")
         })

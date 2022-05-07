@@ -17,7 +17,6 @@ object GameEngineSetup:
         logger.warn("Starting the Unending MUD Engine.")
 
         val config = ConfigFactory.load()
-        val telnetPort = config.getInt("engine.telnet.port")
 
         runState = Running
-        TelnetServer(telnetPort)
+        TelnetServer(config)

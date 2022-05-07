@@ -1,6 +1,7 @@
 package core.connection
 
 import akka.event.slf4j.Logger
+import com.typesafe.config.Config
 import core.gameunit.GameUnit.createPlayerCharacterIn
 import core.GlobalState.runState
 import core.RunState.Running
@@ -16,7 +17,9 @@ object TelnetServer:
 
     private val logger = Logger("Telnet")
 
-    def apply(port: Int) =
+    def apply(config: Config) =
+
+        val port = config.getInt("telnet.port")
 
         logger.warn("Starting telnet client on port " + port)
 
