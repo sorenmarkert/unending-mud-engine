@@ -15,21 +15,23 @@ object StateActor {
 
     sealed trait StateActorMessage
 
+
     case object Tick extends StateActorMessage
 
+
     case class CommandExecution(command: Command, character: gameunit.Character, argument: List[String]) extends StateActorMessage
+
 
     case class Interrupt(character: gameunit.Character) extends StateActorMessage
 
 
     private val logger = Logger("State")
 
-    private val tickInterval = 100.milliseconds
-    private var tickCounter = 0
-    private val commandQueue = ListBuffer.empty[CommandExecution]
+    private val tickInterval            = 100.milliseconds
+    private var tickCounter             = 0
+    private val commandQueue            = ListBuffer.empty[CommandExecution]
     private val timedCommandsWaitingMap = MSortedMap.empty[Int, Vector[CommandExecution]]
-    private val charactersInActionMap = MMap.empty[gameunit.Character, Int]
-
+    private val charactersInActionMap   = MMap.empty[gameunit.Character, Int]
 
     def apply(): Behavior[StateActorMessage] =
         setup { context =>
@@ -47,12 +49,12 @@ object StateActor {
                 logger.warn("Received command: " + command.argument.mkString(" "))
                 commandQueue append command
                 same
-            case Interrupt(character) =>
+            case Interrupt(character)      =>
                 charactersInActionMap remove character foreach { tick =>
                     timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
                 }
                 same
-            case Tick =>
+            case Tick                      =>
                 executeQueuedCommands()
                 tickCounter += 1
                 if runState == Closing then stopped
@@ -68,21 +70,21 @@ object StateActor {
                 case CommandExecution(TimedCommand(_, _, endFunc), character, argument) =>
                     endFunc(character, argument)
                     charactersWhoReceivedMessages addOne character
-                case _ =>
+                case _                                                                  =>
             }
         }
         timedCommandsWaitingMap remove tickCounter
 
         commandQueue foreach {
             // TODO: check if need to block if waiting for a TimedCommand
-            case CommandExecution(InstantCommand(func, canInterrupt), character, argument) =>
+            case CommandExecution(InstantCommand(func, canInterrupt), character, argument)                    =>
                 func(character, argument)
                 charactersWhoReceivedMessages addOne character
-            case commandExecution @ CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
+            case commandExecution@CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
                 beginFunc(character, argument) match {
                     case Some(_) => // TODO: error case
-                    case None =>
-                        val executeAtTick = tickCounter + (duration / tickInterval).toInt
+                    case None    =>
+                        val executeAtTick        = tickCounter + (duration / tickInterval).toInt
                         val commandsEndingAtTick = timedCommandsWaitingMap.getOrElse(executeAtTick, Vector.empty[CommandExecution])
                         timedCommandsWaitingMap(executeAtTick) = commandsEndingAtTick appended commandExecution
                         charactersInActionMap(character) = executeAtTick

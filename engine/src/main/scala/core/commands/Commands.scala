@@ -23,15 +23,15 @@ case class InstantCommand(func: (Character, Seq[String]) => Unit, canInterrupt: 
 
 
 case class TimedCommand(baseDuration: FiniteDuration,
-                        beginFunc: (Character, Seq[String]) => Option[String],
-                        endFunc: (Character, Seq[String]) => Unit) extends Command
+                        beginFunc   : (Character, Seq[String]) => Option[String],
+                        endFunc     : (Character, Seq[String]) => Unit) extends Command
 
 
 object Commands:
 
     private val nounPattern = "\\$([1-3])([aemsnNpt])".r
 
-    private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
+    private val emptyInput     = InstantCommand((char, _) => sendMessage(char, ""))
     private val unknownCommand = InstantCommand((char, _) => sendMessage(char, "What's that?"))
 
     private val commandList: Seq[(String, Command)] = Seq(
@@ -58,14 +58,14 @@ object Commands:
         "give" -> InstantCommand(give),
 
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
-    )
+        )
 
     def executeCommand(character: Character, input: String): String =
 
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 
         val (command, commandWords) = inputWords match {
-            case "" :: _ | Nil => (emptyInput, Nil)
+            case "" :: _ | Nil              => (emptyInput, Nil)
             case commandPrefix :: arguments =>
                 commandList
                     .find { case (k, _) => k startsWith commandPrefix } // TODO: use a trie
@@ -91,7 +91,7 @@ object Commands:
         lazy val formattedOutputWithPromptAndMap = (addMap, character.outside) match {
             case (true, Some(room: Room)) =>
 
-                val mapLines = colourMiniMap(frameMiniMap(miniMap(room, 3)))
+                val mapLines             = colourMiniMap(frameMiniMap(miniMap(room, 3)))
                 val formattedPromptLines = (prompt grouped textWidth mkString "\n").linesIterator
 
                 formattedOutput
@@ -106,24 +106,24 @@ object Commands:
                         "")
                     .map(a => a._1 + "  " + a._2)
                     .mkString("\n")
-            case _ => formattedOutput + "\n" + prompt
+            case _                        => formattedOutput + "\n" + prompt
         }
 
         character match {
             case PlayerCharacter(connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
-            case _ => // TODO: send to controlling admin
+            case _                           => // TODO: send to controlling admin
         }
 
     end sendMessage
 
     def act(message: String, visibility: ActVisibility,
-            actor: Option[GameUnit], medium: Option[GameUnit], target: Option[GameUnit],
-            toWhom: ActRecipient, text: Option[String]): Unit =
+            actor  : Option[GameUnit], medium: Option[GameUnit], target: Option[GameUnit],
+            toWhom : ActRecipient, text: Option[String]): Unit =
 
         def toCharacter(unit: GameUnit) =
             unit match {
                 case character: Character => Some(character)
-                case _ => None
+                case _                    => None
             }
 
         def charactersInRoom =
@@ -134,30 +134,30 @@ object Commands:
 
         val recipients =
             toWhom match {
-                case ToActor => (actor flatMap toCharacter).toList
-                case ToTarget => (target flatMap toCharacter).toList
-                case ToBystanders => charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
+                case ToActor          => (actor flatMap toCharacter).toList
+                case ToTarget         => (target flatMap toCharacter).toList
+                case ToBystanders     => charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
                 case ToAllExceptActor => charactersInRoom filterNot (isSame(_, actor))
-                case ToEntireRoom => charactersInRoom
+                case ToEntireRoom     => charactersInRoom
             }
 
-        def formatGender(unit: GameUnit, genderMap: Map[Gender, String]) =
+        def formatGender(unit: GameUnit, genderToNoun: Gender => String) =
             unit match {
-                case character: Character => genderMap(character.gender)
-                case _ => genderMap(GenderNeutral)
+                case character: Character => genderToNoun(character.gender)
+                case _                    => genderToNoun(GenderNeutral)
             }
 
         def formatUnit(unit: GameUnit, formatter: String) =
             formatter match { // TODO: visibility
                 case "a" => if Set('a', 'e', 'i', 'o') contains unit.name.head then "an" else "a"
-                case "e" => formatGender(unit, Map(GenderMale -> "he", GenderFemale -> "she", GenderNeutral -> "it"))
-                case "m" => formatGender(unit, Map(GenderMale -> "him", GenderFemale -> "her", GenderNeutral -> "it"))
-                case "s" => formatGender(unit, Map(GenderMale -> "his", GenderFemale -> "her", GenderNeutral -> "its"))
+                case "e" => formatGender(unit, _.e)
+                case "m" => formatGender(unit, _.m)
+                case "s" => formatGender(unit, _.s)
                 case "n" => mapContent(unit, includePlayerTitle = false)
                 case "N" => unit.name
                 case "p" => "unit.position" // TODO: positions
                 case "t" => text getOrElse "null"
-                case _ => "invalidFormatter"
+                case _   => "invalidFormatter"
             }
 
         val units = Array(actor, medium, target)
@@ -169,6 +169,7 @@ object Commands:
         })
 
         recipients foreach (sendMessage(_, firstCharToUpper(replacement(message))))
+        
     end act
 
     private[commands] def joinOrElse(strings: Iterable[String], separator: String, default: String) =
@@ -178,10 +179,10 @@ object Commands:
             .getOrElse(default)
 
     private[commands] def mapContent(unit: GameUnit, includePlayerTitle: Boolean = true) =
-        unit match {
-            case player: PlayerCharacter if includePlayerTitle => player.name + " " + player.title
-            case player: PlayerCharacter => player.name
-            case _ => unit.title
+        (unit, includePlayerTitle) match {
+            case (player: PlayerCharacter, true)  => player.name + " " + player.title
+            case (player: PlayerCharacter, false) => player.name
+            case _                                => unit.title
         }
 
     private[commands] def firstCharToUpper(message: String) =

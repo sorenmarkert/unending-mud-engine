@@ -10,11 +10,9 @@ object GlobalState:
 
     var runState: RunState = Starting
 
-    val global = ListBuffer[GameUnit]()
-
+    val global  = ListBuffer[GameUnit]()
     val players = ListBuffer[PlayerCharacter]()
-
-    val rooms = ListBuffer[Room]()
+    val rooms   = ListBuffer[Room]()
 
     val actorSystem = ActorSystem(StateActor(), "unending")
 

@@ -18,12 +18,12 @@ sealed trait GameUnit:
 
     val uuid = UUID.randomUUID()
 
-    var id = ""
-    var name = ""
-    var title = ""
+    var id          = ""
+    var name        = ""
+    var title       = ""
     var description = ""
 
-    private val _contents = ListBuffer.empty[GameUnit]
+    private val _contents                  = ListBuffer.empty[GameUnit]
     private var _outside: Option[GameUnit] = None
 
     def contents: List[GameUnit] = _contents.toList
@@ -48,7 +48,7 @@ sealed trait GameUnit:
 
     override def equals(other: Any): Boolean = other match {
         case unit: GameUnit => unit.uuid == uuid
-        case _ => false
+        case _              => false
     }
 
     override def toString: String = this.getClass.getSimpleName + "(" + name + ", " + id + ", " + uuid + ")"
@@ -91,20 +91,20 @@ object GameUnit:
     def findUnit(character: Character, searchString: String, environment: Either[FindContext, GameUnit]): Option[GameUnit] = {
 
         val listToSearch = environment match {
-            case Left(FindNextToMe) => character.outside.get.contents
-            case Left(FindInInventory) => character.inventory
-            case Left(FindInEquipped) => character.equippedItems
-            case Left(FindInMe) => character.equippedItems concat character.inventory
+            case Left(FindNextToMe)     => character.outside.get.contents
+            case Left(FindInInventory)  => character.inventory
+            case Left(FindInEquipped)   => character.equippedItems
+            case Left(FindInMe)         => character.equippedItems concat character.inventory
             case Left(FindInOrNextToMe) => character.equippedItems concat character.inventory concat character.outside.get.contents
-            case Left(FindGlobally) => global
-            case Right(container) => container.contents
+            case Left(FindGlobally)     => global
+            case Right(container)       => container.contents
         }
 
         val (index, name) =
             val terms = searchString.split('.').toList
             Try(terms.head.toInt) match {
                 case Success(value) => (value, terms.tail mkString ".")
-                case Failure(_) => (1, searchString)
+                case Failure(_)     => (1, searchString)
             }
 
         listToSearch
@@ -119,14 +119,14 @@ end GameUnit
 
 sealed abstract class Character extends GameUnit :
 
-    private val _equipped = MMap[ItemSlot, Item]()
+    private val _equipped        = MMap[ItemSlot, Item]()
     private val _equippedReverse = MMap[Item, ItemSlot]()
 
-    var gender: Gender = GenderMale
-    var position: Position = Standing
-    var doing: Option[(String, TimedCommand)] = None
-    var target: Option[Character] = None
-    var targetOf: Option[Character] = None
+    var gender  : Gender                         = GenderMale
+    var position: Position                       = Standing
+    var doing   : Option[(String, TimedCommand)] = None
+    var target  : Option[Character]              = None
+    var targetOf: Option[Character]              = None
 
     def equippedItems: List[GameUnit] = contents filter _equipped.values.toList.contains
 
@@ -135,14 +135,13 @@ sealed abstract class Character extends GameUnit :
     def equippedAt(itemSlot: ItemSlot): Option[Item] = _equipped get itemSlot
 
     def equip(item: Item): Option[String] = item.itemSlot match {
-        case Some(_) if !(inventory contains item) => Some("You can only equip items from your inventory.")
+        case Some(_) if !(inventory contains item)         => Some("You can only equip items from your inventory.")
         case Some(itemSlot) if _equipped contains itemSlot => Some("You already have something equipped there.")
-        case Some(itemSlot) => {
+        case Some(itemSlot)                                =>
             _equipped addOne (itemSlot -> item)
             _equippedReverse addOne (item -> itemSlot)
             None
-        }
-        case None => Some("This item cannot be equipped.")
+        case None                                          => Some("This item cannot be equipped.")
     }
 
     def unequip(item: Item): Option[String] = _equippedReverse remove item match {
@@ -150,7 +149,7 @@ sealed abstract class Character extends GameUnit :
             _equipped remove value
             None
         }
-        case None => Some("You don't have that item equipped.")
+        case None        => Some("You don't have that item equipped.")
     }
 
     def canSee(unit: GameUnit) = true // TODO: implement visibility check
@@ -181,7 +180,7 @@ case class Item private[gameunit]() extends GameUnit :
 
     def isEquipped: Boolean = (this.itemSlot, this.outside) match {
         case (Some(itemSlot), Some(character: Character)) => character equippedAt itemSlot contains this
-        case _ => false
+        case _                                            => false
     }
 
 end Item

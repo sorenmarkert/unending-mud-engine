@@ -31,7 +31,7 @@ object TelnetServer:
             logger.warn(s"Connection closed ${player.name}@${socket.getInetAddress.getHostAddress}")
 
         def serve(player: PlayerCharacter): Unit =
-            val input = player.connection.readLine()
+            val input       = player.connection.readLine()
             val commandWord = executeCommand(player, input)
             if commandWord != "quit" then serve(player)
 
