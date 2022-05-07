@@ -82,16 +82,17 @@ object Commands:
         // TODO: don't send prompt until all messages have been sent
         val textWidth = 50
 
-        def formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
+        // TODO: exclude color codes when counting width
+        // TODO: hyphenation
+        lazy val formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
 
         lazy val prompt = "\n(12/20) fake-prompt (12/20)"
 
-        def addedMap = (addMap, character.outside) match {
+        lazy val formattedOutputWithPromptAndMap = (addMap, character.outside) match {
             case (true, Some(room: Room)) =>
 
                 val mapLines = colourMiniMap(frameMiniMap(miniMap(room, 3)))
-
-                def formattedPromptLines = (prompt grouped textWidth mkString "\n").linesIterator
+                val formattedPromptLines = (prompt grouped textWidth mkString "\n").linesIterator
 
                 formattedOutput
                     .linesIterator
@@ -109,9 +110,10 @@ object Commands:
         }
 
         character match {
-            case PlayerCharacter(connection) => connection.write(addedMap + "\u001b[0m")
+            case PlayerCharacter(connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
             case _ => // TODO: send to controlling admin
         }
+
     end sendMessage
 
     def act(message: String, visibility: ActVisibility,

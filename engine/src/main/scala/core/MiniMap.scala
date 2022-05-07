@@ -7,13 +7,13 @@ import scala.Array.tabulate
 import scala.collection.mutable.Set as MSet
 import scala.math.{abs, max, min}
 
-object MiniMap {
+object MiniMap:
 
-    def miniMap(room: Room, range: Int) = {
+    def miniMap(room: Room, range: Int) =
 
         val traversedRooms = MSet[Room]()
 
-        def mapToGraph(currentRoom: Room, x: Int, y: Int, currentRange: Int): MapNode = {
+        def mapToGraph(currentRoom: Room, x: Int, y: Int, currentRange: Int): MapNode =
 
             traversedRooms += currentRoom
 
@@ -29,7 +29,8 @@ object MiniMap {
                 unvisitedExits.get(East) map (exit => mapToGraph(exit.toRoom, x + exit.distance, y, currentRange + 1)),
                 unvisitedExits.get(West) map (exit => mapToGraph(exit.toRoom, x - exit.distance, y, currentRange + 1)),
                 currentRoom, x, y)
-        }
+
+        end mapToGraph
 
         def maxCoordinates(mapNode: MapNode): (Int, Int) =
             Vector(mapNode.north map maxCoordinates,
@@ -41,7 +42,7 @@ object MiniMap {
 
         val graphMap = mapToGraph(room, 0, 0, 0)
         val maxPair = maxCoordinates(graphMap)
-        val (maxX, maxY) = (max(2, maxPair._1), max(2, maxPair._2))
+        val (maxX, maxY) = (max(range, maxPair._1), max(range, maxPair._2))
         val (centerX, centerY) = (3 * maxX, 2 * maxY)
         val theMap = tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
 
@@ -65,23 +66,23 @@ object MiniMap {
         drawMiniMap(graphMap)
         theMap(centerY)(centerX) = 'X'
         theMap.map(_.mkString).toList
-    }
 
-    def frameMiniMap(miniMap: List[String]) = {
-        val line = Array.tabulate(miniMap(0).size)((_) => '-').mkString
+    end miniMap
+
+    def frameMiniMap(miniMap: List[String]) =
+        val line = Array.tabulate(miniMap(0).size)(_ => '-').mkString
         val header = "/" + line + "\\"
         val footer = "\\" + line + "/"
-
         header :: (miniMap map ("|" + _ + "|")) appended footer
-    }
 
-    def colourMiniMap(miniMap: List[String]) = {
+    def colourMiniMap(miniMap: List[String]) =
         miniMap map {
             _.replace("X", "\u001b[31;1mX\u001b[0m")
                 .replace("#", "\u001b[33m#\u001b[0m")
         }
-    }
-}
+
+end MiniMap
+
 
 case class MapNode(north: Option[MapNode], south: Option[MapNode],
                    east: Option[MapNode], west: Option[MapNode],
