@@ -131,7 +131,7 @@ object EquipmentCommands:
                         act("$1N wears $1s $2N.", ActVisibility.Always, Some(character), Some(target), None, ToAllExceptActor, None)
                     case Some(errorMessage) => sendMessage(character, errorMessage)
                 }
-            case None               => sendMessage(character, "You don't seem to have any such thing.")
+            case _                  => sendMessage(character, "You don't seem to have any such thing.")
         }
 
     private[commands] def remove(character: Character, commandWords: Seq[String]) =
@@ -143,7 +143,7 @@ object EquipmentCommands:
                         act("$1N removes $1s $2N.", ActVisibility.Always, Some(character), Some(target), None, ToAllExceptActor, None)
                     case Some(errorMessage) => sendMessage(character, errorMessage)
                 }
-            case None               => sendMessage(character, "You don't seem to have any such thing equipped.")
+            case _                  => sendMessage(character, "You don't seem to have any such thing equipped.")
         }
 
 end EquipmentCommands

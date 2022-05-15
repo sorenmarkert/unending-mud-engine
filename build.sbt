@@ -5,7 +5,7 @@ ThisBuild / scalaVersion := "3.1.2"
 val akkaActorVersion = "2.6.19"
 val akkaHttpVersion  = "10.2.9"
 
-lazy val webpage = project
+lazy val webapp = project
     .in(file("web-app"))
     .enablePlugins(ScalaJSPlugin)
     .settings(
@@ -19,7 +19,6 @@ lazy val webpage = project
 
 lazy val engine = project
     .in(file("engine"))
-    .dependsOn(models.jvm)
     .settings(
         name := "Unending Engine",
 
@@ -33,8 +32,16 @@ lazy val engine = project
             "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-stream-testkit" % akkaActorVersion cross CrossVersion.for3Use2_13,
             ),
-        Test / unmanagedResourceDirectories += baseDirectory(_ / "target/web/public/test").value,
+
+        Compile / resourceGenerators += Def.task {
+            val source = (webapp / Compile / scalaJSLinkedFile).value.data
+            val dest   = (Compile / resourceManaged).value / "assets" / "main.js"
+            IO.copy(Seq(source -> dest))
+            Seq(dest)
+        },
+        run / fork := true
         )
+    .dependsOn(models.jvm)
 
 lazy val models = crossProject(JSPlatform, JVMPlatform)
     .crossType(CrossType.Pure)

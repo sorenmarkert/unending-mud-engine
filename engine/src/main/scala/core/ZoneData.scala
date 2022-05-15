@@ -9,34 +9,24 @@ import core.gameunit.*
 object ZoneData {
 
     val roomCenter: Room = Room("The Room in the Center")
-        .northTo(roomNorth)
-        .southTo(roomSouth)
-        .eastTo(roomEast)
-        .westTo(roomWest)
 
     val roomNorth: Room = Room("The Room to the North")
-        .northTo(roomNorthNorth)
         .southTo(roomCenter)
-        .eastTo(roomNorthEast, 2)
 
     val roomSouth: Room = Room("The Room to the South")
         .northTo(roomCenter)
-        .southTo(roomSouthSouth)
 
     val roomEast: Room = Room("The Room to the East")
-        .southTo(roomEastSouth)
         .westTo(roomCenter)
 
     val roomWest: Room = Room("The Room to the West")
         .eastTo(roomCenter)
 
     val roomNorthNorth: Room = Room("The Room to the NorthNorth")
-        .eastTo(roomNorthNorthEast)
         .southTo(roomNorth)
 
     val roomNorthEast: Room = Room("The Room to the NorthEast")
         .westTo(roomNorth, 2)
-        .southTo(roomNorthEastSouth)
 
     val roomSouthSouth: Room = Room("The Room to the SouthSouth")
         .northTo(roomSouth)
@@ -45,7 +35,6 @@ object ZoneData {
         .northTo(roomEast)
 
     val roomNorthNorthEast: Room = Room("The Room to the NorthNorthEast")
-        .eastTo(roomNorthNorthEastEast)
         .westTo(roomNorthNorth)
 
     val roomNorthEastSouth: Room = Room("The Room to the NorthEastSouth")
