@@ -1,21 +1,9 @@
 
 ThisBuild / version := "1.0"
-ThisBuild / scalaVersion := "3.1.2"
+ThisBuild / scalaVersion := "3.2.2"
 
-val akkaActorVersion = "2.6.19"
-val akkaHttpVersion  = "10.2.9"
-
-lazy val webapp = project
-    .in(file("web-app"))
-    .enablePlugins(ScalaJSPlugin)
-    .settings(
-        name := "Unending Web App",
-        scalaJSUseMainModuleInitializer := true,
-        libraryDependencies ++= Seq(
-            "org.scala-js" %%% "scalajs-dom" % "2.1.0",
-            ),
-        )
-    .dependsOn(models.js)
+val akkaActorVersion = "2.8.0"
+val akkaHttpVersion = "10.5.0"
 
 lazy val engine = project
     .in(file("engine"))
@@ -26,8 +14,8 @@ lazy val engine = project
             "com.typesafe.akka" %% "akka-actor-typed" % akkaActorVersion cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-http" % akkaHttpVersion cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-stream" % akkaActorVersion cross CrossVersion.for3Use2_13,
-            "ch.qos.logback" % "logback-classic" % "1.2.11",
-            "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+            "ch.qos.logback" % "logback-classic" % "1.4.6",
+            "org.scalatest" %% "scalatest" % "3.2.15" % Test,
             "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion % Test cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-stream-testkit" % akkaActorVersion cross CrossVersion.for3Use2_13,
@@ -42,6 +30,18 @@ lazy val engine = project
         run / fork := true
         )
     .dependsOn(models.jvm)
+
+lazy val webapp = project
+    .in(file("web-app"))
+    .enablePlugins(ScalaJSPlugin)
+    .settings(
+        name := "Unending Web App",
+        scalaJSUseMainModuleInitializer := true,
+        libraryDependencies ++= Seq(
+            "org.scala-js" %%% "scalajs-dom" % "2.1.0",
+            ),
+        )
+    .dependsOn(models.js)
 
 lazy val models = crossProject(JSPlatform, JVMPlatform)
     .crossType(CrossType.Pure)

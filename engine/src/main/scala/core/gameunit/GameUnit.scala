@@ -146,10 +146,9 @@ sealed abstract class Character(val _id: String) extends GameUnit(_id) :
 
     def unequip(item: Item): Option[String] =
         _equippedReverse remove item match {
-            case Some(value) => {
+            case Some(value) =>
                 _equipped remove value
                 None
-            }
             case None        => Some("You don't have that item equipped.")
         }
 

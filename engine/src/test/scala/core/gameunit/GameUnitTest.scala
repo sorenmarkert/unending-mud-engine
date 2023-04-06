@@ -83,7 +83,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
 
             Then("The the inner item is also removed")
             room.contents shouldBe empty
-            containedItem.contents shouldBe empty
+            itemToBeDeleted.contents shouldBe empty
 
             And("On the global list")
             global shouldBe empty
