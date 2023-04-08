@@ -41,7 +41,7 @@ sealed trait GameUnit(val id: String):
         global subtractOne this
         removeUnitFromContainer
 
-    private def removeUnitFromContainer: Unit =
+    private def removeUnitFromContainer =
         outside foreach (_._contents subtractOne this)
 
     def canContain(unit: GameUnit) = true // TODO: check if can contain/carry
@@ -52,7 +52,6 @@ sealed trait GameUnit(val id: String):
     }
 
     override def toString: String = this.getClass.getSimpleName + "(" + name + ", " + id + ", " + uuid + ")"
-
 end GameUnit
 
 
@@ -101,9 +100,9 @@ object GameUnit:
 
         val (index, name) =
             val terms = searchString.split('.').toList
-            Try(terms.head.toInt) match {
-                case Success(value) => (value, terms.tail mkString ".")
-                case Failure(_)     => (1, searchString)
+            terms.head.toIntOption match {
+                case Some(value) => (value, terms.tail mkString ".")
+                case None        => (1, searchString)
             }
 
         listToSearch
@@ -112,11 +111,10 @@ object GameUnit:
             .drop(index - 1)
             .headOption
     }
-
 end GameUnit
 
 
-sealed abstract class Character(val _id: String) extends GameUnit(_id) :
+sealed abstract class Character(val _id: String) extends GameUnit(_id):
 
     private val _equipped        = MMap[ItemSlot, Item]()
     private val _equippedReverse = MMap[Item, ItemSlot]()
@@ -153,28 +151,26 @@ sealed abstract class Character(val _id: String) extends GameUnit(_id) :
         }
 
     def canSee(unit: GameUnit) = true // TODO: implement visibility check
-
 end Character
 
 
-case class PlayerCharacter private[gameunit](__id: String, var connection: Connection) extends Character(__id) :
+case class PlayerCharacter private[gameunit](__id: String, var connection: Connection) extends Character(__id):
 
-    override def removeUnit: Unit =
+    override def removeUnit =
         super.removeUnit
         players subtractOne this
 
-    def quit(): Unit =
+    def quit() =
         // TODO: save player data
         this.removeUnit
         connection.close()
-
 end PlayerCharacter
 
 
 case class NonPlayerCharacter private[gameunit](__id: String) extends Character(__id)
 
 
-case class Item private[gameunit](_id: String) extends GameUnit(_id) :
+case class Item private[gameunit](_id: String) extends GameUnit(_id):
 
     var itemSlot: Option[ItemSlot] = None
 
@@ -182,11 +178,10 @@ case class Item private[gameunit](_id: String) extends GameUnit(_id) :
         case (Some(itemSlot), Some(character: Character)) => character equippedAt itemSlot contains this
         case _                                            => false
     }
-
 end Item
 
 
-case class Room private(_id: String) extends GameUnit(_id) :
+case class Room private(_id: String) extends GameUnit(_id):
 
     // TODO: builder pattern
     private val _exits: MMap[Direction, Exit] = MMap[Direction, Exit]()
@@ -195,10 +190,6 @@ case class Room private(_id: String) extends GameUnit(_id) :
 
     def withTitle(title: String): Room =
         this.title = title
-        this
-
-    def withDescription(description: String): Room =
-        this.description = description
         this
 
     def northTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
@@ -223,16 +214,18 @@ case class Room private(_id: String) extends GameUnit(_id) :
         _exits += (direction -> Exit(toRoom, distance))
         if bidirectional then toRoom._exits += direction.opposite -> Exit(this, distance)
         this
-
 end Room
 
 
 object Room:
 
     def apply(id: String): Room =
-        val newRoom = new Room(id)
-        rooms append newRoom
-        newRoom.description = "It's a room. There's nothing in it. Not even a door."
-        newRoom
-
+        rooms.get(id)
+            .map(_ => throw RuntimeException(s"Room $id is already defined."))
+            .getOrElse {
+                val newRoom = new Room(id)
+                rooms += id -> newRoom
+                newRoom.description = "It's a room. There's nothing in it. Not even a door."
+                newRoom
+            }
 end Room

@@ -11,7 +11,7 @@ case class TelnetConnection(private val socket: Socket) extends Connection :
     override val readLine: () => String   = reader.readLine
     override val write   : String => Unit = writer.println
 
-    def close(): Unit =
+    def close() =
         reader.close()
         writer.close()
         socket.close()

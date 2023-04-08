@@ -62,7 +62,7 @@ object StateActor {
                 else same
         }
 
-    private def executeQueuedCommands(): Unit = {
+    private def executeQueuedCommands() = {
 
         val charactersWhoReceivedMessages = MSet.empty[gameunit.Character]
 

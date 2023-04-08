@@ -8,7 +8,7 @@ import core.gameunit.FindContext.*
 import core.gameunit.GameUnit.findUnit
 import core.gameunit.{Character, Direction, Exit, Item, NonPlayerCharacter, PlayerCharacter, Room}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.*
 
 object BasicCommands:
 
@@ -66,13 +66,17 @@ object BasicCommands:
                 val arg = if commandWords(1) == "at" then commandWords drop 2 else commandWords.tail
 
                 findUnit(character, arg mkString " ", Left(FindInOrNextToMe)) match {
-                    case Some(unitToLookAt) => sendMessage(character, "You look at %s.\n%s".format(
+                    case Some(unitToLookAt: Character) => sendMessage(character, "You look at the %s.\n%s\n%s".format(
+                        unitToLookAt.name,
+                        unitToLookAt.description,
+                        // TODO: display item slots
+                        unitToLookAt.equippedItems map (_.title) mkString "\n"))
+                    case Some(unitToLookAt)            => sendMessage(character, "You look at the %s.\n%s".format(
                         unitToLookAt.name,
                         unitToLookAt.description))
-                    case None               => sendMessage(character, "No such thing here to look at.")
+                    case None                          => sendMessage(character, "No such thing here to look at.")
                 }
         }
-
     end look
 
     private[commands] def movement(character: Character, commandWords: Seq[String]) =
@@ -102,5 +106,4 @@ object BasicCommands:
             case Some(room: Room) => sendMessage(character, colourMiniMap(frameMiniMap(miniMap(room, range))) mkString "\n")
             case _                => sendMessage(character, "You can't see from in here.")
         }
-
 end BasicCommands

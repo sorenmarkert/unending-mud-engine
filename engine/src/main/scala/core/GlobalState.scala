@@ -4,15 +4,18 @@ import akka.actor.typed.ActorSystem
 import core.RunState.Starting
 import core.gameunit.*
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
+import scala.collection.mutable.{Clearable, ListBuffer, Map as MMap}
 
 object GlobalState:
 
     var runState: RunState = Starting
 
     val global  = ListBuffer[GameUnit]()
-    val players = ListBuffer[PlayerCharacter]()
-    val rooms   = ListBuffer[Room]()
+    val players = ListBuffer[PlayerCharacter]() // TODO: LinkedHashMap?
+    val rooms   = MMap[String, Room]()
+
+    def clear() = Seq(global, players, rooms) map (_.clear)
 
     val actorSystem = ActorSystem(StateActor(), "unending")
 

@@ -12,7 +12,7 @@ object WebApp {
         contentTextArea,
         )
 
-    @main def start: Unit =
+    @main def start =
         document.body.appendChild(form)
         contentTextArea.value = "asdasd"
 }

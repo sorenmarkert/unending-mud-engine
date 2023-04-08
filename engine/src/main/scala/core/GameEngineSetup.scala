@@ -20,5 +20,6 @@ object GameEngineSetup:
         val config = ConfigFactory.load()
 
         runState = Running
+        ZoneData //  TODO: find a better solution to make this run
         TelnetServer(config)
         WebServer(config)

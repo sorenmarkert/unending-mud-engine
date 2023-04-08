@@ -1,7 +1,6 @@
 package core.commands
 
 import core.*
-import core.gameunit.Gender.*
 import core.GlobalState.actorSystem
 import core.MiniMap.*
 import core.StateActor.CommandExecution
@@ -10,6 +9,7 @@ import core.commands.ActVisibility.*
 import core.commands.BasicCommands.*
 import core.commands.CombatCommands.{doSlash, prepareSlash}
 import core.commands.EquipmentCommands.*
+import core.gameunit.Gender.*
 import core.gameunit.{Character, GameUnit, Gender, PlayerCharacter, Room}
 
 import scala.Array.tabulate
@@ -80,7 +80,7 @@ object Commands:
 
         commandWords.headOption getOrElse ""
 
-    def sendMessage(character: Character, message: String, addMap: Boolean = false): Unit =
+    def sendMessage(character: Character, message: String, addMap: Boolean = false) =
 
         // TODO: don't send prompt until all messages have been sent
         val textWidth = 50
@@ -122,7 +122,7 @@ object Commands:
 
     def act(message: String, visibility: ActVisibility,
             actor  : Option[GameUnit], medium: Option[GameUnit], target: Option[GameUnit],
-            toWhom : ActRecipient, text: Option[String]): Unit =
+            toWhom : ActRecipient, text: Option[String]) =
 
         def toCharacter(unit: GameUnit) =
             unit match {

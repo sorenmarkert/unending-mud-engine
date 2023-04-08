@@ -14,7 +14,7 @@ object EquipmentCommands:
         sendMessage(character, "You are carrying:\n" + titles)
 
     private[commands] def equipment(character: Character, commandWords: Seq[String]) =
-        // TODO: item slots
+        // TODO: display item slots
         val titles = joinOrElse(character.equippedItems map (_.title), "\n", "Nothing.")
         sendMessage(character, "You are using:\n" + titles)
 

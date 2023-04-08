@@ -1,83 +1,115 @@
 package core
 
-import core.ZoneData.roomSouth
+import akka.event.slf4j.Logger
+import core.gameunit.Builder
 import core.gameunit.Direction.*
-import core.gameunit.GameUnit.{createItemIn, createNonPlayerCharacterIn}
-import core.gameunit.ItemSlot.{ItemSlotHead, ItemSlotOffHand}
-import core.gameunit.*
+import core.gameunit.ItemSlot.*
 
-object ZoneData {
+object ZoneData extends Builder:
 
-    val roomCenter: Room = Room("The Room in the Center")
+    Logger("ZoneData").info("Loading Zone")
 
-    val roomNorth: Room = Room("The Room to the North")
-        .southTo(roomCenter)
+    room("roomCenter") {
 
-    val roomSouth: Room = Room("The Room to the South")
-        .northTo(roomCenter)
+        title("The Room in the Center")
 
-    val roomEast: Room = Room("The Room to the East")
-        .westTo(roomCenter)
+        npc("driver1") {
+            name("driver")
+            title("the driver")
+            description("She's a short, plump woman wearing a light frown as if it was her most prized possession.")
+        }
 
-    val roomWest: Room = Room("The Room to the West")
-        .eastTo(roomCenter)
+        npc("boy1") {
+            name("boy")
+            title("a boy")
+            description("He's a little boy, probably around the age of 10.")
 
-    val roomNorthNorth: Room = Room("The Room to the NorthNorth")
-        .southTo(roomNorth)
+            item("tanto1") {
+                name("tanto")
+                title("a black and gold plastic tanto")
+                description("It's a very cheap looking tanto made of plastic. That design is quite flashy, though, provided you don't look too closely. It has a grey hilt wrapped in some black cloth ribbon.")
+                itemSlot(ItemSlotOffHand)
+            }
+        }
 
-    val roomNorthEast: Room = Room("The Room to the NorthEast")
-        .westTo(roomNorth, 2)
+        item("hat1") {
+            name("hat")
+            title("a white cowboy hat")
+            description("It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance.")
+            itemSlot(ItemSlotHead)
+        }
 
-    val roomSouthSouth: Room = Room("The Room to the SouthSouth")
-        .northTo(roomSouth)
+        item("hat2") {
+            name("hat")
+            title("a black top hat")
+            description("It's a very fancy hat, about one hand tall with a flat top and a narrow brim. And it's completely black.")
+            itemSlot(ItemSlotHead)
+        }
 
-    val roomEastSouth: Room = Room("The Room to the EastSouth")
-        .northTo(roomEast)
+        item("bag1") {
+            name("bag")
+            title("a bag")
+            description("It's a small, red Eastpak.")
 
-    val roomNorthNorthEast: Room = Room("The Room to the NorthNorthEast")
-        .westTo(roomNorthNorth)
+            item("book1") {
+                name("book")
+                title("a book")
+                description("It's a small book, bound in leather.")
+            }
+        }
+    }
 
-    val roomNorthEastSouth: Room = Room("The Room to the NorthEastSouth")
-        .northTo(roomNorthEast)
+    room("roomNorth") {
+        title("The Room to the North")
+        south("roomCenter")
+    }
 
-    val roomNorthNorthEastEast: Room = Room("The Room to the NorthNorthEastEast")
-        .westTo(roomNorthNorthEast)
+    room("roomSouth") {
+        title("The Room to the South")
+        north("roomCenter")
+    }
 
-    val book = createItemIn(roomCenter, "book1")
-    book.name = "book"
-    book.title = "a book"
-    book.description = "It's a small book, bound in leather."
+    room("roomEast") {
+        title("The Room to the East")
+        west("roomCenter")
+    }
 
-    val cowboyHat = createItemIn(roomCenter, "hat1")
-    cowboyHat.name = "hat"
-    cowboyHat.title = "a white cowboy hat"
-    cowboyHat.description = "It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance."
-    cowboyHat.itemSlot = Some(ItemSlotHead)
+    room("roomWest") {
+        title("The Room to the West")
+        east("roomCenter")
+    }
 
-    val topHat = createItemIn(roomCenter, "hat2")
-    topHat.name = "hat"
-    topHat.title = "a black top hat"
-    topHat.description = "It's a very fancy hat, about one hand tall with a flat top and a narrow brim. And it's completely black."
-    topHat.itemSlot = Some(ItemSlotHead)
+    room("roomNorthNorth") {
+        title("The Room to the NorthNorth")
+        south("roomNorth")
+    }
 
-    val bag = createItemIn(roomCenter, "bag1")
-    bag.name = "bag"
-    bag.title = "a bag"
-    bag.description = "It's a small, red Eastpak."
+    room("roomNorthEast") {
+        title("The Room to the NorthEast")
+        west("roomNorth", 2)
+    }
 
-    val tanto = createItemIn(bag, "tanto1")
-    tanto.name = "tanto"
-    tanto.title = "a black and gold plastic tanto"
-    tanto.description = "It's a very cheap looking tanto made of plastic. That design is quite flashy, though, provided you don't look too closely. It has a grey hilt wrapped in some black cloth ribbon."
-    tanto.itemSlot = Some(ItemSlotOffHand)
+    room("roomSouthSouth") {
+        title("The Room to the SouthSouth")
+        north("roomSouth")
+    }
 
-    val driver = createNonPlayerCharacterIn(roomCenter, "driver1")
-    driver.name = "driver"
-    driver.title = "the driver"
-    driver.description = "She's a short, plump woman wearing a light frown as if it was her most prized possession."
+    room("roomEastSouth") {
+        title("The Room to the EastSouth")
+        north("roomEast")
+    }
 
-    val boy = createNonPlayerCharacterIn(roomCenter, "boy1")
-    boy.name = "boy"
-    boy.title = "a boy"
-    boy.description = "He's a little boy, probably around the age of 10."
-}
+    room("roomNorthNorthEast") {
+        title("The Room to the NorthNorthEast")
+        west("roomNorthNorth")
+    }
+
+    room("roomNorthEastSouth") {
+        title("The Room to the NorthEastSouth")
+        north("roomNorthEast")
+    }
+
+    room("roomNorthNorthEastEast") {
+        title("The Room to the NorthNorthEastEast")
+        west("roomNorthNorthEast")
+    }

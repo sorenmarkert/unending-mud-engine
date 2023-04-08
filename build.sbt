@@ -3,7 +3,7 @@ ThisBuild / version := "1.0"
 ThisBuild / scalaVersion := "3.2.2"
 
 val akkaActorVersion = "2.8.0"
-val akkaHttpVersion = "10.5.0"
+val akkaHttpVersion  = "10.5.0"
 
 lazy val engine = project
     .in(file("engine"))
