@@ -29,6 +29,8 @@ jobs:
           cache: 'sbt'
       - name: Run tests
         run: sbt test
+      - name: Coverage report
+        run: sbt coverageReport
         # Optional: This step uploads information to the GitHub dependency graph and unblocking Dependabot alerts for the repository
 #      - name: Upload dependency graph
 #        uses: scalacenter/sbt-dependency-submission@v2

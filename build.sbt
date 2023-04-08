@@ -21,6 +21,15 @@ lazy val engine = project
             "com.typesafe.akka" %% "akka-stream-testkit" % akkaActorVersion cross CrossVersion.for3Use2_13,
             ),
 
+        coverageEnabled := true,
+        coverageFailOnMinimum := true,
+        coverageMinimumStmtTotal := 90,
+        coverageMinimumBranchTotal := 90,
+        coverageMinimumStmtPerPackage := 90,
+        coverageMinimumBranchPerPackage := 85,
+        coverageMinimumStmtPerFile := 85,
+        coverageMinimumBranchPerFile := 80,
+
         Compile / resourceGenerators += Def.task {
             val source = (webapp / Compile / scalaJSLinkedFile).value.data
             val dest   = (Compile / resourceManaged).value / "assets" / "main.js"
