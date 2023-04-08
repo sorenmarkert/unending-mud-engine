@@ -14,7 +14,7 @@ import core.StateActor.StateActorMessage
 import java.nio.file.Paths
 import scala.concurrent.ExecutionContext
 
-object WebServer extends Directives :
+object WebServer extends Directives:
 
     private val logger = Logger("WebServer")
 
