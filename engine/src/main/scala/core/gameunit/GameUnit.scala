@@ -17,7 +17,7 @@ import scala.util.{Failure, Success, Try}
 
 sealed trait GameUnit(val id: String):
 
-    val uuid = UUID.randomUUID()
+    val uuid = UUID.randomUUID() // TODO: rooms don't need this
 
     var name        = ""
     var title       = ""
@@ -52,11 +52,13 @@ sealed trait GameUnit(val id: String):
     }
 
     override def toString: String = this.getClass.getSimpleName + "(" + name + ", " + id + ", " + uuid + ")"
+
 end GameUnit
 
 
 object GameUnit:
 
+    // TODO: change these to apply?
     def createItemIn(container: GameUnit, id: String): Item =
         val item = Item(id)
         container addUnit item
@@ -111,6 +113,7 @@ object GameUnit:
             .drop(index - 1)
             .headOption
     }
+
 end GameUnit
 
 
@@ -151,6 +154,7 @@ sealed abstract class Character(val _id: String) extends GameUnit(_id):
         }
 
     def canSee(unit: GameUnit) = true // TODO: implement visibility check
+
 end Character
 
 
@@ -164,12 +168,14 @@ case class PlayerCharacter private[gameunit](__id: String, var connection: Conne
         // TODO: save player data
         this.removeUnit
         connection.close()
+
 end PlayerCharacter
 
 
 case class NonPlayerCharacter private[gameunit](__id: String) extends Character(__id)
 
 
+// TODO: item templates with item refs
 case class Item private[gameunit](_id: String) extends GameUnit(_id):
 
     var itemSlot: Option[ItemSlot] = None
@@ -178,6 +184,7 @@ case class Item private[gameunit](_id: String) extends GameUnit(_id):
         case (Some(itemSlot), Some(character: Character)) => character equippedAt itemSlot contains this
         case _                                            => false
     }
+
 end Item
 
 
@@ -186,11 +193,7 @@ case class Room private(_id: String) extends GameUnit(_id):
     // TODO: builder pattern
     private val _exits: MMap[Direction, Exit] = MMap[Direction, Exit]()
 
-    def exits: Map[Direction, Exit] = _exits.toMap
-
-    def withTitle(title: String): Room =
-        this.title = title
-        this
+    def exits = _exits.toMap
 
     def northTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
         addLink(toRoom, distance, bidirectional, North)
@@ -214,6 +217,7 @@ case class Room private(_id: String) extends GameUnit(_id):
         _exits += (direction -> Exit(toRoom, distance))
         if bidirectional then toRoom._exits += direction.opposite -> Exit(this, distance)
         this
+
 end Room
 
 
@@ -228,4 +232,5 @@ object Room:
                 newRoom.description = "It's a room. There's nothing in it. Not even a door."
                 newRoom
             }
+
 end Room

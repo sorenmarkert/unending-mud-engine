@@ -106,4 +106,5 @@ object BasicCommands:
             case Some(room: Room) => sendMessage(character, colourMiniMap(frameMiniMap(miniMap(room, range))) mkString "\n")
             case _                => sendMessage(character, "You can't see from in here.")
         }
+
 end BasicCommands

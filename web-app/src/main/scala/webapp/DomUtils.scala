@@ -9,8 +9,9 @@ object DomUtils {
         val elem = document.createElement("div")
         children.foreach(elem.appendChild)
         elem.asInstanceOf[Div]
-    
+
     def textarea(): TextArea =
         val elem = document.createElement("textarea")
         elem.asInstanceOf[TextArea]
+
 }

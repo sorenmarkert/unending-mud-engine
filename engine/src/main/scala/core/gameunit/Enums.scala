@@ -2,6 +2,7 @@ package core.gameunit
 
 enum Direction(val display: String, private val oppo: String):
     def opposite = Direction.valueOf(this.oppo)
+
     case North extends Direction("north", "South")
     case South extends Direction("south", "North")
     case East extends Direction("east", "West")

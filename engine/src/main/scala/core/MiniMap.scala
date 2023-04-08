@@ -1,7 +1,7 @@
 package core
 
-import core.gameunit.Direction.*
 import core.gameunit.*
+import core.gameunit.Direction.*
 
 import scala.Array.tabulate
 import scala.collection.mutable.Set as MSet
@@ -29,7 +29,6 @@ object MiniMap:
                 unvisitedExits.get(East) map (exit => mapToGraph(exit.toRoom, x + exit.distance, y, currentRange + 1)),
                 unvisitedExits.get(West) map (exit => mapToGraph(exit.toRoom, x - exit.distance, y, currentRange + 1)),
                 currentRoom, x, y)
-
         end mapToGraph
 
         def maxCoordinates(mapNode: MapNode): (Int, Int) =
@@ -66,7 +65,6 @@ object MiniMap:
         drawMiniMap(graphMap)
         theMap(centerY)(centerX) = 'X'
         theMap.map(_.mkString).toList
-
     end miniMap
 
     // TODO: unit test

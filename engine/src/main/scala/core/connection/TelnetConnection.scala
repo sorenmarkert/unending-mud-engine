@@ -3,7 +3,7 @@ package core.connection
 import java.io.*
 import java.net.Socket
 
-case class TelnetConnection(private val socket: Socket) extends Connection :
+case class TelnetConnection(private val socket: Socket) extends Connection:
 
     private val reader = new BufferedReader(new InputStreamReader(socket.getInputStream))
     private val writer = new PrintWriter(socket.getOutputStream, true)

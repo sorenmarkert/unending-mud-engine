@@ -47,7 +47,6 @@ object EquipmentCommands:
 
             case _ => sendMessage(character, commandWords.head + " 'what' [from 'what'] ?")
         }
-
     end get
 
     private[commands] def drop(character: Character, commandWords: Seq[String]) =
@@ -79,7 +78,6 @@ object EquipmentCommands:
                 }
             case _                                          => sendMessage(character, commandWords.head + " 'what' in 'what' ?")
         }
-
     end put
 
     private[commands] def give(character: Character, commandWords: Seq[String]) = {

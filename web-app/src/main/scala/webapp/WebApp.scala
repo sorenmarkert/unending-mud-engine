@@ -15,4 +15,5 @@ object WebApp {
     @main def start =
         document.body.appendChild(form)
         contentTextArea.value = "asdasd"
+
 }
