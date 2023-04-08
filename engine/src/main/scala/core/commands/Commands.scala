@@ -117,7 +117,6 @@ object Commands:
             case PlayerCharacter(_, connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
             case _                              => // TODO: send to controlling admin
         }
-
     end sendMessage
 
     def act(message: String, visibility: ActVisibility,
@@ -173,7 +172,6 @@ object Commands:
         })
 
         recipients foreach (sendMessage(_, firstCharToUpper(replacement(message))))
-
     end act
 
     private[commands] def joinOrElse(strings: Iterable[String], separator: String, default: String) =
