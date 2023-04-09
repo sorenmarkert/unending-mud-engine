@@ -1,6 +1,6 @@
 package core.gameunit
 
-import core.GlobalState.rooms
+import core.GlobalState
 import core.gameunit.Direction.South
 import core.gameunit.GameUnit.{createItemIn, createNonPlayerCharacterIn}
 import core.gameunit.ItemSlot.ItemSlotHead
@@ -21,23 +21,23 @@ trait Builder:
     def description(d: String)(using u: GameUnit) =
         u.description = d
 
-    def north(d: String, distance: Int = 1)(using r: Room) =
-        r.northTo(rooms(d), distance)
+    def north(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
+        r.northTo(globalState.rooms(d), distance)
 
-    def south(d: String, distance: Int = 1)(using r: Room) =
-        r.southTo(rooms(d), distance)
+    def south(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
+        r.southTo(globalState.rooms(d), distance)
 
-    def east(d: String, distance: Int = 1)(using r: Room) =
-        r.eastTo(rooms(d), distance)
+    def east(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
+        r.eastTo(globalState.rooms(d), distance)
 
-    def west(d: String, distance: Int = 1)(using r: Room) =
-        r.westTo(rooms(d), distance)
+    def west(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
+        r.westTo(globalState.rooms(d), distance)
 
-    def up(d: String, distance: Int = 1)(using r: Room) =
-        r.upTo(rooms(d), distance)
+    def up(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
+        r.upTo(globalState.rooms(d), distance)
 
-    def down(d: String, distance: Int = 1)(using r: Room) =
-        r.downTo(rooms(d), distance)
+    def down(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
+        r.downTo(globalState.rooms(d), distance)
 
 
     def item(id: String)(init: Item ?=> Unit)(using u: GameUnit) =

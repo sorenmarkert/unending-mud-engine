@@ -1,7 +1,6 @@
 package core.gameunit
 
 import core.GlobalState
-import core.GlobalState.global
 import core.gameunit.FindContext.*
 import core.gameunit.GameUnit.*
 import core.gameunit.ItemSlot.*
@@ -12,8 +11,10 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with BeforeAndAfterEach with OptionValues:
 
+    given globalState: GlobalState = new GlobalState()
+
     override def beforeEach() =
-        GlobalState.clear()
+        globalState.clear()
 
     "A newly created item" should {
 
@@ -30,7 +31,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
             newItem.outside.value shouldBe room
 
             And("On the global list")
-            global should contain only newItem
+            globalState.global should contain only newItem
         }
 
         "be before other units in a non-empty unit" in {
@@ -47,7 +48,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
             newItem.outside.value shouldBe room
 
             And("On the global list")
-            global should contain theSameElementsInOrderAs Seq(newItem, oldItem)
+            globalState.global should contain theSameElementsInOrderAs Seq(newItem, oldItem)
         }
     }
 
@@ -62,13 +63,13 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
             val topItem         = createItemIn(room, "topItem")
 
             When("The middle item is removed")
-            itemToBeDeleted.removeUnit
+            itemToBeDeleted.removeUnit()
 
             Then("The two remaining items retain their order in the room")
             room.contents should contain theSameElementsInOrderAs Seq(topItem, bottomItem)
 
             And("On the global list")
-            global should contain theSameElementsInOrderAs Seq(topItem, bottomItem)
+            globalState.global should contain theSameElementsInOrderAs Seq(topItem, bottomItem)
         }
 
         "Delete its contents recursively" in {
@@ -79,14 +80,14 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
             val containedItem   = createItemIn(itemToBeDeleted, "containedItem")
 
             When("The outer item is removed")
-            itemToBeDeleted.removeUnit
+            itemToBeDeleted.removeUnit()
 
             Then("The the inner item is also removed")
             room.contents shouldBe empty
             itemToBeDeleted.contents shouldBe empty
 
             And("On the global list")
-            global should contain noElementsOf Set(itemToBeDeleted, containedItem)
+            globalState.global should contain noElementsOf Set(itemToBeDeleted, containedItem)
         }
     }
 
@@ -113,7 +114,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
             itemToBeMoved.outside.value shouldBe toRoom
 
             And("The global list contains all the items")
-            global should contain theSameElementsInOrderAs Seq(oldItem, topItem, itemToBeMoved, bottomItem)
+            globalState.global should contain theSameElementsInOrderAs Seq(oldItem, topItem, itemToBeMoved, bottomItem)
         }
     }
 

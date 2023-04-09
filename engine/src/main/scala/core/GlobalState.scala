@@ -7,7 +7,7 @@ import core.gameunit.*
 import scala.collection.mutable
 import scala.collection.mutable.{Clearable, ListBuffer, Map as MMap}
 
-object GlobalState:
+class GlobalState:
 
     var runState: RunState = Starting
 
@@ -18,6 +18,10 @@ object GlobalState:
     def clear() = Seq(global, players, rooms) map (_.clear)
 
     val actorSystem = ActorSystem(StateActor(), "unending")
+
+
+object GlobalState:
+    given GlobalState = new GlobalState
 
 
 enum RunState:

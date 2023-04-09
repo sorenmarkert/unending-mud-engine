@@ -4,7 +4,6 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors.*
 import akka.event.slf4j.Logger
-import core.GlobalState.runState
 import core.RunState.Closing
 import core.commands.*
 
@@ -43,7 +42,7 @@ object StateActor {
             }
         }
 
-    private def handleMessage(context: ActorContext[StateActorMessage]): Behavior[StateActorMessage] =
+    private def handleMessage(context: ActorContext[StateActorMessage])(using globalState: GlobalState): Behavior[StateActorMessage] =
         receiveMessage {
             case command@CommandExecution(_, _, argument)
             => logger.info("Received command: " + argument.mkString(" "))
@@ -58,7 +57,7 @@ object StateActor {
             => executeQueuedCommands()
                 tickCounter += 1
                 if tickCounter == Int.MaxValue then tickCounter = 0
-                if runState == Closing then stopped
+                if globalState.runState == Closing then stopped
                 else same
         }
 

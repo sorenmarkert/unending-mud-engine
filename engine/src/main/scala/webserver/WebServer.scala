@@ -18,7 +18,7 @@ object WebServer extends Directives:
 
     private val logger = Logger("WebServer")
 
-    given system: ActorSystem[StateActorMessage] = GlobalState.actorSystem
+    given system: ActorSystem[StateActorMessage] = summon[GlobalState].actorSystem
 
     given ExecutionContext = system.executionContext
 
@@ -32,6 +32,7 @@ object WebServer extends Directives:
         Http()
             .newServerAt(interface, port)
             .bindFlow(index ~ assets ~ websocketRoute)
+
 
     private val index: Route =
         pathSingleSlash(

@@ -1,7 +1,6 @@
 package core.commands
 
 import core.*
-import core.GlobalState.actorSystem
 import core.MiniMap.*
 import core.StateActor.CommandExecution
 import core.commands.ActRecipient.*
@@ -62,7 +61,7 @@ object Commands:
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
         )
 
-    def executeCommand(character: Character, input: String): String =
+    def executeCommand(character: Character, input: String)(using globalState: GlobalState): String =
 
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 
@@ -76,7 +75,7 @@ object Commands:
                         .getOrElse((unknownCommand, Nil))
             }
 
-        actorSystem tell CommandExecution(command, character, commandWords)
+        globalState.actorSystem tell CommandExecution(command, character, commandWords)
 
         commandWords.headOption getOrElse ""
 

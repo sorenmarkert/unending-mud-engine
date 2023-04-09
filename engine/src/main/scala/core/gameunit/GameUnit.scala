@@ -13,7 +13,7 @@ import core.gameunit.Position.Standing
 import java.util.UUID
 import scala.collection.mutable
 import scala.collection.mutable.{ListBuffer, Map as MMap}
-import scala.util.{Failure, Success, Try}
+import scala.util.*
 
 sealed trait GameUnit(val id: String):
 
@@ -36,9 +36,9 @@ sealed trait GameUnit(val id: String):
         unitToAdd._outside = Some(this)
         unitToAdd
 
-    def removeUnit: Unit =
-        while contents.nonEmpty do contents.head.removeUnit
-        global subtractOne this
+    def removeUnit()(using globalState: GlobalState): Unit =
+        while contents.nonEmpty do contents.head.removeUnit()
+        globalState.global subtractOne this
         removeUnitFromContainer
 
     private def removeUnitFromContainer =
@@ -59,19 +59,19 @@ end GameUnit
 object GameUnit:
 
     // TODO: change these to apply?
-    def createItemIn(container: GameUnit, id: String): Item =
+    def createItemIn(container: GameUnit, id: String)(using globalState: GlobalState): Item =
         val item = Item(id)
         container addUnit item
-        global prepend item
+        globalState.global prepend item
         item
 
-    def createPlayerCharacterIn(container: GameUnit, connection: Connection): PlayerCharacter =
+    def createPlayerCharacterIn(container: GameUnit, connection: Connection)(using globalState: GlobalState): PlayerCharacter =
 
         // TODO: load player data
         val playerCharacter = PlayerCharacter("player1", connection)
         container addUnit playerCharacter
-        global prepend playerCharacter
-        players prepend playerCharacter
+        globalState.global prepend playerCharacter
+        globalState.players prepend playerCharacter
 
         playerCharacter.name = "Klaus"
         playerCharacter.title = "the Rude"
@@ -82,13 +82,13 @@ object GameUnit:
         playerCharacter
     end createPlayerCharacterIn
 
-    def createNonPlayerCharacterIn(container: GameUnit, id: String): NonPlayerCharacter =
+    def createNonPlayerCharacterIn(container: GameUnit, id: String)(using globalState: GlobalState): NonPlayerCharacter =
         val nonPlayerCharacter = NonPlayerCharacter(id)
         container addUnit nonPlayerCharacter
-        global prepend nonPlayerCharacter
+        globalState.global prepend nonPlayerCharacter
         nonPlayerCharacter
 
-    def findUnit(character: Character, searchString: String, environment: Either[FindContext, GameUnit]): Option[GameUnit] = {
+    def findUnit(character: Character, searchString: String, environment: Either[FindContext, GameUnit])(using globalState: GlobalState): Option[GameUnit] = {
 
         val listToSearch = environment match {
             case Left(FindNextToMe)     => character.outside.get.contents
@@ -96,7 +96,7 @@ object GameUnit:
             case Left(FindInEquipped)   => character.equippedItems
             case Left(FindInMe)         => character.equippedItems concat character.inventory
             case Left(FindInOrNextToMe) => character.equippedItems concat character.inventory concat character.outside.get.contents
-            case Left(FindGlobally)     => global
+            case Left(FindGlobally)     => globalState.global
             case Right(container)       => container.contents
         }
 
@@ -158,15 +158,15 @@ sealed abstract class Character(val _id: String) extends GameUnit(_id):
 end Character
 
 
-case class PlayerCharacter private[gameunit](__id: String, var connection: Connection) extends Character(__id):
+case class PlayerCharacter private[gameunit](__id: String, var connection: Connection)(using globalState: GlobalState) extends Character(__id):
 
-    override def removeUnit =
-        super.removeUnit
-        players subtractOne this
+    override def removeUnit()(using globalState: GlobalState) =
+        super.removeUnit()
+        globalState.players subtractOne this
 
     def quit() =
         // TODO: save player data
-        this.removeUnit
+        this.removeUnit()
         connection.close()
 
 end PlayerCharacter
@@ -223,12 +223,12 @@ end Room
 
 object Room:
 
-    def apply(id: String): Room =
-        rooms.get(id)
+    def apply(id: String)(using globalState: GlobalState): Room =
+        globalState.rooms.get(id)
             .map(_ => throw RuntimeException(s"Room $id is already defined."))
             .getOrElse {
                 val newRoom = new Room(id)
-                rooms += id -> newRoom
+                globalState.rooms += id -> newRoom
                 newRoom.description = "It's a room. There's nothing in it. Not even a door."
                 newRoom
             }

@@ -3,7 +3,6 @@ package core.connection
 import akka.event.slf4j.Logger
 import com.typesafe.config.Config
 import core.GlobalState
-import core.GlobalState.{rooms, runState}
 import core.RunState.Running
 import core.commands.Commands.executeCommand
 import core.gameunit.GameUnit.createPlayerCharacterIn
@@ -18,14 +17,14 @@ object TelnetServer:
 
     private val logger = Logger("Telnet")
 
-    def apply(config: Config): Future[Unit] =
+    def apply(config: Config)(using globalState: GlobalState): Future[Unit] =
 
         val port = config.getInt("telnet.port")
 
         logger.info("Starting telnet client on port " + port)
 
         def initConnection(socket: Socket) =
-            val player = createPlayerCharacterIn(rooms("roomCenter"), TelnetConnection(socket))
+            val player = createPlayerCharacterIn(globalState.rooms("roomCenter"), TelnetConnection(socket))
             logger.info(s"Connection from ${player.name}@${socket.getInetAddress.getHostAddress}")
             serve(player)
             socket.close()
@@ -40,7 +39,7 @@ object TelnetServer:
         Future {
             val serverSocket = new ServerSocket(port)
 
-            while runState == Running do
+            while globalState.runState == Running do
                 val socket = serverSocket.accept
                 Future(initConnection(socket))
 
