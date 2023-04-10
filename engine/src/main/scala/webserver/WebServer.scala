@@ -1,7 +1,7 @@
 package webserver
 
 import akka.actor.typed.ActorSystem
-import akka.event.slf4j.Logger
+import akka.event.slf4j.{Logger, SLF4JLogging}
 import akka.http.scaladsl.*
 import akka.http.scaladsl.model.ws.*
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
@@ -14,9 +14,7 @@ import core.StateActor.StateActorMessage
 import java.nio.file.Paths
 import scala.concurrent.ExecutionContext
 
-object WebServer extends Directives:
-
-    private val logger = Logger("WebServer")
+object WebServer extends Directives with SLF4JLogging:
 
     given system: ActorSystem[StateActorMessage] = summon[GlobalState].actorSystem
 
@@ -27,7 +25,7 @@ object WebServer extends Directives:
         val interface = config.getString("http.interface")
         val port      = config.getInt("http.port")
 
-        logger.info("Starting web server on port " + port)
+        log.info("Starting web server on port " + port)
 
         Http()
             .newServerAt(interface, port)

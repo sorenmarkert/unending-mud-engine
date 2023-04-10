@@ -11,8 +11,6 @@ import scala.collection.mutable.ListBuffer
 
 object Messaging:
 
-    private val nounPattern = "\\$([1-3])([aemsnNpt])".r
-
     def sendMessage(character: Character, message: String, addMap: Boolean = false) =
 
         // TODO: don't send prompt until all messages have been sent
@@ -97,10 +95,11 @@ object Messaging:
                 case _   => "invalidFormatter"
             }
 
-        val units = Array(actor, medium, target)
+        val nounPattern    = "\\$([1-3])([aemsnNpt])".r
+        val recipientUnits = Array(actor, medium, target)
 
         def replacement(msg: String) = nounPattern.replaceAllIn(msg, _ match {
-            case nounPattern(unitIndex, formatter) => units(unitIndex.toInt - 1)
+            case nounPattern(unitIndex, formatter) => recipientUnits(unitIndex.toInt - 1)
                 .map(formatUnit(_, formatter))
                 .getOrElse("null")
         })

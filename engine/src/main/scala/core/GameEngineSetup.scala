@@ -1,6 +1,6 @@
 package core
 
-import akka.event.slf4j.Logger
+import akka.event.slf4j.{Logger, SLF4JLogging}
 import com.typesafe.config.{Config, ConfigFactory}
 import core.RunState.Running
 import core.commands.*
@@ -10,9 +10,7 @@ import webserver.WebServer
 
 import scala.concurrent.ExecutionContext
 
-object GameEngineSetup:
-
-    private val logger = Logger("Setup")
+object GameEngineSetup extends SLF4JLogging:
 
     given config: Config = ConfigFactory.load()
 
@@ -29,7 +27,7 @@ object GameEngineSetup:
 
     @main def startEngine =
 
-        logger.info("Starting the Unending MUD Engine.")
+        log.info("Starting the Unending MUD Engine.")
 
         summon[GlobalState].runState = Running
         ZoneData //  TODO: find a better solution to make this run

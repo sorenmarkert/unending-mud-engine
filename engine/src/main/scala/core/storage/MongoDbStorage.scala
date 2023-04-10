@@ -1,6 +1,6 @@
 package core.storage
 
-import akka.event.slf4j.Logger
+import akka.event.slf4j.{Logger, SLF4JLogging}
 import com.mongodb.client.model.{ReplaceOptions, UpdateOptions}
 import com.typesafe.config.Config
 import core.gameunit.*
@@ -9,16 +9,13 @@ import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.result.{InsertOneResult, UpdateResult}
 import org.mongodb.scala.{MongoClient, MongoDatabase, Observer, Subscription}
 
-class MongoDbStorage(using config: Config) extends Storage:
-
-    private val logger = Logger("MongoDbStorage")
+class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
 
     private val username = config.getString("storage.mongodb.username")
     private val password = config.getString("storage.mongodb.password")
     private val hostname = config.getString("storage.mongodb.hostname")
     private val database = config.getString("storage.mongodb.database")
 
-    // TODO: configure log levels
     private val uri     = s"mongodb+srv://$username:$password@$hostname/?retryWrites=true&w=majority"
     private val client  = MongoClient(uri)
     private val db      = client.getDatabase(database)
@@ -55,9 +52,9 @@ class MongoDbStorage(using config: Config) extends Storage:
             .subscribe(new Observer[UpdateResult] {
                 override def onNext(result: UpdateResult): Unit = {}
 
-                override def onError(e: Throwable): Unit = logger.error(s"Failed saving ${playerCharacter.name}", e)
+                override def onError(e: Throwable): Unit = log.error(s"Failed saving ${playerCharacter.name}", e)
 
-                override def onComplete(): Unit = logger.info(s"Saved ${playerCharacter.name}")
+                override def onComplete(): Unit = log.info(s"Saved ${playerCharacter.name}")
             })
 
 

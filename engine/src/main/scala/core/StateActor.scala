@@ -3,14 +3,14 @@ package core
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors.*
-import akka.event.slf4j.Logger
+import akka.event.slf4j.{Logger, SLF4JLogging}
 import core.RunState.Closing
 import core.commands.*
 
 import scala.collection.mutable.{ListBuffer, Map as MMap, Set as MSet, SortedMap as MSortedMap}
 import scala.concurrent.duration.DurationInt
 
-object StateActor {
+object StateActor extends SLF4JLogging:
 
     sealed trait StateActorMessage
 
@@ -24,8 +24,6 @@ object StateActor {
     case class Interrupt(character: gameunit.Character) extends StateActorMessage
 
 
-    private val logger = Logger("State")
-
     private val tickInterval            = 100.milliseconds // TODO: make configurable
     private var tickCounter             = 0
     private val commandQueue            = ListBuffer.empty[CommandExecution]
@@ -36,7 +34,7 @@ object StateActor {
         setup { context =>
             withTimers { timers =>
 
-                logger.info("Starting state actor with tick interval " + tickInterval)
+                log.info("Starting state actor with tick interval " + tickInterval)
                 timers.startTimerAtFixedRate(Tick, tickInterval)
                 handleMessage(context)
             }
@@ -45,7 +43,7 @@ object StateActor {
     private def handleMessage(context: ActorContext[StateActorMessage])(using globalState: GlobalState): Behavior[StateActorMessage] =
         receiveMessage {
             case command@CommandExecution(_, _, argument) =>
-                logger.info("Received command: " + argument.mkString(" "))
+                log.info("Received command: " + argument.mkString(" "))
                 commandQueue append command
                 same
             case Interrupt(character)                     =>
@@ -95,5 +93,3 @@ object StateActor {
 
         // TODO:        charactersWhoActed foreach (_.sendPrompt)
     }
-
-}

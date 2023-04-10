@@ -1,6 +1,6 @@
 package core.connection
 
-import akka.event.slf4j.Logger
+import akka.event.slf4j.{Logger, SLF4JLogging}
 import com.typesafe.config.Config
 import core.GlobalState
 import core.Messaging.sendMessage
@@ -14,25 +14,23 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-object TelnetServer:
-
-    private val logger = Logger("Telnet")
+object TelnetServer extends SLF4JLogging:
 
     def apply(config: Config)(using globalState: GlobalState, commands: Commands): Future[Unit] =
         import globalState.*
 
         val port = config.getInt("telnet.port")
 
-        logger.info("Starting telnet client on port " + port)
+        log.info("Starting telnet client on port " + port)
 
         def initConnection(socket: Socket) =
             // TODO: save and load room with player
             val startingRoom = rooms.head._2
             val player       = createPlayerCharacterIn(startingRoom, TelnetConnection(socket))
-            logger.info(s"Connection from ${player.name}@${socket.getInetAddress.getHostAddress}")
+            log.info(s"Connection from ${player.name}@${socket.getInetAddress.getHostAddress}")
             serve(player)
             socket.close()
-            logger.info(s"Connection closed ${player.name}@${socket.getInetAddress.getHostAddress}")
+            log.info(s"Connection closed ${player.name}@${socket.getInetAddress.getHostAddress}")
 
         @tailrec
         def serve(player: PlayerCharacter): Unit =

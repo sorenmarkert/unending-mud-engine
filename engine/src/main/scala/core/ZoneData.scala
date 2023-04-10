@@ -1,13 +1,13 @@
 package core
 
-import akka.event.slf4j.Logger
+import akka.event.slf4j.{Logger, SLF4JLogging}
 import core.gameunit.Builder
 import core.gameunit.Direction.*
 import core.gameunit.ItemSlot.*
 
-object ZoneData extends Builder:
+object ZoneData extends Builder with SLF4JLogging:
 
-    Logger("ZoneData").info("Loading Zone")
+    log.info("Loading Zone")
 
     room("roomCenter") {
 
