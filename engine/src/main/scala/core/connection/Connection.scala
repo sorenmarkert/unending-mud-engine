@@ -6,3 +6,4 @@ trait Connection:
     val write   : String => Unit
 
     def close(): Unit
+    def isClosed(): Boolean

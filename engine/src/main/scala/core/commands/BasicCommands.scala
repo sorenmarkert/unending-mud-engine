@@ -1,23 +1,27 @@
 package core.commands
 
+import core.ActRecipient.*
+import core.ActVisibility.*
+import core.Messaging.*
 import core.MiniMap.*
-import core.commands.ActRecipient.*
-import core.commands.ActVisibility.*
-import core.commands.Commands.*
+import core.commands.Commands
+import core.gameunit.*
 import core.gameunit.FindContext.*
 import core.gameunit.GameUnit.findUnit
-import core.gameunit.{Character, Direction, Exit, Item, NonPlayerCharacter, PlayerCharacter, Room}
+import core.storage.Storage
 
 import scala.util.*
 
-object BasicCommands:
+class BasicCommands()(using storage: Storage):
 
     private[commands] def quit(character: Character, arg: Seq[String]) =
         character match {
             case pc: PlayerCharacter =>
-                sendMessage(character, "Goodbye.")
+                sendMessage(pc, "Goodbye.")
                 act("$1N has left the game.", Always, Some(character), None, None, ToAllExceptActor, None)
-                pc.quit()
+                pc.connection.close()
+                storage.savePlayer(pc)
+                pc.removeUnit()
             case _                   => // TODO: un-control NPC and quit controlling player
         }
 

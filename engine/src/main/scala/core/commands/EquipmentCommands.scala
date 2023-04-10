@@ -1,13 +1,14 @@
 package core.commands
 
-import core.commands.ActRecipient.*
-import core.commands.ActVisibility.*
-import core.commands.Commands.*
+import core.ActRecipient.*
+import core.ActVisibility.*
+import core.Messaging.*
 import core.gameunit.FindContext.*
 import core.gameunit.GameUnit.findUnit
 import core.gameunit.{Character, FindContext, Item}
+import core.{ActRecipient, ActVisibility}
 
-object EquipmentCommands:
+class EquipmentCommands:
 
     private[commands] def inventory(character: Character, commandWords: Seq[String]) =
         val titles = joinOrElse(character.inventory map (_.title), "\n", "Nothing.")

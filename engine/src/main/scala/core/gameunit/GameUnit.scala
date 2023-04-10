@@ -2,13 +2,14 @@ package core.gameunit
 
 import core.*
 import core.GlobalState.*
+import core.Messaging.act
 import core.commands.*
-import core.commands.Commands.{act, executeCommand}
 import core.connection.Connection
 import core.gameunit.Direction.*
 import core.gameunit.FindContext.*
 import core.gameunit.Gender.GenderMale
 import core.gameunit.Position.Standing
+import core.storage.Storage
 
 import java.util.UUID
 import scala.collection.mutable
@@ -65,7 +66,7 @@ object GameUnit:
         globalState.global prepend item
         item
 
-    def createPlayerCharacterIn(container: GameUnit, connection: Connection)(using globalState: GlobalState): PlayerCharacter =
+    def createPlayerCharacterIn(container: GameUnit, connection: Connection)(using globalState: GlobalState, commands: Commands): PlayerCharacter =
 
         // TODO: load player data
         val playerCharacter = PlayerCharacter("player1", connection)
@@ -76,7 +77,7 @@ object GameUnit:
         playerCharacter.name = "Klaus"
         playerCharacter.title = "the Rude"
 
-        executeCommand(playerCharacter, "look")
+        commands.executeCommand(playerCharacter, "look")
         act("$1N has entered the game.", ActVisibility.Always, Some(playerCharacter), None, None, ActRecipient.ToAllExceptActor, None)
 
         playerCharacter
@@ -158,16 +159,11 @@ sealed abstract class Character(val _id: String) extends GameUnit(_id):
 end Character
 
 
-case class PlayerCharacter private[gameunit](__id: String, var connection: Connection)(using globalState: GlobalState) extends Character(__id):
+case class PlayerCharacter private[gameunit](__id: String, var connection: Connection) extends Character(__id):
 
     override def removeUnit()(using globalState: GlobalState) =
         super.removeUnit()
         globalState.players subtractOne this
-
-    def quit() =
-        // TODO: save player data
-        this.removeUnit()
-        connection.close()
 
 end PlayerCharacter
 
@@ -190,7 +186,6 @@ end Item
 
 case class Room private(_id: String) extends GameUnit(_id):
 
-    // TODO: builder pattern
     private val _exits: MMap[Direction, Exit] = MMap[Direction, Exit]()
 
     def exits = _exits.toMap

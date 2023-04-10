@@ -3,8 +3,9 @@ package core.connection
 import akka.event.slf4j.Logger
 import com.typesafe.config.Config
 import core.GlobalState
+import core.Messaging.sendMessage
 import core.RunState.Running
-import core.commands.Commands.executeCommand
+import core.commands.Commands
 import core.gameunit.GameUnit.createPlayerCharacterIn
 import core.gameunit.PlayerCharacter
 
@@ -17,7 +18,7 @@ object TelnetServer:
 
     private val logger = Logger("Telnet")
 
-    def apply(config: Config)(using globalState: GlobalState): Future[Unit] =
+    def apply(config: Config)(using globalState: GlobalState, commands: Commands): Future[Unit] =
 
         val port = config.getInt("telnet.port")
 
@@ -32,9 +33,9 @@ object TelnetServer:
 
         @tailrec
         def serve(player: PlayerCharacter): Unit =
-            val input       = player.connection.readLine()
-            val commandWord = executeCommand(player, input)
-            if commandWord != "quit" then serve(player) //  TODO: don't close until quit command completes
+            val input = player.connection.readLine()
+            commands.executeCommand(player, input)
+            if !player.connection.isClosed() then serve(player)
 
         Future {
             val serverSocket = new ServerSocket(port)

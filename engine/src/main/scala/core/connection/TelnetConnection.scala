@@ -15,3 +15,5 @@ case class TelnetConnection(private val socket: Socket) extends Connection:
         reader.close()
         writer.close()
         socket.close()
+
+    def isClosed() = socket.isClosed

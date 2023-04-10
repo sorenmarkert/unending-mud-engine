@@ -53,11 +53,10 @@ object MiniMap:
                 .foreach { currentMapNode =>
                     drawMiniMap(currentMapNode)
                     val (toX, toY) = (centerX + 3 * currentMapNode.x, centerY + 2 * currentMapNode.y)
-                    if fromX == toX then {
+                    if fromX == toX then
                         min(fromY, toY) until max(fromY, toY) foreach (theMap(_)(toX) = '|')
-                    } else {
+                    else
                         min(fromX, toX) until max(fromX, toX) foreach (theMap(toY)(_) = '-')
-                    }
                     theMap(toY)(toX) = '#'
                 }
         }

@@ -15,6 +15,8 @@ lazy val engine = project
             "com.typesafe.akka" %% "akka-http" % akkaHttpVersion cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-stream" % akkaActorVersion cross CrossVersion.for3Use2_13,
             "ch.qos.logback" % "logback-classic" % "1.4.6",
+            "org.mongodb.scala" %% "mongo-scala-driver" % "4.9.0" cross CrossVersion.for3Use2_13,
+
             "org.scalatest" %% "scalatest" % "3.2.15" % Test,
             "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion % Test cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion cross CrossVersion.for3Use2_13,

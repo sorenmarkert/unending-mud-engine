@@ -44,17 +44,17 @@ object StateActor {
 
     private def handleMessage(context: ActorContext[StateActorMessage])(using globalState: GlobalState): Behavior[StateActorMessage] =
         receiveMessage {
-            case command@CommandExecution(_, _, argument)
-            => logger.info("Received command: " + argument.mkString(" "))
+            case command@CommandExecution(_, _, argument) =>
+                logger.info("Received command: " + argument.mkString(" "))
                 commandQueue append command
                 same
-            case Interrupt(character)
-            => charactersInActionMap remove character foreach { tick =>
-                timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
-            }
+            case Interrupt(character)                     =>
+                charactersInActionMap remove character foreach { tick =>
+                    timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
+                }
                 same
-            case Tick
-            => executeQueuedCommands()
+            case Tick                                     =>
+                executeQueuedCommands()
                 tickCounter += 1
                 if tickCounter == Int.MaxValue then tickCounter = 0
                 if globalState.runState == Closing then stopped
