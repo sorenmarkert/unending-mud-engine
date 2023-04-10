@@ -68,6 +68,7 @@ object GameUnit:
 
     def createPlayerCharacterIn(container: GameUnit, connection: Connection)(using globalState: GlobalState, commands: Commands): PlayerCharacter =
 
+        // TODO: player to choose name
         // TODO: load player data
         val playerCharacter = PlayerCharacter("player1", connection)
         container addUnit playerCharacter

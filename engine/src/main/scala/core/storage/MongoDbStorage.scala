@@ -60,4 +60,7 @@ class MongoDbStorage(using config: Config) extends Storage:
                 override def onComplete(): Unit = logger.info(s"Saved ${playerCharacter.name}")
             })
 
+
     override def loadPlayer(name: String): PlayerCharacter = ???
+
+    override def close() = client.close()

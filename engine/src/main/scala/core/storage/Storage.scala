@@ -2,7 +2,7 @@ package core.storage
 
 import core.gameunit.PlayerCharacter
 
-trait Storage:
+trait Storage extends AutoCloseable:
 
     def savePlayer(playerCharacter: PlayerCharacter): Unit
 
