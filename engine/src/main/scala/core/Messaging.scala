@@ -16,6 +16,7 @@ object Messaging:
     def sendMessage(character: Character, message: String, addMap: Boolean = false) =
 
         // TODO: don't send prompt until all messages have been sent
+        // TODO: don't send prompt after quit
         val textWidth = 50
 
         // TODO: exclude color codes when counting width
