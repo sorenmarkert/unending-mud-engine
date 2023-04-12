@@ -5,7 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import core.RunState.Running
 import core.commands.*
 import core.connection.TelnetServer
-import core.storage.{MongoDbStorage, Storage}
+import core.storage.*
 import webserver.WebServer
 
 import scala.concurrent.ExecutionContext
@@ -22,7 +22,11 @@ object GameEngineSetup extends SLF4JLogging:
 
     given Commands = new Commands
 
-    given Storage = new MongoDbStorage()
+    given Storage =
+        if config.getBoolean("storage.useMongo") then
+            new MongoDbStorage()
+        else
+            new RavenDBStorage()
 
 
     @main def startEngine =

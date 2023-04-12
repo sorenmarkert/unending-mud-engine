@@ -11,27 +11,31 @@ import org.mongodb.scala.{MongoClient, MongoDatabase, Observer, Subscription}
 
 class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
 
-    private val username = config.getString("storage.mongodb.username")
-    private val password = config.getString("storage.mongodb.password")
-    private val hostname = config.getString("storage.mongodb.hostname")
-    private val database = config.getString("storage.mongodb.database")
 
-    private val uri     = s"mongodb+srv://$username:$password@$hostname/?retryWrites=true&w=majority"
-    private val client  = MongoClient(uri)
+    private val mongoConfig = config.getConfig("storage.mongodb")
+    private val username    = mongoConfig.getString("username")
+    private val password    = mongoConfig.getString("password")
+    private val hostname    = mongoConfig.getString("hostname")
+    private val database    = mongoConfig.getString("database")
+
+    private val client  = MongoClient(s"mongodb+srv://$username:$password@$hostname/?retryWrites=true&w=majority")
     private val db      = client.getDatabase(database)
     private val players = db.getCollection("players")
 
+    log.info(s"Connected to $hostname")
+
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
-        def mapCommonAttributes(gameUnit: GameUnit) = Document("type" -> gameUnit.getClass.getSimpleName,
-                                                               "name" -> gameUnit.name,
-                                                               "title" -> gameUnit.title,
-                                                               "description" -> gameUnit.description)
+        def mapCommonAttributes(gameUnit: GameUnit) =
+            Document("unitType" -> gameUnit.getClass.getSimpleName,
+                     "name" -> gameUnit.name,
+                     "title" -> gameUnit.title,
+                     "description" -> gameUnit.description)
 
         def mapGameUnit(gameUnit: GameUnit): Document = gameUnit match
             case item@Item(_)              =>
                 mapCommonAttributes(gameUnit)
-                    ++ Document("itemSlot" -> item.itemSlot.map(_.ordinal.toString).getOrElse(""))
+                    ++ Document("itemSlot" -> (item.itemSlot map (_.toString) getOrElse ""))
                     ++ Document(Map("contents" -> (item.contents map mapGameUnit)))
             case npc@NonPlayerCharacter(_) => mapCharacter(npc)
             case PlayerCharacter(_, _)     => Document()
