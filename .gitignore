@@ -13,6 +13,7 @@ dist
 /.project
 /RUNNING_PID
 /.settings
+.bloop/
 .bsp
 *.sc
 .certs
