@@ -1,7 +1,7 @@
 package core.commands
 
 import core.*
-import core.Messaging.*
+import core.MessageSender.*
 import core.MiniMap.*
 import core.StateActor.CommandExecution
 import core.gameunit.Gender.*
@@ -21,11 +21,12 @@ case class TimedCommand(baseDuration: FiniteDuration,
                         endFunc     : (Character, Seq[String]) => Unit) extends Command
 
 
-class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands):
+class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, messageSender: MessageSender):
 
     import basicCommands.*
     import combatCommands.*
     import equipmentCommands.*
+    import messageSender.*
 
     private val emptyInput     = InstantCommand((char, _) => sendMessage(char, ""))
     private val unknownCommand = InstantCommand((char, _) => sendMessage(char, "What's that?"))
@@ -63,14 +64,13 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 
         val (command, commandWords) =
-            inputWords match {
+            inputWords match
                 case "" :: _ | Nil              => (emptyInput, Nil)
                 case commandPrefix :: arguments =>
                     commandList
                         .find { case (k, _) => k startsWith commandPrefix.toLowerCase } // TODO: use a trie
                         .map { case (commandString, command) => (command, commandString :: arguments) }
                         .getOrElse((unknownCommand, Nil))
-            }
 
         globalState.actorSystem tell CommandExecution(command, character, commandWords)
 

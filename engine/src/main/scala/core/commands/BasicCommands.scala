@@ -2,20 +2,23 @@ package core.commands
 
 import core.ActRecipient.*
 import core.ActVisibility.*
-import core.Messaging.*
+import core.MessageSender
 import core.MiniMap.*
 import core.commands.Commands
 import core.gameunit.*
 import core.gameunit.FindContext.*
 import core.gameunit.GameUnit.findUnit
 import core.storage.Storage
+import core.util.MessagingUtils.*
 
 import scala.util.*
 
-class BasicCommands()(using storage: Storage):
+class BasicCommands()(using storage: Storage, messageSender: MessageSender):
+
+    import messageSender.*
 
     private[commands] def quit(character: Character, arg: Seq[String]) =
-        character match {
+        character match
             case pc: PlayerCharacter =>
                 sendMessage(pc, "Goodbye.")
                 act("$1N has left the game.", Always, Some(character), None, None, ToAllExceptActor, None)
@@ -23,7 +26,6 @@ class BasicCommands()(using storage: Storage):
                 storage.savePlayer(pc)
                 pc.removeUnit()
             case _                   => // TODO: un-control NPC and quit controlling player
-        }
 
     private[commands] def look(character: Character, commandWords: Seq[String]) =
 
@@ -32,7 +34,7 @@ class BasicCommands()(using storage: Storage):
                 case room: Room                    =>
                     val (items, chars) = room.contents filterNot (_.isInstanceOf[Room]) partition (_.isInstanceOf[Item])
                     val exits          = joinOrElse(room.exits.keys map (_.toString), ", ", "none")
-                    val titles         = exits +: (items ++ chars filterNot (_ == character) map (mapContent(_)))
+                    val titles         = exits +: (items ++ chars filterNot (_ == character) map (unitDisplay(_)))
                     // TODO: adjust for character position
                     sendMessage(character, "%s\n   %s\nExits:  %s".format(
                         room.title,
@@ -42,17 +44,17 @@ class BasicCommands()(using storage: Storage):
                     sendMessage(character, "\nYou are inside:\n%s\n%s\n%s".format(
                         item.title,
                         item.description,
-                        item.contents map (mapContent(_)) mkString "\n"))
+                        item.contents map (unitDisplay(_)) mkString "\n"))
                 case character: PlayerCharacter    =>
                     sendMessage(character, "\nYou are being carried by:\n%s\n%s\n%s".format(
                         character.name + " " + character.title,
                         character.description,
-                        character.contents map (mapContent(_)) mkString "\n"))
+                        character.contents map (unitDisplay(_)) mkString "\n"))
                 case character: NonPlayerCharacter =>
                     sendMessage(character, "\nYou are being carried by:\n%s\n%s\n%s".format(
                         character.title,
                         character.description,
-                        character.contents map (mapContent(_)) mkString "\n"))
+                        character.contents map (unitDisplay(_)) mkString "\n"))
             }
 
             case "look" :: "in" :: Nil | "look" :: "inside" :: Nil => sendMessage(character, "Look inside what?")
@@ -61,7 +63,7 @@ class BasicCommands()(using storage: Storage):
                     case Some(unitToLookAt) =>
                         sendMessage(character, "You look inside the %s. It contains:\n%s".format(
                             unitToLookAt.name,
-                            joinOrElse(unitToLookAt.contents map (mapContent(_)), "\n", "Nothing.")))
+                            joinOrElse(unitToLookAt.contents map (unitDisplay(_)), "\n", "Nothing.")))
                     case None               => sendMessage(character, "No such thing here to look inside.")
                 }
 
@@ -101,14 +103,12 @@ class BasicCommands()(using storage: Storage):
 
     private[commands] def minimap(character: Character, commandWords: Seq[String]) =
 
-        val range = Try(commandWords(1).toInt) match {
+        val range = Try(commandWords(1).toInt) match
             case Success(value) => value
             case Failure(_)     => 2
-        }
 
-        character.outside match {
+        character.outside match
             case Some(room: Room) => sendMessage(character, colourMiniMap(frameMiniMap(miniMap(room, range))) mkString "\n")
             case _                => sendMessage(character, "You can't see from in here.")
-        }
 
 end BasicCommands

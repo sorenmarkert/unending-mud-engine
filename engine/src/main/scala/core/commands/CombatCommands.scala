@@ -1,10 +1,11 @@
 package core.commands
 
-import core.Messaging.{act, sendMessage}
+import core.*
 import core.gameunit.Character
-import core.{ActRecipient, ActVisibility}
 
-class CombatCommands:
+class CombatCommands(using messageSender: MessageSender):
+
+    import messageSender.*
 
     private[commands] def prepareSlash(character: Character, arg: Seq[String]): Option[String] =
         sendMessage(character, "You raise your weapon behind you, preparing...")

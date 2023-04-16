@@ -3,7 +3,6 @@ package core.connection
 import akka.event.slf4j.{Logger, SLF4JLogging}
 import com.typesafe.config.Config
 import core.GlobalState
-import core.Messaging.sendMessage
 import core.RunState.Running
 import core.commands.Commands
 import core.gameunit.GameUnit.createPlayerCharacterIn
@@ -13,10 +12,12 @@ import java.net.{ServerSocket, Socket}
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Using
 
 object TelnetServer extends SLF4JLogging:
 
     def apply(config: Config)(using globalState: GlobalState, commands: Commands): Future[Unit] =
+        
         import globalState.*
 
         val port = config.getInt("telnet.port")
@@ -40,11 +41,9 @@ object TelnetServer extends SLF4JLogging:
                 && runState == Running then serve(player)
 
         Future {
-            val serverSocket = new ServerSocket(port)
-
-            while runState == Running do
-                val socket = serverSocket.accept
-                Future(initConnection(socket))
-
-            serverSocket.close()
+            Using(ServerSocket(port)) { serverSocket =>
+                while runState == Running do
+                    val socket = serverSocket.accept
+                    Future(initConnection(socket))
+            }
         }

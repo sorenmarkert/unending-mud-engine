@@ -18,7 +18,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
 
     "A newly created item" should {
 
-        "be the only unit in an empty unit" in {
+        "Be the only unit in an empty unit" in {
 
             Given("An empty room")
             val room = Room("emptyRoom")
@@ -34,7 +34,7 @@ class GameUnitTest extends AnyWordSpec with GivenWhenThen with Matchers with Bef
             globalState.global should contain only newItem
         }
 
-        "be before other units in a non-empty unit" in {
+        "Be before other units in a non-empty unit" in {
 
             Given("An room containing an item")
             val room    = Room("roomWithItem")

@@ -2,8 +2,8 @@ package core.connection
 
 trait Connection:
 
-    val readLine: () => String
-    val write   : String => Unit
+    def readLine(): String
+    def write(text: String): Unit
 
     def close(): Unit
     def isClosed(): Boolean

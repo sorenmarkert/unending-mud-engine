@@ -5,11 +5,12 @@ import core.ActVisibility.*
 import core.MiniMap.*
 import core.gameunit.*
 import core.gameunit.Gender.*
+import core.util.MessagingUtils.unitDisplay
 
 import scala.Array.tabulate
 import scala.collection.mutable.ListBuffer
 
-object Messaging:
+class MessageSender:
 
     def sendMessage(character: Character, message: String, addMap: Boolean = false) =
 
@@ -45,10 +46,9 @@ object Messaging:
                 case _                        => formattedOutput + "\n\n" + prompt
             }
 
-        character match {
+        character match
             case PlayerCharacter(_, connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
             case _                              => // TODO: send to controlling admin
-        }
     end sendMessage
 
     def act(message: String, visibility: ActVisibility,
@@ -56,10 +56,9 @@ object Messaging:
             toWhom : ActRecipient, text: Option[String]) =
 
         def toCharacter(unit: GameUnit) =
-            unit match {
+            unit match
                 case character: Character => Some(character)
                 case _                    => None
-            }
 
         def charactersInRoom =
             actor map (_.outside.get.contents flatMap toCharacter) getOrElse ListBuffer()
@@ -68,57 +67,45 @@ object Messaging:
             unitB contains unitA
 
         val recipients =
-            toWhom match {
+            toWhom match
                 case ToActor          => (actor flatMap toCharacter).toList
                 case ToTarget         => (target flatMap toCharacter).toList
                 case ToBystanders     => charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
                 case ToAllExceptActor => charactersInRoom filterNot (isSame(_, actor))
                 case ToEntireRoom     => charactersInRoom
-            }
 
         def formatGender(unit: GameUnit, genderToNoun: Gender => String) =
-            unit match {
+            unit match
                 case character: Character => genderToNoun(character.gender)
                 case _                    => genderToNoun(GenderNeutral)
-            }
 
         def formatUnit(unit: GameUnit, formatter: String) =
-            formatter match { // TODO: visibility
+            formatter match // TODO: visibility
                 case "a" => if Set('a', 'e', 'i', 'o') contains unit.name.head then "an" else "a"
                 case "e" => formatGender(unit, _.e)
                 case "m" => formatGender(unit, _.m)
                 case "s" => formatGender(unit, _.s)
-                case "n" => mapContent(unit, includePlayerTitle = false)
+                case "n" => unitDisplay(unit, includePlayerTitle = false)
                 case "N" => unit.name
                 case "p" => "unit.position" // TODO: positions
                 case "t" => text getOrElse "null"
                 case _   => "invalidFormatter"
-            }
 
         val nounPattern    = "\\$([1-3])([aemsnNpt])".r
         val recipientUnits = Array(actor, medium, target)
 
-        def replacement(msg: String) = nounPattern.replaceAllIn(msg, _ match {
-            case nounPattern(unitIndex, formatter) => recipientUnits(unitIndex.toInt - 1)
-                .map(formatUnit(_, formatter))
-                .getOrElse("null")
-        })
+        def replacement(msg: String) = nounPattern.replaceAllIn(msg, _ match
+            case nounPattern(unitIndex, formatter) =>
+                recipientUnits(unitIndex.toInt - 1)
+                    .map(formatUnit(_, formatter))
+                    .getOrElse("null"))
 
         recipients foreach (sendMessage(_, replacement(message).capitalize))
     end act
 
-    def joinOrElse(strings: Iterable[String], separator: String, default: String) =
-        Option(strings)
-            .filterNot(_.isEmpty)
-            .map(_ mkString separator)
-            .getOrElse(default)
 
-    def mapContent(unit: GameUnit, includePlayerTitle: Boolean = true) =
-        (unit, includePlayerTitle) match {
-            case (player: PlayerCharacter, true)  => player.name + " " + player.title
-            case (player: PlayerCharacter, false) => player.name
-            case _                                => unit.title
-        }
+object MessageSender:
+    given MessageSender = new MessageSender
 
 
 enum ActRecipient:

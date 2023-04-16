@@ -16,4 +16,3 @@ dist
 .bloop/
 .bsp
 *.sc
-.certs

@@ -5,7 +5,7 @@ import core.gameunit.Direction.South
 import core.gameunit.GameUnit.{createItemIn, createNonPlayerCharacterIn}
 import core.gameunit.ItemSlot.ItemSlotHead
 
-trait Builder:
+object Builder:
 
     def room(id: String)(init: Room ?=> Unit) =
         given r: Room = Room(id)

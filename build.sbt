@@ -22,6 +22,7 @@ lazy val engine = project
             "org.bouncycastle" % "bcpkix-jdk15on" % "1.70",
 
             "net.ravendb" % "ravendb-test-driver" % ravenDbVersion % Test,
+            "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % Test,
             "org.scalatest" %% "scalatest" % "3.2.15" % Test,
             "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion % Test cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test cross CrossVersion.for3Use2_13,

@@ -1,11 +1,11 @@
 package core
 
 import akka.event.slf4j.{Logger, SLF4JLogging}
-import core.gameunit.Builder
+import core.gameunit.Builder.*
 import core.gameunit.Direction.*
 import core.gameunit.ItemSlot.*
 
-object ZoneData extends Builder with SLF4JLogging:
+object ZoneData extends SLF4JLogging:
 
     log.info("Loading Zone")
 
