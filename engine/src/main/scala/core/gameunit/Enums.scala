@@ -1,7 +1,11 @@
 package core.gameunit
 
 enum Direction(val display: String, private val oppo: String):
+
     def opposite = Direction.valueOf(this.oppo)
+
+    def to(toRoomId: String)(using r: Room, globalState: GlobalState) =
+        r.addLink(this, globalState.rooms(toRoomId))
 
     case North extends Direction("north", "South")
     case South extends Direction("south", "North")
@@ -22,10 +26,6 @@ enum ItemSlot(val display: String):
     case ItemSlotMainHand extends ItemSlot("Wielded in main-hand")
     case ItemSlotOffHand extends ItemSlot("Wielded in off hand")
     case ItemSlotBothHands extends ItemSlot("Two hand wielded")
-
-
-enum FindContext:
-    case FindNextToMe, FindInEquipped, FindInInventory, FindInMe, FindInOrNextToMe, FindGlobally
 
 
 enum Gender(val e: String, val m: String, val s: String):

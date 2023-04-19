@@ -1,6 +1,5 @@
 package core.util
 
-import core.GlobalState
 import core.gameunit.*
 import core.util.MessagingUtils.{joinOrElse, unitDisplay}
 import org.mockito.Mockito.when

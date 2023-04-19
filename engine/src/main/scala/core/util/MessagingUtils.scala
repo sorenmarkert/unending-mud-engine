@@ -10,6 +10,7 @@ object MessagingUtils:
         else
             strings mkString separator
 
+    // TODO: move onto units
     def unitDisplay(unit: GameUnit, includePlayerTitle: Boolean = true) =
         (unit, includePlayerTitle) match
             case (player: PlayerCharacter, true)  => player.name + " " + player.title

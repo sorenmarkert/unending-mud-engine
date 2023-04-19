@@ -12,7 +12,7 @@ import scala.collection.mutable.ListBuffer
 
 class MessageSender:
 
-    def sendMessage(character: Character, message: String, addMap: Boolean = false) =
+    def sendMessage(character: Mobile, message: String, addMap: Boolean = false) =
 
         // TODO: don't send prompt until all messages have been sent
         // TODO: don't send prompt after quit
@@ -26,7 +26,7 @@ class MessageSender:
 
         val formattedOutputWithPromptAndMap =
             (addMap, character.outside) match {
-                case (true, Some(room: Room)) =>
+                case (true, room: Room) =>
 
                     val mapLines    = colourMiniMap(frameMiniMap(miniMap(room, 3)))
                     val promptLines = (prompt grouped textWidth).toList
@@ -43,43 +43,40 @@ class MessageSender:
                             "")
                         .map(a => a._1 + "  " + a._2)
                         .mkString("\n")
-                case _                        => formattedOutput + "\n\n" + prompt
+                case _                  => formattedOutput + "\n\n" + prompt
             }
 
         character match
-            case PlayerCharacter(_, connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
-            case _                              => // TODO: send to controlling admin
+            case PlayerCharacter(_, _, _, _, connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
+            case _                                       => // TODO: send to controlling admin
     end sendMessage
 
     def act(message: String, visibility: ActVisibility,
-            actor  : Option[GameUnit], medium: Option[GameUnit], target: Option[GameUnit],
+            actor  : Option[Mobile], medium: Option[Findable], target: Option[Findable],
             toWhom : ActRecipient, text: Option[String]) =
 
-        def toCharacter(unit: GameUnit) =
-            unit match
-                case character: Character => Some(character)
-                case _                    => None
-
         def charactersInRoom =
-            actor map (_.outside.get.contents flatMap toCharacter) getOrElse ListBuffer()
+            actor map (_.outside.mobiles) getOrElse Seq()
 
         def isSame(unitA: GameUnit, unitB: Option[GameUnit]) =
             unitB contains unitA
 
         val recipients =
             toWhom match
-                case ToActor          => (actor flatMap toCharacter).toList
-                case ToTarget         => (target flatMap toCharacter).toList
+                case ToActor          => actor.toSeq
+                case ToTarget         => target match
+                    case Some(m: Mobile) => Seq(m)
+                    case _               => Seq()
                 case ToBystanders     => charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
                 case ToAllExceptActor => charactersInRoom filterNot (isSame(_, actor))
                 case ToEntireRoom     => charactersInRoom
 
-        def formatGender(unit: GameUnit, genderToNoun: Gender => String) =
+        def formatGender(unit: Findable, genderToNoun: Gender => String) =
             unit match
-                case character: Character => genderToNoun(character.gender)
-                case _                    => genderToNoun(GenderNeutral)
+                case character: Mobile => genderToNoun(character.gender)
+                case _                 => genderToNoun(GenderNeutral)
 
-        def formatUnit(unit: GameUnit, formatter: String) =
+        def formatUnit(unit: Findable, formatter: String) =
             formatter match // TODO: visibility
                 case "a" => if Set('a', 'e', 'i', 'o') contains unit.name.head then "an" else "a"
                 case "e" => formatGender(unit, _.e)

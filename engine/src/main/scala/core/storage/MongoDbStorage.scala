@@ -26,22 +26,21 @@ class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
 
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
-        def mapCommonAttributes(gameUnit: GameUnit) =
+        def mapCommonAttributes(gameUnit: Containable[_]) =
             Document("unitType" -> gameUnit.getClass.getSimpleName,
                      "name" -> gameUnit.name,
                      "title" -> gameUnit.title,
                      "description" -> gameUnit.description)
 
-        def mapGameUnit(gameUnit: GameUnit): Document = gameUnit match
-            case item@Item(_)              =>
+        def mapGameUnit(gameUnit: Containable[_]): Document = gameUnit match
+            case item@Item(_, _, _, _)              =>
                 mapCommonAttributes(gameUnit)
                     ++ Document("itemSlot" -> (item.itemSlot map (_.toString) getOrElse ""))
                     ++ Document(Map("contents" -> (item.contents map mapGameUnit)))
-            case npc@NonPlayerCharacter(_) => mapCharacter(npc)
-            case PlayerCharacter(_, _)     => Document()
-            case Room(_)                   => Document()
+            case npc@NonPlayerCharacter(_, _, _, _) => mapCharacter(npc)
+            case _                                  => Document()
 
-        def mapCharacter(character: Character): Document =
+        def mapCharacter(character: Mobile): Document =
             mapCommonAttributes(character)
                 ++ Document(Map("inventory" -> (character.inventory map mapGameUnit)))
                 ++ Document(Map("equippedItems" -> (playerCharacter.equippedItems map mapGameUnit)))
@@ -50,7 +49,7 @@ class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
 
         players
             .replaceOne(
-                equal("_id", playerCharacter.__id),
+                equal("_id", playerCharacter.name),
                 document,
                 ReplaceOptions().upsert(true))
             .subscribe(new Observer[UpdateResult] {

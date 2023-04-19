@@ -31,28 +31,28 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
 
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
-        def mapGameUnit(gameUnit: GameUnit): Option[GameUnitDB] = gameUnit match
-            case item@Item(_)              => Some(ItemDB("Item",
-                                                          item.name,
-                                                          item.title,
-                                                          item.description,
-                                                          item.itemSlot,
-                                                          item.contents flatMap mapGameUnit))
-            case npc@NonPlayerCharacter(_) => Some(NonPlayerCharacterDB("NonPlayerCharacter",
-                                                                        npc.name,
-                                                                        npc.title,
-                                                                        npc.description,
-                                                                        npc.equippedItems flatMap mapGameUnit,
-                                                                        npc.inventory flatMap mapGameUnit))
-            case _                         => None
+        def mapContainable(gameUnit: Containable[_]): Option[GameUnitDB] = gameUnit match
+            case item@Item(name, title, description, _)              => Some(ItemDB("Item",
+                                                                                    name,
+                                                                                    title,
+                                                                                    description,
+                                                                                    item.itemSlot,
+                                                                                    item.contents flatMap mapContainable))
+            case npc@NonPlayerCharacter(name, title, description, _) => Some(NonPlayerCharacterDB("NonPlayerCharacter",
+                                                                                                  name,
+                                                                                                  title,
+                                                                                                  description,
+                                                                                                  npc.equippedItems flatMap mapContainable,
+                                                                                                  npc.inventory flatMap mapContainable))
+            case _                                                   => None
 
         Using(documentStore.openSession) { session =>
             val playerToStore = PlayerCharacterDB("PlayerCharacter",
                                                   playerCharacter.name,
                                                   playerCharacter.title,
                                                   playerCharacter.description,
-                                                  playerCharacter.equippedItems flatMap mapGameUnit,
-                                                  playerCharacter.inventory flatMap mapGameUnit)
+                                                  playerCharacter.equippedItems flatMap mapContainable,
+                                                  playerCharacter.inventory flatMap mapContainable)
             session.store(playerToStore, playerCharacter.name)
             session.saveChanges()
         } match
@@ -74,12 +74,12 @@ sealed trait GameUnitDB
 
 
 case class PlayerCharacterDB(unitType     : String, name: String, title: String, description: String,
-                             equippedItems: List[GameUnitDB], inventory: List[GameUnitDB]) extends GameUnitDB
+                             equippedItems: Seq[GameUnitDB], inventory: Seq[GameUnitDB]) extends GameUnitDB
 
 
 case class NonPlayerCharacterDB(unitType     : String, name: String, title: String, description: String,
-                                equippedItems: List[GameUnitDB], inventory: List[GameUnitDB]) extends GameUnitDB
+                                equippedItems: Seq[GameUnitDB], inventory: Seq[GameUnitDB]) extends GameUnitDB
 
 
 case class ItemDB(unitType: String, name: String, title: String, description: String,
-                  itemSlot: Option[ItemSlot], contents: List[GameUnitDB]) extends GameUnitDB
+                  itemSlot: Option[ItemSlot], contents: Seq[GameUnitDB]) extends GameUnitDB

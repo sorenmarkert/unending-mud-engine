@@ -1,9 +1,6 @@
 package core.gameunit
 
-import core.GlobalState
-import core.gameunit.Direction.South
-import core.gameunit.GameUnit.{createItemIn, createNonPlayerCharacterIn}
-import core.gameunit.ItemSlot.ItemSlotHead
+import core.gameunit.Direction.*
 
 object Builder:
 
@@ -12,7 +9,7 @@ object Builder:
 
         init
 
-    def name(n: String)(using u: GameUnit) =
+    def name(n: String)(using u: Containable[_]) =
         u.name = n
 
     def title(t: String)(using u: GameUnit) =
@@ -21,37 +18,39 @@ object Builder:
     def description(d: String)(using u: GameUnit) =
         u.description = d
 
+
     def north(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
-        r.northTo(globalState.rooms(d), distance)
+        r.addLink(North, globalState.rooms(d), distance)
 
     def south(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
-        r.southTo(globalState.rooms(d), distance)
+        r.addLink(South, globalState.rooms(d), distance)
 
     def east(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
-        r.eastTo(globalState.rooms(d), distance)
+        r.addLink(East, globalState.rooms(d), distance)
 
     def west(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
-        r.westTo(globalState.rooms(d), distance)
+        r.addLink(West, globalState.rooms(d), distance)
 
     def up(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
-        r.upTo(globalState.rooms(d), distance)
+        r.addLink(Up, globalState.rooms(d), distance)
 
     def down(d: String, distance: Int = 1)(using r: Room, globalState: GlobalState) =
-        r.downTo(globalState.rooms(d), distance)
+        r.addLink(Down, globalState.rooms(d), distance)
 
 
-    def item(id: String)(init: Item ?=> Unit)(using u: GameUnit) =
-        given i: Item = createItemIn(u, id)
+    // TODO: create Item with ""s and set them after? make more sensible
+    def item(name: String, title: String = "", description: String = "")(init: Item ?=> Unit)(using u: GameUnit) =
+        given i: Item = u.createItem(name, title, description)
 
         init
 
     def itemSlot(s: ItemSlot)(using i: Item) =
         i.itemSlot = Option(s)
         i.outside match
-            case Some(npc: NonPlayerCharacter) => npc equip i
-            case _                             =>
+            case npc: NonPlayerCharacter => npc equip i
+            case _                       =>
 
-    def npc(id: String)(init: NonPlayerCharacter ?=> Unit)(using u: GameUnit) =
-        given i: NonPlayerCharacter = createNonPlayerCharacterIn(u, id)
+    def npc(name: String, title: String = "", description: String = "")(init: NonPlayerCharacter ?=> Unit)(using r: Room) =
+        given i: NonPlayerCharacter = r.createNonPlayerCharacter(name, title, description)
 
         init

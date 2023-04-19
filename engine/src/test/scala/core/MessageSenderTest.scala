@@ -3,7 +3,6 @@ package core
 import core.commands.Commands
 import core.connection.Connection
 import core.gameunit.*
-import core.gameunit.GameUnit.createPlayerCharacterIn
 import org.mockito.Mockito.*
 import org.scalatest.*
 import org.scalatest.matchers.should.Matchers
@@ -18,7 +17,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
     import messageSender.*
     
     val roomMock = mock[Room]
-    when(roomMock.contents).thenReturn(List())
+    when(roomMock.mobiles).thenReturn(List())
     
     val playerMock = mock[PlayerCharacter]
 

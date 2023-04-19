@@ -2,9 +2,10 @@ package core
 
 import akka.event.slf4j.{Logger, SLF4JLogging}
 import com.typesafe.config.{Config, ConfigFactory}
-import core.RunState.Running
 import core.commands.*
 import core.connection.TelnetServer
+import core.gameunit.GlobalState
+import core.gameunit.RunState.Running
 import core.storage.*
 import webserver.WebServer
 

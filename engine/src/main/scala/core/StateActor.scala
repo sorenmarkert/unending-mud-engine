@@ -4,8 +4,9 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors.*
 import akka.event.slf4j.{Logger, SLF4JLogging}
-import core.RunState.Closing
 import core.commands.*
+import core.gameunit.GlobalState
+import core.gameunit.RunState.Closing
 
 import scala.collection.mutable.{ListBuffer, Map as MMap, Set as MSet, SortedMap as MSortedMap}
 import scala.concurrent.duration.DurationInt
@@ -18,17 +19,17 @@ object StateActor extends SLF4JLogging:
     case object Tick extends StateActorMessage
 
 
-    case class CommandExecution(command: Command, character: gameunit.Character, argument: List[String]) extends StateActorMessage
+    case class CommandExecution(command: Command, character: gameunit.Mobile, argument: List[String]) extends StateActorMessage
 
 
-    case class Interrupt(character: gameunit.Character) extends StateActorMessage
+    case class Interrupt(character: gameunit.Mobile) extends StateActorMessage
 
 
     private val tickInterval            = 100.milliseconds // TODO: make configurable
     private var tickCounter             = 0
     private val commandQueue            = ListBuffer.empty[CommandExecution]
     private val timedCommandsWaitingMap = MSortedMap.empty[Int, Vector[CommandExecution]]
-    private val charactersInActionMap   = MMap.empty[gameunit.Character, Int]
+    private val charactersInActionMap   = MMap.empty[gameunit.Mobile, Int]
 
     def apply(): Behavior[StateActorMessage] =
         setup { context =>
@@ -61,7 +62,7 @@ object StateActor extends SLF4JLogging:
 
     private def executeQueuedCommands() = {
 
-        val charactersWhoReceivedMessages = MSet.empty[gameunit.Character]
+        val charactersWhoReceivedMessages = MSet.empty[gameunit.Mobile]
 
         timedCommandsWaitingMap get tickCounter foreach {
             _ foreach {

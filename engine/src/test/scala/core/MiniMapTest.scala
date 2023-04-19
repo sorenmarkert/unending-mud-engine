@@ -2,7 +2,7 @@ package core
 
 import core.MiniMap.miniMap
 import core.gameunit.Direction.*
-import core.gameunit.{Exit, Room}
+import core.gameunit.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
@@ -20,7 +20,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
 
             Given("A room with an exit")
             val roomCenter: Room = Room("roomCenter")
-            val roomWest  : Room = Room("roomWest")
+            Room("roomWest")
                 .eastTo(roomCenter)
 
             When("Mapping the area")
@@ -51,9 +51,9 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
 
             Given("A room with 2 exits")
             val roomCenter: Room = Room("roomCenter")
-            val roomWest  : Room = Room("roomWest")
+            Room("roomWest")
                 .eastTo(roomCenter)
-            val roomSouth : Room = Room("roomSouth")
+            Room("roomSouth")
                 .northTo(roomCenter)
 
             When("Mapping the area")
@@ -72,15 +72,15 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
 
             Given("A room with 4 exits, where one has a further connection")
             val roomCenter   : Room = Room("roomCenter")
-            val roomNorth    : Room = Room("roomNorth")
+            Room("roomNorth")
                 .southTo(roomCenter)
-            val roomEast     : Room = Room("roomEast")
+            Room("roomEast")
                 .westTo(roomCenter)
-            val roomWest     : Room = Room("roomWest")
+            Room("roomWest")
                 .eastTo(roomCenter)
-            val roomSouth    : Room = Room("roomSouth")
+            Room("roomSouth")
                 .northTo(roomCenter)
-            val roomSouthWest: Room = Room("roomSouthWest")
+            Room("roomSouthWest")
                 .eastTo(roomCenter) // Should not be include
 
             When("Mapping the area")
@@ -103,21 +103,21 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
                 .southTo(roomCenter)
             val roomEast  : Room = Room("roomEast")
                 .westTo(roomCenter)
-            val roomWest  : Room = Room("roomWest")
+            Room("roomWest")
                 .eastTo(roomCenter)
             val roomSouth : Room = Room("roomSouth")
                 .northTo(roomCenter)
 
             val roomNorthNorth: Room = Room("roomNorthNorth")
                 .southTo(roomNorth)
-            val roomNorthEast : Room = Room("roomNorthEast")
+            Room("roomNorthEast")
                 .westTo(roomNorth)
-            val roomSouthSouth: Room = Room("roomSouthSouth")
+            Room("roomSouthSouth")
                 .northTo(roomSouth)
-            val roomEastSouth : Room = Room("roomEastSouth")
+            Room("roomEastSouth")
                 .northTo(roomEast)
 
-            val roomNorthNorthEast: Room = Room("roomNorthNorthEast") // Should not b"roomNorthNorthEaste
+            Room("roomNorthNorthEast") // Should not b"roomNorthNorthEaste
                 .westTo(roomNorthNorth)
 
             When("Mapping the area")
@@ -149,13 +149,13 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
             val roomSouth : Room = Room("roomSouth")
                 .northTo(roomCenter)
 
-            val roomNorthEast: Room = Room("roomNorthEast")
+            Room("roomNorthEast")
                 .westTo(roomNorth)
-            val roomEastNorth: Room = Room("roomEastNorth")
+            Room("roomEastNorth")
                 .southTo(roomEast)
-            val roomSouthWest: Room = Room("roomSouthWest")
+            Room("roomSouthWest")
                 .eastTo(roomSouth)
-            val roomWestSouth: Room = Room("roomWestSouth")
+            Room("roomWestSouth")
                 .northTo(roomWest)
 
             When("Mapping the area")

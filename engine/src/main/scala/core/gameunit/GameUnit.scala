@@ -3,138 +3,103 @@ package core.gameunit
 import core.*
 import core.ActRecipient.ToAllExceptActor
 import core.ActVisibility.Always
-import core.GlobalState.*
 import core.commands.*
 import core.connection.Connection
 import core.gameunit.Direction.*
-import core.gameunit.FindContext.*
 import core.gameunit.Gender.GenderMale
+import core.gameunit.GlobalState.*
 import core.gameunit.Position.Standing
 import core.storage.Storage
 
 import java.util.UUID
 import scala.collection.mutable
-import scala.collection.mutable.{ListBuffer, Map as MMap}
+import scala.collection.mutable.{LinkedHashMap, ListBuffer, Map as MMap}
 import scala.util.*
 
-sealed trait GameUnit(val id: String):
-
-    val uuid = UUID.randomUUID() // TODO: rooms don't need this
-
-    var name        = ""
-    var title       = ""
-    var description = ""
-
-    private val _contents                  = ListBuffer.empty[GameUnit]
-    private var _outside: Option[GameUnit] = None
-
-    def contents: List[GameUnit] = _contents.toList
-
-    def outside: Option[GameUnit] = _outside
-
-    def addUnit(unitToAdd: GameUnit): GameUnit =
-        unitToAdd.removeUnitFromContainer
-        _contents prepend unitToAdd
-        unitToAdd._outside = Some(this)
-        unitToAdd
-
-    def removeUnit()(using globalState: GlobalState): Unit =
-        while contents.nonEmpty do contents.head.removeUnit()
-        globalState.global subtractOne this
-        removeUnitFromContainer
-
-    private def removeUnitFromContainer =
-        outside foreach (_._contents subtractOne this)
-
-    def canContain(unit: GameUnit) = true // TODO: check if can contain/carry
-
-    override def equals(other: Any): Boolean = other match
-        case unit: GameUnit => unit.uuid == uuid
-        case _              => false
-
-    override def toString: String = this.getClass.getSimpleName + "(" + name + ", " + id + ", " + uuid + ")"
-
-end GameUnit
+type Findable = Mobile | Item
 
 
-object GameUnit:
+sealed trait GameUnit:
 
-    // TODO: change these to apply?
-    def createItemIn(container: GameUnit, id: String)(using globalState: GlobalState): Item =
-        val item = Item(id)
-        container addUnit item
+    var title      : String
+    var description: String
+
+    private[gameunit] val _contents = ListBuffer.empty[Item]
+
+    def contents = _contents.toSeq
+
+    def addItem(itemToAdd: Item) =
+        itemToAdd.removeFromContainer()
+        itemToAdd._outside = this
+        _contents prepend itemToAdd
+
+    def destroy(using globalState: GlobalState): Unit =
+        while _contents.nonEmpty do _contents.head.destroy
+
+    def canContain[T <: GameUnit](unit: Containable[T]) = ??? // TODO: check if can contain/carry
+
+    def createItem(name: String, title: String = "", description: String = "")(using globalState: GlobalState) =
+        val item = Item(name, title, description, this)
+        _contents prepend item
         globalState.global prepend item
         item
 
-    def createPlayerCharacterIn(container: GameUnit, connection: Connection)(using globalState: GlobalState, commands: Commands, messageSender: MessageSender): PlayerCharacter =
-
-        // TODO: player to choose name
-        // TODO: load player data
-        val playerCharacter = PlayerCharacter("player1", connection)
-        container addUnit playerCharacter
-        globalState.global prepend playerCharacter
-        globalState.players prepend playerCharacter
-
-        playerCharacter.name = "Klaus"
-        playerCharacter.title = "the Rude"
-
-        commands.executeCommand(playerCharacter, "look")
-        messageSender.act("$1N has entered the game.", Always, Some(playerCharacter), None, None, ToAllExceptActor, None)
-
-        playerCharacter
-    end createPlayerCharacterIn
-
-    def createNonPlayerCharacterIn(container: GameUnit, id: String)(using globalState: GlobalState): NonPlayerCharacter =
-        val nonPlayerCharacter = NonPlayerCharacter(id)
-        container addUnit nonPlayerCharacter
-        globalState.global prepend nonPlayerCharacter
-        nonPlayerCharacter
-
-    def findUnit(character: Character, searchString: String, environment: Either[FindContext, GameUnit])(using globalState: GlobalState): Option[GameUnit] = {
-
-        val listToSearch = environment match
-            case Left(FindNextToMe)     => character.outside.get.contents
-            case Left(FindInInventory)  => character.inventory
-            case Left(FindInEquipped)   => character.equippedItems
-            case Left(FindInMe)         => character.equippedItems concat character.inventory
-            case Left(FindInOrNextToMe) => character.equippedItems concat character.inventory concat character.outside.get.contents
-            case Left(FindGlobally)     => globalState.global
-            case Right(container)       => container.contents
-
+    protected def findUnit[T <: Findable](searchString: String, listToSearch: Seq[T]) =
         val (index, name) =
-            val terms = searchString.split('.').toList
+            val terms = searchString.trim.split('.').toList
             terms.head.toIntOption match
                 case Some(value) => (value, terms.tail mkString ".")
-                case None        => (1, searchString)
-
+                case None        => (1, searchString.trim)
         listToSearch
+            // TODO: startsWith, word by word
             .filter(_.name equalsIgnoreCase name)
-            .filter(character.canSee)
+            // TODO: add visibility check: .filter(character.canSee)
             .drop(index - 1)
             .headOption
-    }
 
 end GameUnit
 
 
-sealed abstract class Character(val _id: String) extends GameUnit(_id):
+sealed trait Containable[In <: GameUnit] extends GameUnit:
 
-    private val _equipped        = MMap[ItemSlot, Item]()
-    private val _equippedReverse = MMap[Item, ItemSlot]()
+    var name: String
+
+    private[gameunit] var _outside: In
+
+    def outside = _outside
+
+    private[gameunit] def removeFromContainer(): Unit
+
+
+sealed trait Mobile extends Containable[Room]:
+
+    // TODO: bi-map?
+    private val _equipped        = LinkedHashMap[ItemSlot, Item]()
+    private val _equippedReverse = LinkedHashMap[Item, ItemSlot]()
+
+    override private[gameunit] def removeFromContainer() =
+        _outside._mobiles subtractOne this
 
     var gender  : Gender                         = GenderMale
     var position: Position                       = Standing
     var doing   : Option[(String, TimedCommand)] = None
-    var target  : Option[Character]              = None
-    var targetOf: Option[Character]              = None
+    var target  : Option[Mobile]                 = None
+    var targetOf: Option[Mobile]                 = None
 
-    def equippedItems: List[GameUnit] = contents filter _equipped.values.toList.contains
+    override def destroy(using globalState: GlobalState) =
+        super.destroy
+        _equippedReverse.clear()
+        while _equipped.nonEmpty do _equipped.head._2.destroy
+        removeFromContainer()
 
-    def inventory: List[GameUnit] = contents diff _equipped.values.toList
+    def equippedItems = contents filter _equipped.values.toList.contains
 
-    def equippedAt(itemSlot: ItemSlot): Option[Item] = _equipped get itemSlot
+    def inventory = contents diff _equipped.values.toList
+
+    def equippedAt(itemSlot: ItemSlot) = _equipped get itemSlot
 
     def equip(item: Item): Option[String] =
+    // TODO: should equipped items be in contents?
         item.itemSlot match
             case Some(_) if !(inventory contains item)         => Some("You can only equip items from your inventory.")
             case Some(itemSlot) if _equipped contains itemSlot => Some("You already have something equipped there.")
@@ -144,84 +109,164 @@ sealed abstract class Character(val _id: String) extends GameUnit(_id):
                 None
             case None                                          => Some("This item cannot be equipped.")
 
-    def unequip(item: Item): Option[String] =
+    def remove(item: Item): Option[String] =
         _equippedReverse remove item match
             case Some(value) =>
                 _equipped remove value
                 None
             case None        => Some("You don't have that item equipped.")
 
-    def canSee(unit: GameUnit) = true // TODO: implement visibility check
+    def findInInventory(searchString: String) =
+        findUnit(searchString, contents)
 
-end Character
+    def findInEquipped(searchString: String) =
+        findUnit(searchString, equippedItems)
+
+    def findInMe(searchString: String) =
+        findUnit(searchString, equippedItems concat contents)
+
+    def findItemNextToMe(searchString: String) =
+        findUnit(searchString, outside.contents)
+
+    def findItemInOrNextToMe(searchString: String) =
+        findUnit(searchString, equippedItems concat contents concat outside.contents)
+
+    def findMobile(searchString: String) =
+        findUnit(searchString, outside.mobiles)
+
+    def findInOrNextToMe(searchString: String) =
+        findUnit(searchString, outside.mobiles.asInstanceOf[Seq[Findable]]
+            concat equippedItems concat contents concat outside.contents)
+
+end Mobile
 
 
-case class PlayerCharacter private[gameunit](__id: String, var connection: Connection) extends Character(__id):
+case class PlayerCharacter private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: Room, var connection: Connection)
+    extends Mobile:
 
-    override def removeUnit()(using globalState: GlobalState) =
-        super.removeUnit()
-        globalState.players subtractOne this
+    override def destroy(using globalState: GlobalState) =
+        super.destroy
+        globalState.players remove name
 
 end PlayerCharacter
 
 
-case class NonPlayerCharacter private[gameunit](__id: String) extends Character(__id)
+case class NonPlayerCharacter private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: Room)
+    extends Mobile:
+
+    override def destroy(using globalState: GlobalState) =
+        super.destroy
+        globalState.global subtractOne this
 
 
 // TODO: item templates with item refs
-case class Item private[gameunit](_id: String) extends GameUnit(_id):
+case class Item private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: GameUnit)
+    extends Containable[GameUnit]:
 
     var itemSlot: Option[ItemSlot] = None
 
-    def isEquipped: Boolean = (this.itemSlot, this.outside) match
-        case (Some(itemSlot), Some(character: Character)) => character equippedAt itemSlot contains this
-        case _                                            => false
+    override private[gameunit] def removeFromContainer() =
+        _outside._contents subtractOne this
+
+    override def destroy(using globalState: GlobalState) =
+        super.destroy
+        removeFromContainer()
+        globalState.global subtractOne this
+
+    def isEquipped: Boolean = (itemSlot, outside) match
+        case (Some(itemSlot), character: Mobile) => character equippedAt itemSlot contains this
+        case _                                   => false
+
+    def findInside(searchString: String) =
+        findUnit(searchString, contents)
 
 end Item
 
 
-case class Room private(_id: String) extends GameUnit(_id):
+case class Room private[gameunit](id: String, var title: String, var description: String) extends GameUnit:
 
     private val _exits: MMap[Direction, Exit] = MMap[Direction, Exit]()
 
     def exits = _exits.toMap
 
+    private[gameunit] val _mobiles = ListBuffer.empty[Mobile]
+
+    def mobiles = _mobiles.toSeq
+
+    override def destroy(using globalState: GlobalState) =
+        super.destroy
+        while _mobiles.nonEmpty do _mobiles.head.destroy
+        _exits foreach { case (direction, Exit(toRoom, _)) => toRoom removeLink direction.opposite }
+        _exits.clear()
+
+    def addMobile(mobileToAdd: Mobile) =
+        mobileToAdd.removeFromContainer()
+        mobileToAdd._outside = this
+        _mobiles prepend mobileToAdd
+
     def northTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
-        addLink(toRoom, distance, bidirectional, North)
+        addLink(North, toRoom, distance, bidirectional)
 
     def southTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
-        addLink(toRoom, distance, bidirectional, South)
+        addLink(South, toRoom, distance, bidirectional)
 
     def eastTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
-        addLink(toRoom, distance, bidirectional, East)
+        addLink(East, toRoom, distance, bidirectional)
 
     def westTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
-        addLink(toRoom, distance, bidirectional, West)
+        addLink(West, toRoom, distance, bidirectional)
 
     def upTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
-        addLink(toRoom, distance, bidirectional, Up)
+        addLink(Up, toRoom, distance, bidirectional)
 
     def downTo(toRoom: Room, distance: Int = 1, bidirectional: Boolean = true): Room =
-        addLink(toRoom, distance, bidirectional, Down)
+        addLink(Down, toRoom, distance, bidirectional)
 
-    private def addLink(toRoom: Room, distance: Int, bidirectional: Boolean, direction: Direction) =
+    def addLink(direction: Direction, toRoom: Room, distance: Int = 1, bidirectional: Boolean = true) =
         _exits += (direction -> Exit(toRoom, distance))
         if bidirectional then toRoom._exits += direction.opposite -> Exit(this, distance)
         this
+
+    private[gameunit] def removeLink(direction: Direction) =
+        _exits remove direction
+
+    def createPlayerCharacter(name: String, connection: Connection)(using globalState: GlobalState, commands: Commands, messageSender: MessageSender): PlayerCharacter =
+
+        // TODO: player to choose name
+        // TODO: load player data
+        val playerCharacter = PlayerCharacter(name, title, description, this, connection)
+        globalState.players += name -> playerCharacter
+        _mobiles prepend playerCharacter
+
+        commands.executeCommand(playerCharacter, "look")
+        messageSender.act("$1N has entered the game.", Always, Some(playerCharacter), None, None, ToAllExceptActor, None)
+
+        playerCharacter
+
+    def createNonPlayerCharacter(name: String, title: String = "", description: String = "")(using globalState: GlobalState) =
+        val nonPlayerCharacter = NonPlayerCharacter(name, title, description, this)
+        globalState.global prepend nonPlayerCharacter
+        _mobiles prepend nonPlayerCharacter
+        nonPlayerCharacter
+
+    def findItem(searchString: String) =
+        findUnit(searchString, contents)
+
+    def findMobile(searchString: String) =
+        findUnit(searchString, mobiles)
 
 end Room
 
 
 object Room:
 
-    def apply(id: String)(using globalState: GlobalState): Room =
-        globalState.rooms.get(id)
-            .map(_ => throw RuntimeException(s"Room $id is already defined."))
-            .getOrElse {
-                val newRoom = new Room(id)
-                globalState.rooms += id -> newRoom
-                newRoom.description = "It's a room. There's nothing in it. Not even a door."
-                newRoom
-            }
+    def apply(id: String, title: String = "")(using globalState: GlobalState): Room =
+        import globalState.rooms
+        rooms.get(id)
+            .map(_ => throw IllegalStateException(s"Room '$id' is already defined."))
+            .getOrElse
+        val newRoom = Room(id, title, "It's a room. There's nothing in it. Not even a door.")
+        rooms += id -> newRoom
+        newRoom
 
 end Room

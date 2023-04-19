@@ -8,8 +8,8 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.typesafe.config.{Config, ConfigFactory}
-import core.GlobalState
 import core.StateActor.StateActorMessage
+import core.gameunit.GlobalState
 
 import java.nio.file.Paths
 import scala.concurrent.ExecutionContext

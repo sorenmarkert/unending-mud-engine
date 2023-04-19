@@ -5,7 +5,7 @@ import core.MessageSender.*
 import core.MiniMap.*
 import core.StateActor.CommandExecution
 import core.gameunit.Gender.*
-import core.gameunit.{Character, GameUnit, Gender, PlayerCharacter, Room}
+import core.gameunit.*
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -13,12 +13,12 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 sealed trait Command
 
 
-case class InstantCommand(func: (Character, Seq[String]) => Unit, canInterrupt: Boolean = false) extends Command
+case class InstantCommand(func: (Mobile, Seq[String]) => Unit, canInterrupt: Boolean = false) extends Command
 
 
 case class TimedCommand(baseDuration: FiniteDuration,
-                        beginFunc   : (Character, Seq[String]) => Option[String],
-                        endFunc     : (Character, Seq[String]) => Unit) extends Command
+                        beginFunc   : (Mobile, Seq[String]) => Option[String],
+                        endFunc     : (Mobile, Seq[String]) => Unit) extends Command
 
 
 class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, messageSender: MessageSender):
@@ -59,7 +59,7 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
         )
 
-    def executeCommand(character: Character, input: String)(using globalState: GlobalState): String =
+    def executeCommand(character: Mobile, input: String)(using globalState: GlobalState): String =
 
         val inputWords = (input split " ").toList filterNot (_.isBlank)
 

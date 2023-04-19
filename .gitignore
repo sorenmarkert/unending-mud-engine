@@ -16,3 +16,4 @@ dist
 .bloop/
 .bsp
 *.sc
+**/.attach*
