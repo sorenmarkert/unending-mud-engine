@@ -13,47 +13,47 @@ object ZoneData extends SLF4JLogging:
 
         title("The Room in the Center")
 
-        npc("driver1") {
+        npc("driver") {
             name("driver")
             title("the driver")
             description("She's a short, plump woman wearing a light frown as if it was her most prized possession.")
         }
 
-        npc("boy1") {
+        npc("boy") {
             name("boy")
             title("a boy")
             description("He's a little boy, probably around the age of 10.")
 
-            item("tanto1") {
-                name("tanto")
+            item("tanto") {
+                name("black and gold plastic tanto")
                 title("a black and gold plastic tanto")
                 description("It's a very cheap looking tanto made of plastic. That design is quite flashy, though, provided you don't look too closely. It has a grey hilt wrapped in some black cloth ribbon.")
                 itemSlot(ItemSlotOffHand)
             }
         }
 
-        item("hat1") {
-            name("hat")
+        item("hat") {
+            name("white cowboy hat")
             title("a white cowboy hat")
             description("It's a white cowboy hat made of some light, paper like material. It looks like it was cheap, yet it still looks incredibly cool at a distance.")
             itemSlot(ItemSlotHead)
         }
 
-        item("hat2") {
-            name("hat")
+        item("hat") {
+            name("black top hat")
             title("a black top hat")
             description("It's a very fancy hat, about one hand tall with a flat top and a narrow brim. And it's completely black.")
             itemSlot(ItemSlotHead)
         }
 
-        item("bag1") {
+        item("bag") {
             name("bag")
             title("a bag")
             description("It's a small, red Eastpak.")
 
-            item("book1") {
-                name("book")
-                title("a book")
+            item("book") {
+                name("small book")
+                title("a small book")
                 description("It's a small book, bound in leather.")
             }
         }

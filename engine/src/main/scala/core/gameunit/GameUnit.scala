@@ -45,14 +45,24 @@ sealed trait GameUnit:
         item
 
     protected def findUnit[T <: Findable](searchString: String, listToSearch: Seq[T]) =
-        val (index, name) =
-            val terms = searchString.trim.split('.').toList
-            terms.head.toIntOption match
-                case Some(value) => (value, terms.tail mkString ".")
-                case None        => (1, searchString.trim)
+
+        lazy val (index, searchStringWithoutIndex) =
+            val indexSplit = searchString.split("\\.", 2)
+            indexSplit.head.trim.toIntOption match
+                case Some(value) => (value, indexSplit.tail.head)
+                case None        => (1, searchString)
+
+        lazy val searchTerms = searchStringWithoutIndex.toLowerCase split ' ' filterNot (_.isBlank)
+
+        def matches(names: List[String], terms: List[String]): Boolean =
+            (names, terms) match
+                case (n :: ns, t :: ts) if n startsWith t => matches(ns, ts)
+                case (_ :: ns, t :: ts)                   => matches(ns, t :: ts)
+                case (_, Nil)                             => true
+                case _                                    => false
+
         listToSearch
-            // TODO: startsWith, word by word
-            .filter(_.name equalsIgnoreCase name)
+            .filter(u => matches((u.name.toLowerCase split ' ' filterNot (_.isBlank)).toList, searchTerms.toList))
             // TODO: add visibility check: .filter(character.canSee)
             .drop(index - 1)
             .headOption

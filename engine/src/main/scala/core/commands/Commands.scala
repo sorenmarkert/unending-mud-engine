@@ -4,8 +4,8 @@ import core.*
 import core.MessageSender.*
 import core.MiniMap.*
 import core.StateActor.CommandExecution
-import core.gameunit.Gender.*
 import core.gameunit.*
+import core.gameunit.Gender.*
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -61,10 +61,10 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
 
     def executeCommand(character: Mobile, input: String)(using globalState: GlobalState): String =
 
-        val inputWords = (input split " ").toList filterNot (_.isBlank)
+        val inputWords = (input split " ") filterNot (_.isBlank)
 
         val (command, commandWords) =
-            inputWords match
+            inputWords.toList match
                 case "" :: _ | Nil              => (emptyInput, Nil)
                 case commandPrefix :: arguments =>
                     commandList

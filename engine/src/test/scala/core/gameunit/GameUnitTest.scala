@@ -10,6 +10,7 @@ import core.gameunit.Room
 import org.mockito.Mockito.verify
 import org.scalatest.*
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.prop.TableDrivenPropertyChecks.*
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
@@ -457,23 +458,40 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             result.value shouldBe itemToBeFound
         }
 
-        "Ignore case and surrounding spaces" in {
+        "Find an item by searching only for prefixes of its name words" in {
 
-            Given("A player next to 3 items")
+            Given("A room with 3 items in a container")
             val room       = Room("room")
             val container  = room.createItem("container")
             val bottomItem = container.createItem("bottomItem")
-            bottomItem.name = "itemName"
-            val itemToBeFound = container.createItem("itemToBeFound")
-            itemToBeFound.name = "itemNAME"
-            val topItem = container.createItem("topItem")
-            topItem.name = "otherName"
+            val topItem    = container.createItem("topItem")
 
-            When("The player searches for the item")
-            val result = container.findInside(" ITEMnaMe ")
+            val data = Table(
+                ("search string", "name of bottom item", "name of top item", "expected item"),
+                (" ITEMnaMe ", "itemname", "itemname", topItem),
+                (" ITEMnaMe ", "itemname", "item name", bottomItem),
+                ("it", "itemname", "itemname", topItem),
+                (" i   n ", "item name", "item name", topItem),
+                (" 2 . i   n ", "item name", "item name", bottomItem),
+                (" i n ", "item name", "item", bottomItem),
+                ("i", "item", "item name", topItem),
+                ("n", "item", "item name", topItem),
+                ("some name", "some name", "some item name", topItem),
+                ("some item", "some item", "some item name", topItem),
+                ("item name", "item name", "some item name", topItem),
+                )
+            forAll(data) {
+                (searchString: String, bottomName: String, topName: String, expectedItem: Item) =>
 
-            Then("The correct item is returned")
-            result.value shouldBe itemToBeFound
+                    bottomItem.name = bottomName
+                    topItem.name = topName
+
+                    When("The player searches for the item")
+                    val result = container.findInside(searchString)
+
+                    Then("The correct item is returned")
+                    result.value shouldEqual expectedItem
+            }
         }
     }
 

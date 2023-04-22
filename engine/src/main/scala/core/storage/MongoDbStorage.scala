@@ -33,12 +33,12 @@ class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
                      "description" -> gameUnit.description)
 
         def mapGameUnit(gameUnit: Containable[_]): Document = gameUnit match
-            case item@Item(_, _, _, _)              =>
+            case item: Item              =>
                 mapCommonAttributes(gameUnit)
                     ++ Document("itemSlot" -> (item.itemSlot map (_.toString) getOrElse ""))
                     ++ Document(Map("contents" -> (item.contents map mapGameUnit)))
-            case npc@NonPlayerCharacter(_, _, _, _) => mapCharacter(npc)
-            case _                                  => Document()
+            case npc: NonPlayerCharacter => mapCharacter(npc)
+            case _                       => Document()
 
         def mapCharacter(character: Mobile): Document =
             mapCommonAttributes(character)
