@@ -8,6 +8,7 @@ object Builder:
         given r: Room = Room(id)
 
         init
+        r
 
     def name(n: String)(using u: Containable[_]) =
         u.name = n

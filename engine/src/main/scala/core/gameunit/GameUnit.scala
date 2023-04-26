@@ -233,7 +233,7 @@ case class Room private[gameunit](id: String, var title: String, var description
         addLink(Down, toRoom, distance, bidirectional)
 
     def addLink(direction: Direction, toRoom: Room, distance: Int = 1, bidirectional: Boolean = true) =
-        _exits += (direction -> Exit(toRoom, distance))
+        _exits += direction -> Exit(toRoom, distance)
         if bidirectional then toRoom._exits += direction.opposite -> Exit(this, distance)
         this
 

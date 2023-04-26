@@ -4,12 +4,15 @@ import akka.event.slf4j.{Logger, SLF4JLogging}
 import core.gameunit.Builder.*
 import core.gameunit.Direction.*
 import core.gameunit.ItemSlot.*
+import core.generate.AreaGenerator
+
+import scala.util.Random
 
 object ZoneData extends SLF4JLogging:
 
     log.info("Loading Zone")
 
-    room("roomCenter") {
+    val roomCenter = room("roomCenter") {
 
         title("The Room in the Center")
 
@@ -113,3 +116,11 @@ object ZoneData extends SLF4JLogging:
         title("The Room to the NorthNorthEastEast")
         west("roomNorthNorthEast")
     }
+
+
+    given Random()
+
+
+    private val room00 = AreaGenerator().generate(22, 6)((0, 0))
+
+    roomCenter.addLink(Up, room00)

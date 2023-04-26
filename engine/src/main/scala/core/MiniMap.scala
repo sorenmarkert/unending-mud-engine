@@ -19,7 +19,7 @@ object MiniMap:
 
             val unvisitedExits =
                 if currentRange < range then
-                    currentRoom.exits.filterNot { case (_, v) => traversedRooms contains v.toRoom }.toMap
+                    currentRoom.exits.filterNot { case (_, v) => traversedRooms contains v.toRoom }
                 else
                     Map.empty[Direction, Exit]
 
@@ -68,7 +68,7 @@ object MiniMap:
 
     // TODO: unit test
     def frameMiniMap(miniMap: List[String]) =
-        val line   = Array.tabulate(miniMap(0).size)(_ => '-').mkString
+        val line   = tabulate(miniMap.head.length)(_ => '-').mkString
         val header = "/" + line + "\\"
         val footer = "\\" + line + "/"
         header :: (miniMap map ("|" + _ + "|")) appended footer
