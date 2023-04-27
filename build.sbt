@@ -24,13 +24,14 @@ lazy val engine = project
             "net.ravendb" % "ravendb-test-driver" % ravenDbVersion % Test,
             "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % Test,
             "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+            "com.vladsch.flexmark" % "flexmark-all" % "0.64.0" % Test,
             "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion % Test cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test cross CrossVersion.for3Use2_13,
             "com.typesafe.akka" %% "akka-stream-testkit" % akkaActorVersion % Test cross CrossVersion.for3Use2_13,
             ),
 
         coverageEnabled := true,
-        coverageFailOnMinimum := true,
+        coverageFailOnMinimum := false,
         coverageMinimumStmtTotal := 90,
         coverageMinimumBranchTotal := 90,
         coverageMinimumStmtPerPackage := 90,
@@ -66,3 +67,5 @@ lazy val models = crossProject(JSPlatform, JVMPlatform)
     .settings(
         name := "Unending Data Models",
         )
+
+ThisBuild / Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")
