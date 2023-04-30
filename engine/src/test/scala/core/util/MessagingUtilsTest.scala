@@ -1,7 +1,7 @@
 package core.util
 
 import core.gameunit.*
-import core.util.MessagingUtils.{joinOrElse, unitDisplay}
+import core.util.MessagingUtils.{collapseDuplicates, joinOrElse, unitDisplay}
 import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -98,4 +98,32 @@ class MessagingUtilsTest extends AnyWordSpec with MockitoSugar with GivenWhenThe
             Then("Its title is returned")
             result shouldBe unitTitle
         }
+    }
+
+    "collapseNames" should {
+
+        "Collapse duplicated strings into singles with counts" in {
+
+            Given("A list with a duplicated string")
+            val duplicates = List("duplicated", "duplicated")
+
+            When("Displaying a player")
+            val result = collapseDuplicates(duplicates)
+
+            Then("The name and title are returned")
+            result should contain only "[x2] duplicated"
+        }
+
+        "Maintain order of first occurrences" in {
+
+            Given("A list with a duplicated string")
+            val duplicates = List("first", "second", "second", "first", "third", "second", "third", "third")
+
+            When("Displaying a player")
+            val result = collapseDuplicates(duplicates)
+
+            Then("The name and title are returned")
+            result should contain inOrderOnly("[x2] first", "[x3] second", "[x3] third")
+        }
+
     }

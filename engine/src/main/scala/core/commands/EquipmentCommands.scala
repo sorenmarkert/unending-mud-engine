@@ -115,7 +115,7 @@ class EquipmentCommands(using messageSender: MessageSender):
                         sendMessage(character, "You examine the %s.\n%s\nIt contains:\n%s".format(
                             itemToExamine.name,
                             itemToExamine.description,
-                            joinOrElse(itemToExamine.contents map (unitDisplay(_)), "\n", "Nothing.")))
+                            joinOrElse(collapseDuplicates(itemToExamine.contents map (unitDisplay(_))), "\n", "Nothing.")))
                     case None                => sendMessage(character, "No such thing here to look inside.")
                 }
         }

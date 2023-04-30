@@ -22,6 +22,24 @@ object ZoneData extends SLF4JLogging:
             description("She's a short, plump woman wearing a light frown as if it was her most prized possession.")
         }
 
+        item("bag") {
+            name("bag")
+            title("a bag")
+            description("It's a small, red Eastpak.")
+
+            item("book") {
+                name("small book")
+                title("a small book")
+                description("It's a small book, bound in leather.")
+            }
+
+            item("book") {
+                name("small book")
+                title("a small book")
+                description("It's a small book, bound in leather.")
+            }
+        }
+
         npc("boy") {
             name("boy")
             title("a boy")
@@ -53,12 +71,6 @@ object ZoneData extends SLF4JLogging:
             name("bag")
             title("a bag")
             description("It's a small, red Eastpak.")
-
-            item("book") {
-                name("small book")
-                title("a small book")
-                description("It's a small book, bound in leather.")
-            }
         }
     }
 

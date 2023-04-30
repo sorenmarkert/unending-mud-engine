@@ -32,8 +32,9 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 val room   = character.outside
                 val chars  = room.mobiles filterNot (_ == character)
                 val exits  = joinOrElse(room.exits.keys map (_.toString), ", ", "none")
-                // TODO: collapse multiples into "[3x]":
-                val titles = exits +: (room.contents ++ chars map (unitDisplay(_)))
+                val titles = exits +: (
+                    collapseDuplicates(room.contents map (unitDisplay(_))) ++
+                    collapseDuplicates(chars map (unitDisplay(_))))
                 // TODO: adjust for character position
                 sendMessage(character, "%s\n   %s\nExits:  %s".format(
                     room.title,
@@ -47,7 +48,7 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                     case Some(unitToLookAt) =>
                         sendMessage(character, "You look inside the %s. It contains:\n%s".format(
                             unitToLookAt.name,
-                            joinOrElse(unitToLookAt.contents map (unitDisplay(_)), "\n", "Nothing.")))
+                            joinOrElse(collapseDuplicates(unitToLookAt.contents map (unitDisplay(_))), "\n", "Nothing.")))
                 }
 
             case "look" :: "at" :: Nil             => sendMessage(character, "Look at what?")

@@ -9,6 +9,7 @@ import scala.math.*
 
 object MiniMap:
 
+    // TODO: square map instead of room link distance
     def miniMap(room: Room, range: Int) =
 
         val traversedRooms = MSet[Room]()
