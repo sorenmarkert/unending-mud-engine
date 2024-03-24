@@ -6,4 +6,4 @@ trait Connection:
     def write(text: String): Unit
 
     def close(): Unit
-    def isClosed(): Boolean
+    def isClosed: Boolean

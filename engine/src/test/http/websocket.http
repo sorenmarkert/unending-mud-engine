@@ -1,0 +1,11 @@
+WEBSOCKET ws://localhost:8080/ws/main
+Content-Type: application-json // Used for content highlighting only
+
+// Request body, for example:
+{
+  "message": "First message sent on connection"
+}
+=== wait-for-server
+{
+  "message": "Send this after the server response"
+}

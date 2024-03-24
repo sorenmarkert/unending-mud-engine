@@ -1,10 +1,9 @@
 
 ThisBuild / version := "1.0"
-ThisBuild / scalaVersion := "3.2.2"
+ThisBuild / scalaVersion := "3.4.0"
 
-val akkaActorVersion = "2.8.0"
-val akkaHttpVersion  = "10.5.0"
-val ravenDbVersion   = "5.4.1"
+val akkaActorVersion = "2.8.5"
+val ravenDbVersion = "6.0.1"
 
 lazy val engine = project
     .in(file("engine"))
@@ -12,23 +11,22 @@ lazy val engine = project
         name := "Unending Engine",
 
         libraryDependencies ++= Seq(
-            "com.typesafe.akka" %% "akka-actor-typed" % akkaActorVersion cross CrossVersion.for3Use2_13,
-            "com.typesafe.akka" %% "akka-http" % akkaHttpVersion cross CrossVersion.for3Use2_13,
-            "com.typesafe.akka" %% "akka-stream" % akkaActorVersion cross CrossVersion.for3Use2_13,
-            "ch.qos.logback" % "logback-classic" % "1.4.6",
-            "org.mongodb.scala" %% "mongo-scala-driver" % "4.9.0" cross CrossVersion.for3Use2_13,
+            "com.typesafe.akka" %% "akka-actor-typed" % akkaActorVersion,
+            "ch.qos.logback" % "logback-classic" % "1.5.3",
+            "org.mongodb.scala" %% "mongo-scala-driver" % "5.0.0" cross CrossVersion.for3Use2_13,
             "net.ravendb" % "ravendb" % ravenDbVersion,
-            "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
+            "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.17.0",
             "org.bouncycastle" % "bcpkix-jdk15on" % "1.70",
+            "org.eclipse.jetty.websocket" % "jetty-websocket-jetty-api" % "12.0.7",
+            "org.eclipse.jetty.websocket" % "jetty-websocket-jetty-server" % "12.0.7",
+
 
             "net.ravendb" % "ravendb-test-driver" % ravenDbVersion % Test,
             "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % Test,
-            "org.scalatest" %% "scalatest" % "3.2.15" % Test,
-            "com.vladsch.flexmark" % "flexmark-all" % "0.64.0" % Test,
-            "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion % Test cross CrossVersion.for3Use2_13,
-            "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test cross CrossVersion.for3Use2_13,
-            "com.typesafe.akka" %% "akka-stream-testkit" % akkaActorVersion % Test cross CrossVersion.for3Use2_13,
-            ),
+            "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+            "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % Test,
+            "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion,
+        ),
 
         coverageEnabled := true,
         coverageFailOnMinimum := false,
@@ -41,12 +39,12 @@ lazy val engine = project
 
         Compile / resourceGenerators += Def.task {
             val source = (webapp / Compile / scalaJSLinkedFile).value.data
-            val dest   = (Compile / resourceManaged).value / "assets" / "main.js"
+            val dest = (Compile / resourceManaged).value / "assets" / "main.js"
             IO.copy(Seq(source -> dest))
             Seq(dest)
         },
         run / fork := true
-        )
+    )
     .dependsOn(models.jvm)
 
 lazy val webapp = project
@@ -57,8 +55,8 @@ lazy val webapp = project
         scalaJSUseMainModuleInitializer := true,
         libraryDependencies ++= Seq(
             "org.scala-js" %%% "scalajs-dom" % "2.1.0",
-            ),
-        )
+        ),
+    )
     .dependsOn(models.js)
 
 lazy val models = crossProject(JSPlatform, JVMPlatform)
@@ -66,6 +64,6 @@ lazy val models = crossProject(JSPlatform, JVMPlatform)
     .in(file("dto"))
     .settings(
         name := "Unending Data Models",
-        )
+    )
 
 ThisBuild / Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")

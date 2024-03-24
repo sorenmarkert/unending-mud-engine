@@ -15,7 +15,7 @@ import scala.util.Using
 object TelnetServer extends SLF4JLogging:
 
     def apply(config: Config)(using globalState: GlobalState, commands: Commands): Future[Unit] =
-        
+
         import globalState.*
 
         val port = config.getInt("telnet.port")
@@ -25,7 +25,7 @@ object TelnetServer extends SLF4JLogging:
         def initConnection(socket: Socket) =
             // TODO: save and load room with player
             val startingRoom = rooms.head._2
-            val player       = startingRoom.createPlayerCharacter("player1", TelnetConnection(socket))
+            val player = startingRoom.createPlayerCharacter("player1", TelnetConnection(socket))
             log.info(s"Connection from ${player.name}@${socket.getInetAddress.getHostAddress}")
             serve(player)
             socket.close()
@@ -35,7 +35,7 @@ object TelnetServer extends SLF4JLogging:
         def serve(player: PlayerCharacter): Unit =
             val input = player.connection.readLine()
             commands.executeCommand(player, input)
-            if !player.connection.isClosed()
+            if !player.connection.isClosed
                 && runState == Running then serve(player)
 
         Future {
