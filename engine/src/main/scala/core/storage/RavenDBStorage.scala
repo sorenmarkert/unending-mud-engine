@@ -7,7 +7,7 @@ import core.gameunit.*
 import net.ravendb.client.documents.DocumentStore
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
-import java.io.{ByteArrayInputStream, FileInputStream}
+import java.io.ByteArrayInputStream
 import java.security.KeyStore
 import java.util.Base64
 import scala.util.*
@@ -31,7 +31,7 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
 
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
-        def mapContainable(gameUnit: Containable[_]): Option[GameUnitDB] = gameUnit match
+        def mapContainable(gameUnit: Containable[?]): Option[GameUnitDB] = gameUnit match
             case item@Item(name, title, description, _)              => Some(ItemDB("Item",
                                                                                     name,
                                                                                     title,
@@ -72,14 +72,11 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
 
 sealed trait GameUnitDB
 
-
 case class PlayerCharacterDB(unitType     : String, name: String, title: String, description: String,
                              equippedItems: Seq[GameUnitDB], inventory: Seq[GameUnitDB]) extends GameUnitDB
 
-
 case class NonPlayerCharacterDB(unitType     : String, name: String, title: String, description: String,
                                 equippedItems: Seq[GameUnitDB], inventory: Seq[GameUnitDB]) extends GameUnitDB
-
 
 case class ItemDB(unitType: String, name: String, title: String, description: String,
                   itemSlot: Option[ItemSlot], contents: Seq[GameUnitDB]) extends GameUnitDB

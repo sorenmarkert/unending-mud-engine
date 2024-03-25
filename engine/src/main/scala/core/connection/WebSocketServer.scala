@@ -8,14 +8,13 @@ import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler
 
-import scala.concurrent.Future
+import java.time.Duration
+import java.time.Duration.ofMinutes
 
 object WebSocketServer extends SLF4JLogging:
 
     def apply(config: Config)(using globalState: GlobalState, commands: Commands) =
-
-        import globalState.*
-
+        
         val port = config.getInt("websocket.port")
 
         log.info("Starting websocket client on port " + port)
@@ -25,11 +24,12 @@ object WebSocketServer extends SLF4JLogging:
         server.setHandler(contextHandler)
 
         val webSocketHandler = WebSocketUpgradeHandler.from(server, contextHandler, container => {
-
-                container.setMaxTextMessageSize(128 * 1024)
-                container.addMapping("/main", (upgradeRequest, upgradeResponse, callback)=> {
-                    new WebSocketEndPoint("player1")
-                })
+            container.setMaxTextMessageSize(128 * 1024)
+            container.setMaxOutgoingFrames(100)
+            container.setIdleTimeout(ofMinutes(5L))
+            container.addMapping("/main", (upgradeRequest, upgradeResponse, callback) => {
+                new WebSocketEndPoint("player1")
+            })
         })
 
         contextHandler.setHandler(webSocketHandler)

@@ -1,14 +1,13 @@
 package core
 
 import core.ActRecipient.*
-import core.ActVisibility.*
 import core.MiniMap.*
+import core.connection.Output
 import core.gameunit.*
 import core.gameunit.Gender.*
 import core.util.MessagingUtils.unitDisplay
 
 import scala.Array.tabulate
-import scala.collection.mutable.ListBuffer
 
 class MessageSender:
 
@@ -19,7 +18,7 @@ class MessageSender:
         val textWidth = 50
 
         // TODO: exclude color codes when counting width
-        // TODO: hyphenation
+        // TODO: hyphenation?
         val formattedOutput = message.linesIterator map (_ grouped textWidth mkString "\n") mkString "\n"
 
         val prompt = "(12/20) fake-prompt (12/20)"
@@ -28,7 +27,7 @@ class MessageSender:
             (addMap, character.outside) match {
                 case (true, room: Room) =>
 
-                    val mapLines    = colourMiniMap(frameMiniMap(miniMap(room, 3)))
+                    val mapLines = colourMiniMap(frameMiniMap(miniMap(room, 3)))
                     val promptLines = (prompt grouped textWidth).toList
 
                     formattedOutput
@@ -43,17 +42,17 @@ class MessageSender:
                             "")
                         .map(a => a._1 + "  " + a._2)
                         .mkString("\n")
-                case _                  => formattedOutput + "\n\n" + prompt
+                case _ => formattedOutput + "\n\n" + prompt
             }
 
         character match
-            case PlayerCharacter(_, _, _, _, connection) => connection.write(formattedOutputWithPromptAndMap + "\u001b[0m")
-            case _                                       => // TODO: send to controlling admin
+            case pc: PlayerCharacter => pc.connection.write(Output(formattedOutput + "\n\n" + prompt, ""))
+            case _ => // TODO: send to controlling admin
     end sendMessage
 
     def act(message: String, visibility: ActVisibility,
-            actor  : Option[Mobile], medium: Option[Findable], target: Option[Findable],
-            toWhom : ActRecipient, text: Option[String]) =
+            actor: Option[Mobile], medium: Option[Findable], target: Option[Findable],
+            toWhom: ActRecipient, text: Option[String]) =
 
         def charactersInRoom =
             actor map (_.outside.mobiles) getOrElse Seq()
@@ -63,18 +62,18 @@ class MessageSender:
 
         val recipients =
             toWhom match
-                case ToActor          => actor.toSeq
-                case ToTarget         => target match
+                case ToActor => actor.toSeq
+                case ToTarget => target match
                     case Some(m: Mobile) => Seq(m)
-                    case _               => Seq()
-                case ToBystanders     => charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
+                    case _ => Seq()
+                case ToBystanders => charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
                 case ToAllExceptActor => charactersInRoom filterNot (isSame(_, actor))
-                case ToEntireRoom     => charactersInRoom
+                case ToEntireRoom => charactersInRoom
 
         def formatGender(unit: Findable, genderToNoun: Gender => String) =
             unit match
                 case character: Mobile => genderToNoun(character.gender)
-                case _                 => genderToNoun(GenderNeutral)
+                case _ => genderToNoun(GenderNeutral)
 
         def formatUnit(unit: Findable, formatter: String) =
             formatter match // TODO: visibility
@@ -86,9 +85,9 @@ class MessageSender:
                 case "N" => unit.name
                 case "p" => "unit.position" // TODO: positions
                 case "t" => text getOrElse "null"
-                case _   => "invalidFormatter"
+                case _ => "invalidFormatter"
 
-        val nounPattern    = "\\$([1-3])([aemsnNpt])".r
+        val nounPattern = "\\$([1-3])([aemsnNpt])".r
         val recipientUnits = Array(actor, medium, target)
 
         def replacement(msg: String) = nounPattern.replaceAllIn(msg, _ match
@@ -104,10 +103,8 @@ class MessageSender:
 object MessageSender:
     given MessageSender = new MessageSender
 
-
 enum ActRecipient:
     case ToActor, ToTarget, ToBystanders, ToAllExceptActor, ToEntireRoom
-
 
 enum ActVisibility:
     case Always, Someone, HideInvisible

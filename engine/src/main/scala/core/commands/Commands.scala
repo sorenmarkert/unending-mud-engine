@@ -2,19 +2,14 @@ package core.commands
 
 import core.*
 import core.MessageSender.*
-import core.MiniMap.*
 import core.StateActor.CommandExecution
 import core.gameunit.*
-import core.gameunit.Gender.*
 
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 sealed trait Command
 
-
 case class InstantCommand(func: (Mobile, Seq[String]) => Unit, canInterrupt: Boolean = false) extends Command
-
 
 case class TimedCommand(baseDuration: FiniteDuration,
                         beginFunc   : (Mobile, Seq[String]) => Option[String],

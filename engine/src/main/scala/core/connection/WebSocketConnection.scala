@@ -1,17 +1,18 @@
 package core.connection
 
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.eclipse.jetty.websocket.api.{Callback, Session}
 
-import java.io.*
-import java.net.Socket
+class WebSocketConnection(private val session: Session) extends Connection:
 
-case class WebSocketConnection(private val session: Session) extends Connection:
+    val jsonMapper = JsonMapper.builder().addModule(DefaultScalaModule).build()
 
     override def readLine() = ???
 
-    override def write(text: String) = session.sendText(text, Callback.NOOP)
+    override def write(output: Output) = session.sendText(jsonMapper.writeValueAsString(output), Callback.NOOP)
 
-    def close() =
+    override def close() =
         session.close()
 
-    def isClosed = !session.isOpen
+    override def isClosed = !session.isOpen

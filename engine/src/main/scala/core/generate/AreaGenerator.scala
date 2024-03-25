@@ -1,11 +1,10 @@
 package core.generate
 
 import core.gameunit
-import core.gameunit.Direction.*
 import core.gameunit.*
+import core.gameunit.Direction.*
 
 import scala.annotation.tailrec
-import scala.collection.mutable.LinkedHashMap
 import scala.util.Random
 
 class AreaGenerator()(using random: Random, globalState: GlobalState):

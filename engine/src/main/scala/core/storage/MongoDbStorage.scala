@@ -1,16 +1,15 @@
 package core.storage
 
-import akka.event.slf4j.{Logger, SLF4JLogging}
-import com.mongodb.client.model.{ReplaceOptions, UpdateOptions}
+import akka.event.slf4j.SLF4JLogging
+import com.mongodb.client.model.ReplaceOptions
 import com.typesafe.config.Config
 import core.gameunit.*
-import org.mongodb.scala.bson.{BsonArray, BsonElement, BsonValue, Document}
+import org.mongodb.scala.bson.Document
 import org.mongodb.scala.model.Filters.equal
-import org.mongodb.scala.result.{InsertOneResult, UpdateResult}
-import org.mongodb.scala.{MongoClient, MongoDatabase, Observer, Subscription}
+import org.mongodb.scala.result.UpdateResult
+import org.mongodb.scala.{MongoClient, Observer}
 
 class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
-
 
     private val mongoConfig = config.getConfig("storage.mongodb")
     private val username    = mongoConfig.getString("username")
@@ -26,13 +25,13 @@ class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
 
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
-        def mapCommonAttributes(gameUnit: Containable[_]) =
+        def mapCommonAttributes(gameUnit: Containable[?]) =
             Document("unitType" -> gameUnit.getClass.getSimpleName,
                      "name" -> gameUnit.name,
                      "title" -> gameUnit.title,
                      "description" -> gameUnit.description)
 
-        def mapGameUnit(gameUnit: Containable[_]): Document = gameUnit match
+        def mapGameUnit(gameUnit: Containable[?]): Document = gameUnit match
             case item: Item              =>
                 mapCommonAttributes(gameUnit)
                     ++ Document("itemSlot" -> (item.itemSlot map (_.toString) getOrElse ""))

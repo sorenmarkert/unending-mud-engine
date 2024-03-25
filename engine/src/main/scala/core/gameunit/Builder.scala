@@ -10,7 +10,7 @@ object Builder:
         init
         r
 
-    def name(n: String)(using u: Containable[_]) =
+    def name(n: String)(using u: Containable[?]) =
         u.name = n
 
     def title(t: String)(using u: GameUnit) =

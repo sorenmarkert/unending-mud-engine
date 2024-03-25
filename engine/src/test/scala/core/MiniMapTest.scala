@@ -1,8 +1,8 @@
 package core
 
 import core.MiniMap.miniMap
-import core.gameunit.Direction.*
 import core.gameunit.*
+import core.gameunit.Direction.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
