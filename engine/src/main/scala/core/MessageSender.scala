@@ -10,10 +10,9 @@ import core.util.MessagingUtils.unitDisplay
 
 class MessageSender:
 
-    def sendMessage(character: Mobile, message: String, addMap: Boolean = false) =
+    def sendMessage(character: Mobile, message: String, addMap: Boolean = false, addPrompt: Boolean = true) =
 
         // TODO: don't send prompt until all messages have been sent
-        // TODO: don't send prompt after quit
         val textWidth = 50
 
         def groupedIgnoringColourCodes(msg: String) =
@@ -30,10 +29,9 @@ class MessageSender:
             message
                 .linesIterator
                 .flatMap(groupedIgnoringColourCodes)
-                .map(_.padTo(textWidth, ' '))
 
         val prompt = "(12/20) fake-prompt (12/20)"
-        val promptLines = (prompt grouped textWidth).toList
+        val promptLines = if addPrompt then (prompt grouped textWidth).toList else Seq()
 
         val mapLines = (addMap, character.outside) match {
             case (true, room: Room) => colourMiniMap(frameMiniMap(miniMap(room, 3)))

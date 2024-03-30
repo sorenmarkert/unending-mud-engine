@@ -17,7 +17,7 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
     private[commands] def quit(character: Mobile, arg: Seq[String]) =
         character match
             case pc: PlayerCharacter =>
-                sendMessage(pc, "Goodbye.")
+                sendMessage(pc, "Goodbye.", addPrompt = false)
                 act("$1N has left the game.", Always, Some(character), None, None, ToAllExceptActor, None)
                 pc.connection.close()
                 storage.savePlayer(pc)
