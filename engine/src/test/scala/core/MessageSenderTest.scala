@@ -1,20 +1,15 @@
 package core
 
-import core.commands.Commands
 import core.connection.Connection
 import core.gameunit.*
 import org.mockito.Mockito.*
 import org.scalatest.*
-import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-
-import scala.collection.mutable.ListBuffer
 
 class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with BeforeAndAfterEach with BeforeAndAfterAll:
     
     val messageSender = new MessageSender
-    import messageSender.*
     
     val roomMock = mock[Room]
     when(roomMock.mobiles).thenReturn(List())

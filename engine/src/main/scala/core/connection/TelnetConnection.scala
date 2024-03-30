@@ -1,5 +1,8 @@
 package core.connection
 
+import core.Colour
+import core.Colour.*
+
 import java.io.*
 import java.net.Socket
 
@@ -7,10 +10,10 @@ class TelnetConnection(private val socket: Socket) extends Connection:
 
     private val reader = new BufferedReader(new InputStreamReader(socket.getInputStream))
     private val writer = new PrintWriter(socket.getOutputStream, true)
-
+    
     override def readLine() = reader.readLine()
 
-    override def write(output: Output) = writer.println(output.message)
+    override def send(output: Output) = writer.println(combineMessageWithPromptAndMiniMap(output))
 
     override def close() =
         socket.close()
@@ -18,3 +21,38 @@ class TelnetConnection(private val socket: Socket) extends Connection:
         writer.close()
 
     override def isClosed = socket.isClosed
+
+    override def substituteColourCodes(colour: Colour) =
+        // ANSI colour codes https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+        colour match
+            case Black => "\u001b[30m"
+            case Red => "\u001b[31m"
+            case Green => "\u001b[32m"
+            case Yellow => "\u001b[33m"
+            case Blue => "\u001b[34m"
+            case Magenta => "\u001b[35m"
+            case Cyan => "\u001b[36m"
+            case White => "\u001b[37m"
+            case BrightBlack => "\u001b[90;1m"
+            case BrightRed => "\u001b[91;1m"
+            case BrightGreen => "\u001b[92;1m"
+            case BrightYellow => "\u001b[93;1m"
+            case BrightBlue => "\u001b[94;1m"
+            case BrightMagenta => "\u001b[95;1m"
+            case BrightCyan => "\u001b[96;1m"
+            case BrightWhite => "\u001b[97;1m"
+            case Reset => "\u001b[0m"
+
+    private def combineMessageWithPromptAndMiniMap(output: Output) =
+        import output.*
+
+        val miniMapWidth = miniMap.map(_.length).maxOption.getOrElse(0)
+        val miniMapWideSpace = "".padTo(miniMapWidth, ' ')
+        val miniMapOfFinalHeight = miniMap.padTo(message.size + prompt.size, miniMapWideSpace)
+
+        val messageWithPromptOfFinalHeight = message.padTo(miniMap.size - prompt.size, "").appendedAll(prompt)
+
+        miniMapOfFinalHeight
+            .zip(messageWithPromptOfFinalHeight)
+            .map((a, b) => a + "  " + b)
+            .mkString("\n")

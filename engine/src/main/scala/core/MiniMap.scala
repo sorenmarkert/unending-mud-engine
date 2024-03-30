@@ -77,8 +77,8 @@ object MiniMap:
     // TODO: unit test
     def colourMiniMap(miniMap: List[String]) =
         miniMap map {
-            _.replace("X", "\u001b[31;1mX\u001b[0m")
-                .replace("#", "\u001b[33m#\u001b[0m")
+            _.replace("X", "$BrightRedX$Reset")
+                .replace("#", "$Yellow#$Reset")
         }
 
 end MiniMap
