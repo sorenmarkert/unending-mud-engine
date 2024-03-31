@@ -8,32 +8,44 @@ import core.gameunit.*
 import core.gameunit.Gender.*
 import core.util.MessagingUtils.unitDisplay
 
+import scala.annotation.tailrec
+
 class MessageSender:
 
-    def sendMessage(character: Mobile, message: String, addMap: Boolean = false, addPrompt: Boolean = true) =
+    def sendMessage(character: Mobile, message: String, addMiniMap: Boolean = false, addPrompt: Boolean = true) =
 
         // TODO: don't send prompt until all messages have been sent
         val textWidth = 50
 
-        def groupedIgnoringColourCodes(msg: String) =
-            msg.split(" ").filterNot(_.isBlank).reduceLeft(
-                (accumulated, toAdd) => {
-                    val toAddWithoutColourCodes = toAdd.replaceAll(colourCodePattern, "")
-                    if accumulated.length + toAddWithoutColourCodes.length > textWidth then
-                        accumulated + "\n" + toAdd
-                    else
-                        accumulated + " " +  toAdd
-                }).linesIterator
+        def groupedIgnoringColourCodes(msg: String): Iterator[String] =
+
+            @tailrec
+            def rec(words: List[String], accumulated: String, accumulatedLength: Int): String =
+                words match
+                    case toAdd :: restWords =>
+                        val lengthToAddWithoutColourCodes = toAdd.replaceAll(colourCodePattern, "").length
+                        val (newAccu, newAccuLength) =
+                            if accumulatedLength + lengthToAddWithoutColourCodes > textWidth then
+                                (accumulated + "\n" + toAdd, lengthToAddWithoutColourCodes)
+                            else if accumulated == "" then
+                                (toAdd, lengthToAddWithoutColourCodes)
+                            else
+                                (accumulated + " " + toAdd, accumulatedLength + 1 + lengthToAddWithoutColourCodes)
+                        rec(restWords, newAccu, newAccuLength)
+                    case _ => accumulated
+
+            rec(msg.split(' ').filterNot(_.isBlank).toList, "", 0).linesIterator
 
         val formattedMessageLines =
             message
                 .linesIterator
                 .flatMap(groupedIgnoringColourCodes)
+                .toSeq
 
         val prompt = "(12/20) fake-prompt (12/20)"
         val promptLines = if addPrompt then (prompt grouped textWidth).toList else Seq()
 
-        val mapLines = (addMap, character.outside) match {
+        val mapLines = (addMiniMap, character.outside) match {
             case (true, room: Room) => colourMiniMap(frameMiniMap(miniMap(room, 3)))
             case _ => Seq()
         }
@@ -41,15 +53,18 @@ class MessageSender:
         def substituteColours(msg: String, mapper: Colour => String) = {
             val colourCodeRegex = colourCodePattern.r
             colourCodeRegex.replaceAllIn(msg, _ match
-                case colourCodeRegex(colourCode) => mapper(Colour.valueOf(colourCode)))
+                case colourCodeRegex(colourCode) =>
+                    mapper(Colour.valueOf(colourCode)))
         }
-                    
+
         character match
-            case pc: PlayerCharacter => pc.connection.send(
-                Output(
-                    formattedMessageLines.toSeq.map(substituteColours(_, pc.connection.substituteColourCodes)),
-                    promptLines.map(substituteColours(_, pc.connection.substituteColourCodes)),
-                    mapLines.map(substituteColours(_, pc.connection.substituteColourCodes))))
+            case pc: PlayerCharacter =>
+                val subColours = substituteColours(_, pc.connection.substituteColourCodes)
+                pc.connection.send(
+                    Output(
+                        formattedMessageLines.map(subColours),
+                        promptLines.map(subColours),
+                        mapLines.map(subColours)))
             case _ => // TODO: send to controlling admin
     end sendMessage
 

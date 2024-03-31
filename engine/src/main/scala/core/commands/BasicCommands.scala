@@ -31,14 +31,15 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 val room   = character.outside
                 val chars  = room.mobiles filterNot (_ == character)
                 val exits  = joinOrElse(room.exits.keys map (_.toString), ", ", "none")
-                val titles = exits +: (
+                val titles =
                     collapseDuplicates(room.contents map (unitDisplay(_))) ++
-                    collapseDuplicates(chars map (unitDisplay(_))))
+                    collapseDuplicates(chars map (unitDisplay(_)))
                 // TODO: adjust for character position
-                sendMessage(character, "%s\n   %s\nExits:  %s".format(
-                    room.title,
-                    room.description,
-                    titles mkString "\n"), addMap = true)
+                sendMessage(
+                    character,
+                    "$BrightWhite%s$Reset\n   %s\n$BrightYellowExits: %s$Reset\n%s".format(
+                        room.title, room.description, exits, titles mkString "\n"),
+                    addMiniMap = true)
 
             case "look" :: ("in" | "inside") :: Nil           => sendMessage(character, "Look inside what?")
             case "look" :: ("in" | "inside") :: argumentWords =>

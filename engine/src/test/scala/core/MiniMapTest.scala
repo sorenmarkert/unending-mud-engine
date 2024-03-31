@@ -19,7 +19,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         "Map the zero range map" in {
 
             Given("A room with an exit")
-            val roomCenter: Room = Room("roomCenter")
+            val roomCenter = Room("roomCenter")
             Room("roomWest")
                 .eastTo(roomCenter)
 
@@ -33,7 +33,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         "Map a room with no exits in range 1" in {
 
             Given("A room with no exits")
-            val roomCenter: Room = Room("roomCenter")
+            val roomCenter = Room("roomCenter")
 
             When("Mapping the area")
             val result = miniMap(roomCenter, 1)
@@ -50,7 +50,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         "Map a partial range 1 map" in {
 
             Given("A room with 2 exits")
-            val roomCenter: Room = Room("roomCenter")
+            val roomCenter = Room("roomCenter")
             Room("roomWest")
                 .eastTo(roomCenter)
             Room("roomSouth")
@@ -71,7 +71,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         "Map a full range 1 map" in {
 
             Given("A room with 4 exits, where one has a further connection")
-            val roomCenter   : Room = Room("roomCenter")
+            val roomCenter = Room("roomCenter")
             Room("roomNorth")
                 .southTo(roomCenter)
             Room("roomEast")
@@ -98,17 +98,17 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         "Map a range 2 map" in {
 
             Given("An area of rooms, one of which is at range 3")
-            val roomCenter: Room = Room("roomCenter")
-            val roomNorth : Room = Room("roomNorth")
+            val roomCenter = Room("roomCenter")
+            val roomNorth = Room("roomNorth")
                 .southTo(roomCenter)
-            val roomEast  : Room = Room("roomEast")
+            val roomEast = Room("roomEast")
                 .westTo(roomCenter)
             Room("roomWest")
                 .eastTo(roomCenter)
-            val roomSouth : Room = Room("roomSouth")
+            val roomSouth = Room("roomSouth")
                 .northTo(roomCenter)
 
-            val roomNorthNorth: Room = Room("roomNorthNorth")
+            val roomNorthNorth = Room("roomNorthNorth")
                 .southTo(roomNorth)
             Room("roomNorthEast")
                 .westTo(roomNorth)
@@ -139,14 +139,14 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         "Map a range 2 map correctly distancing rooms" in {
 
             Given("An area of rooms, some of which have distance > 1")
-            val roomCenter: Room = Room("roomCenter")
-            val roomNorth : Room = Room("roomNorth")
+            val roomCenter = Room("roomCenter")
+            val roomNorth = Room("roomNorth")
                 .southTo(roomCenter)
-            val roomEast  : Room = Room("roomEast")
+            val roomEast = Room("roomEast")
                 .westTo(roomCenter, 2)
-            val roomWest  : Room = Room("roomWest")
+            val roomWest = Room("roomWest")
                 .eastTo(roomCenter, 3)
-            val roomSouth : Room = Room("roomSouth")
+            val roomSouth = Room("roomSouth")
                 .northTo(roomCenter)
 
             Room("roomNorthEast")
