@@ -38,6 +38,7 @@ class MessageSender:
 
         val formattedMessageLines =
             message
+                .capitalize
                 .linesIterator
                 .flatMap(groupedIgnoringColourCodes)
                 .toSeq
@@ -114,7 +115,7 @@ class MessageSender:
                     .map(formatUnit(_, formatter))
                     .getOrElse("[null]"))
 
-        recipients foreach (sendMessage(_, replaceUnits(message).capitalize))
+        recipients foreach (sendMessage(_, replaceUnits(message)))
     end act
 
 
