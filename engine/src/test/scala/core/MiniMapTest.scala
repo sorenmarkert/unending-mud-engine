@@ -1,20 +1,19 @@
 package core
 
-import core.MiniMap.miniMap
+import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
 import core.gameunit.*
-import core.gameunit.Direction.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
 
-class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with BeforeAndAfterEach {
+class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with BeforeAndAfterEach:
 
     given globalState: GlobalState = new GlobalState()
 
     override def beforeEach() =
         globalState.clear()
 
-    "The mini map" should {
+    "miniMap()" should {
 
         "Map the zero range map" in {
 
@@ -175,4 +174,69 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         }
     }
 
-}
+    "frameMiniMap()" should {
+
+        "frame a given mini map" in {
+
+            Given("A mini map")
+            val miniMap = List(
+                "      #      ",
+                "      |      ",
+                "      #--#   ",
+                "      |      ",
+                "   #--X--#   ",
+                "      |  |   ",
+                "      #  #   ",
+                "      |      ",
+                "      #      ")
+
+            When("Framing the mini map")
+            val result = frameMiniMap(miniMap)
+
+            Then("The frame is added")
+            result shouldBe List(
+                "/-------------\\",
+                "|      #      |",
+                "|      |      |",
+                "|      #--#   |",
+                "|      |      |",
+                "|   #--X--#   |",
+                "|      |  |   |",
+                "|      #  #   |",
+                "|      |      |",
+                "|      #      |",
+                "\\-------------/")
+        }
+    }
+    "colourMiniMap()" should {
+
+        "colour a given mini map" in {
+
+            Given("A mini map")
+            val miniMap = List(
+                "      #      ",
+                "      |      ",
+                "      #--#   ",
+                "      |      ",
+                "   #--X--#   ",
+                "      |  |   ",
+                "      #  #   ",
+                "      |      ",
+                "      #      ")
+
+            When("Framing the mini map")
+            val result = colourMiniMap(miniMap)
+
+            Then("The frame is added")
+            result shouldBe List(
+                "      $Yellow#$Reset      ",
+                "      |      ",
+                "      $Yellow#$Reset--$Yellow#$Reset   ",
+                "      |      ",
+                "   $Yellow#$Reset--$BrightRedX$Reset--$Yellow#$Reset   ",
+                "      |  |   ",
+                "      $Yellow#$Reset  $Yellow#$Reset   ",
+                "      |      ",
+                "      $Yellow#$Reset      ")
+        }
+    }

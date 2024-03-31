@@ -67,14 +67,12 @@ object MiniMap:
         theMap.map(_.mkString).toList
     end miniMap
 
-    // TODO: unit test
     def frameMiniMap(miniMap: List[String]) =
         val line   = tabulate(miniMap.head.length)(_ => '-').mkString
         val header = "/" + line + "\\"
         val footer = "\\" + line + "/"
         header :: (miniMap map ("|" + _ + "|")) appended footer
 
-    // TODO: unit test
     def colourMiniMap(miniMap: List[String]) =
         miniMap map {
             _.replace("X", "$BrightRedX$Reset")
