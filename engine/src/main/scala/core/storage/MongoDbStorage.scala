@@ -12,13 +12,13 @@ import org.mongodb.scala.{MongoClient, Observer}
 class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
 
     private val mongoConfig = config.getConfig("storage.mongodb")
-    private val username    = mongoConfig.getString("username")
-    private val password    = mongoConfig.getString("password")
-    private val hostname    = mongoConfig.getString("hostname")
-    private val database    = mongoConfig.getString("database")
+    private val username = mongoConfig.getString("username")
+    private val password = mongoConfig.getString("password")
+    private val hostname = mongoConfig.getString("hostname")
+    private val database = mongoConfig.getString("database")
 
-    private val client  = MongoClient(s"mongodb+srv://$username:$password@$hostname/?retryWrites=true&w=majority")
-    private val db      = client.getDatabase(database)
+    private val client = MongoClient(s"mongodb+srv://$username:$password@$hostname/?retryWrites=true&w=majority")
+    private val db = client.getDatabase(database)
     private val players = db.getCollection("players")
 
     log.info(s"Connected to $hostname")
@@ -27,17 +27,17 @@ class MongoDbStorage(using config: Config) extends Storage with SLF4JLogging:
 
         def mapCommonAttributes(gameUnit: Containable[?]) =
             Document("unitType" -> gameUnit.getClass.getSimpleName,
-                     "name" -> gameUnit.name,
-                     "title" -> gameUnit.title,
-                     "description" -> gameUnit.description)
+                "name" -> gameUnit.name,
+                "title" -> gameUnit.title,
+                "description" -> gameUnit.description)
 
         def mapGameUnit(gameUnit: Containable[?]): Document = gameUnit match
-            case item: Item              =>
+            case item: Item =>
                 mapCommonAttributes(gameUnit)
                     ++ Document("itemSlot" -> (item.itemSlot map (_.toString) getOrElse ""))
                     ++ Document(Map("contents" -> (item.contents map mapGameUnit)))
             case npc: NonPlayerCharacter => mapCharacter(npc)
-            case _                       => Document()
+            case _ => Document()
 
         def mapCharacter(character: Mobile): Document =
             mapCommonAttributes(character)

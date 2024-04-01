@@ -26,7 +26,7 @@ object GameEngineSetup extends SLF4JLogging:
     given EquipmentCommands = new EquipmentCommands
 
     given Commands = new Commands
-    
+
 
     @main def startEngine =
 

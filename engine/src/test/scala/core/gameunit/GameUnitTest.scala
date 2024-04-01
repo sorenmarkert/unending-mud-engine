@@ -6,7 +6,6 @@ import core.MessageSender
 import core.commands.Commands
 import core.connection.Connection
 import core.gameunit.ItemSlot.*
-import core.gameunit.Room
 import org.mockito.Mockito.verify
 import org.scalatest.*
 import org.scalatest.matchers.should.Matchers
@@ -18,7 +17,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
     given globalState: GlobalState = new GlobalState()
 
-    override def beforeEach() =
+    override def beforeEach(): Unit =
         globalState.clear()
 
     "A newly created mobile" should {
@@ -42,7 +41,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Be before other mobiles in a non-empty unit" in {
 
             Given("An room containing an mobile")
-            val room      = Room("roomWithMobile")
+            val room = Room("roomWithMobile")
             val oldMobile = room.createNonPlayerCharacter("oldMobile")
 
             When("A new mobile is created inside the room")
@@ -62,10 +61,10 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Leave the order of its siblings unchanged" in {
 
             Given("An room containing three mobiles")
-            val room                = Room("roomWith3mobiles")
-            val bottomMobile        = room.createNonPlayerCharacter("bottomMobile")
+            val room = Room("roomWith3mobiles")
+            val bottomMobile = room.createNonPlayerCharacter("bottomMobile")
             val mobileToBeDestroyed = room.createNonPlayerCharacter("mobileToBeDestroyed")
-            val topMobile           = room.createNonPlayerCharacter("topMobile")
+            val topMobile = room.createNonPlayerCharacter("topMobile")
 
             When("The middle mobile is destroyed")
             mobileToBeDestroyed.destroy
@@ -80,9 +79,9 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Destroy its contents recursively" in {
 
             Given("An room containing an mobile containing an item")
-            val room                = Room("roomWithMobileWithItem")
+            val room = Room("roomWithMobileWithItem")
             val mobileToBeDestroyed = room.createNonPlayerCharacter("mobileToBeDestroyed")
-            val containedItem       = mobileToBeDestroyed.createItem("containedItem")
+            val containedItem = mobileToBeDestroyed.createItem("containedItem")
 
             When("The mobile is destroyed")
             mobileToBeDestroyed.destroy
@@ -101,18 +100,18 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Leave the order of its old siblings unchanged" in {
 
             Given("An room containing three mobiles")
-            val fromRoom        = Room("fromRoom")
-            val bottomMobile    = fromRoom.createNonPlayerCharacter("bottomMobile")
+            val fromRoom = Room("fromRoom")
+            val bottomMobile = fromRoom.createNonPlayerCharacter("bottomMobile")
             val mobileToBeMoved = fromRoom.createNonPlayerCharacter("mobileToBeMoved")
-            val topMobile       = fromRoom.createNonPlayerCharacter("topMobile")
-            val toRoom          = Room("toRoom")
-            val oldMobile       = toRoom.createNonPlayerCharacter("oldMobile")
+            val topMobile = fromRoom.createNonPlayerCharacter("topMobile")
+            val toRoom = Room("toRoom")
+            val oldMobile = toRoom.createNonPlayerCharacter("oldMobile")
 
             And("The global list contains all the mobiles")
             globalState.global should contain theSameElementsInOrderAs Seq(oldMobile, topMobile, mobileToBeMoved, bottomMobile)
 
             When("The middle mobile is moved to another room")
-            toRoom addMobile mobileToBeMoved
+            toRoom.addMobile(mobileToBeMoved)
 
             Then("The two remaining mobiles retain their order in the old room")
             fromRoom.mobiles should contain theSameElementsInOrderAs Seq(topMobile, bottomMobile)
@@ -168,7 +167,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             given connectionMock: Connection = mock[Connection]
 
             Given("An room containing a player character")
-            val room                = Room("roomWithPlayer")
+            val room = Room("roomWithPlayer")
             val playerToBeDestroyed = room.createPlayerCharacter("playerToBeDestroyed", connectionMock)
 
             When("The player is destroyed")
@@ -200,7 +199,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Be before other items in a non-empty unit" in {
 
             Given("An room containing an item")
-            val room    = Room("roomWithItem")
+            val room = Room("roomWithItem")
             val oldItem = room.createItem("oldItem")
 
             When("A new item is created inside the room")
@@ -220,10 +219,10 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Leave the order of its siblings unchanged" in {
 
             Given("An room containing three items")
-            val room              = Room("roomWith3items")
-            val bottomItem        = room.createItem("bottomItem")
+            val room = Room("roomWith3items")
+            val bottomItem = room.createItem("bottomItem")
             val itemToBeDestroyed = room.createItem("itemToBeDestroyed")
-            val topItem           = room.createItem("topItem")
+            val topItem = room.createItem("topItem")
 
             When("The middle item is destroyed")
             itemToBeDestroyed.destroy
@@ -238,9 +237,9 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Destroy its contents recursively" in {
 
             Given("An room containing an item containing another item")
-            val room              = Room("roomWithItemWithItem")
+            val room = Room("roomWithItemWithItem")
             val itemToBeDestroyed = room.createItem("itemToBeDestroyed")
-            val containedItem     = itemToBeDestroyed.createItem("containedItem")
+            val containedItem = itemToBeDestroyed.createItem("containedItem")
 
             When("The outer item is destroyed")
             itemToBeDestroyed.destroy
@@ -259,15 +258,15 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Leave the order of its old siblings unchanged" in {
 
             Given("An room containing three items")
-            val fromRoom      = Room("fromRoom")
-            val bottomItem    = fromRoom.createItem("bottomItem")
+            val fromRoom = Room("fromRoom")
+            val bottomItem = fromRoom.createItem("bottomItem")
             val itemToBeMoved = fromRoom.createItem("itemToBeMoved")
-            val topItem       = fromRoom.createItem("topItem")
-            val toRoom        = Room("toRoom")
-            val oldItem       = toRoom.createItem("oldItem")
+            val topItem = fromRoom.createItem("topItem")
+            val toRoom = Room("toRoom")
+            val oldItem = toRoom.createItem("oldItem")
 
             When("The middle item is moved to another room")
-            toRoom addItem itemToBeMoved
+            toRoom.addItem(itemToBeMoved)
 
             Then("The two remaining items retain their order in the old room")
             fromRoom.contents should contain theSameElementsInOrderAs Seq(topItem, bottomItem)
@@ -286,13 +285,13 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Place the item as equipped on the character" in {
 
             Given("A character with an item")
-            val room      = Room("room")
+            val room = Room("room")
             val character = room.createNonPlayerCharacter("character")
-            val item      = character.createItem("item")
+            val item = character.createItem("item")
             item.itemSlot = Some(ItemSlotHead)
 
             When("The character equips the item")
-            val result = character equip item
+            val result = character.equip(item)
 
             Then("It is placed in the character's equipped items")
             character.equippedItems should contain(item)
@@ -304,7 +303,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             item.isEquipped shouldBe true
 
             And("The item is equipped in its item slot on the character")
-            character equippedAt item.itemSlot.get should contain(item)
+            character.equippedAt(item.itemSlot.get) should contain(item)
 
             And("No error message was returned")
             result shouldBe None
@@ -313,13 +312,13 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Return an error when it's not in the character's inventory" in {
 
             Given("A character next to an item")
-            val room      = Room("room")
+            val room = Room("room")
             val character = room.createNonPlayerCharacter("character")
-            val item      = room.createItem("item")
+            val item = room.createItem("item")
             item.itemSlot = Some(ItemSlotHead)
 
             When("The character equips the item")
-            val result = character equip item
+            val result = character.equip(item)
 
             Then("An error message is returned")
             result.value shouldBe "You can only equip items from your inventory."
@@ -328,18 +327,18 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Return an error when the character already has an item equipped in that slot" in {
 
             Given("A character with two items, where one is equipped")
-            val room      = Room("room")
+            val room = Room("room")
             val character = room.createNonPlayerCharacter("character")
 
             val equippedItem = character.createItem("equippedItem")
             equippedItem.itemSlot = Some(ItemSlotHead)
-            character equip equippedItem
+            character.equip(equippedItem)
 
             val unequippedItem = character.createItem("unequippedItem")
             unequippedItem.itemSlot = Some(ItemSlotHead)
 
             When("The character equips the unequipped item")
-            val result = character equip unequippedItem
+            val result = character.equip(unequippedItem)
 
             Then("An error message is returned")
             result.value shouldBe "You already have something equipped there."
@@ -348,13 +347,13 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Return an error when the item is not equippable" in {
 
             Given("A character an equippable item")
-            val room      = Room("room")
+            val room = Room("room")
             val character = room.createNonPlayerCharacter("character")
-            val item      = character.createItem("item")
+            val item = character.createItem("item")
             item.itemSlot = None
 
             When("The character equips the item")
-            val result = character equip item
+            val result = character.equip(item)
 
             Then("An error message is returned")
             result.value shouldBe "This item cannot be equipped."
@@ -366,14 +365,14 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Placed it in the inventory" in {
 
             Given("A character with an equipped item")
-            val room      = Room("room")
+            val room = Room("room")
             val character = room.createNonPlayerCharacter("character")
-            val item      = character.createItem("item")
+            val item = character.createItem("item")
             item.itemSlot = Some(ItemSlotHead)
-            character equip item
+            character.equip(item)
 
             When("The character removes the item")
-            val result = character remove item
+            val result = character.remove(item)
 
             Then("It is placed in the character's inventory")
             character.inventory should contain(item)
@@ -391,12 +390,12 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Return an error when it's not equipped" in {
 
             Given("A character next to an item")
-            val room      = Room("room")
+            val room = Room("room")
             val character = room.createNonPlayerCharacter("character")
-            val item      = room.createItem("item")
+            val item = room.createItem("item")
 
             When("The character removes the item")
-            val result = character remove item
+            val result = character.remove(item)
 
             Then("An error message is returned")
             result.value shouldBe "You don't have that item equipped."
@@ -408,8 +407,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find an item inside" in {
 
             Given("A room with 3 items in a container")
-            val room       = Room("room")
-            val container  = room.createItem("container")
+            val room = Room("room")
+            val container = room.createItem("container")
             val bottomItem = container.createItem("bottomItem")
             bottomItem.name = "itemName"
             val itemToBeFound = container.createItem("itemToBeFound")
@@ -427,8 +426,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Not find an item that isn't there" in {
 
             Given("A player with 3 out of 5 items equipped")
-            val room             = Room("room")
-            val container        = room.createItem("container")
+            val room = Room("room")
+            val container = room.createItem("container")
             val itemNotToBeFound = container.createItem("itemNotToBeFound")
             itemNotToBeFound.name = "otherName"
 
@@ -442,8 +441,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find same name items by a given index" in {
 
             Given("A room with a container with 3 items")
-            val room          = Room("room")
-            val container     = room.createItem("container")
+            val room = Room("room")
+            val container = room.createItem("container")
             val itemToBeFound = container.createItem("itemToBeFound")
             itemToBeFound.name = "itemName"
             val middleItem = container.createItem("middleItem")
@@ -461,10 +460,10 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find an item by searching only for prefixes of its name words" in {
 
             Given("A room with 3 items in a container")
-            val room       = Room("room")
-            val container  = room.createItem("container")
+            val room = Room("room")
+            val container = room.createItem("container")
             val bottomItem = container.createItem("bottomItem")
-            val topItem    = container.createItem("topItem")
+            val topItem = container.createItem("topItem")
 
             val data = Table(
                 ("search string", "name of bottom item", "name of top item", "expected item"),
@@ -479,7 +478,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
                 ("some name", "some name", "some item name", topItem),
                 ("some item", "some item", "some item name", topItem),
                 ("item name", "item name", "some item name", topItem),
-                )
+            )
             forAll(data) {
                 (searchString: String, bottomName: String, topName: String, expectedItem: Item) =>
 
@@ -500,7 +499,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find an item inside" in {
 
             Given("A room with 3 items")
-            val room       = Room("room")
+            val room = Room("room")
             val bottomItem = room.createItem("bottomItem")
             bottomItem.name = "itemName"
             val itemToBeFound = room.createItem("itemToBeFound")
@@ -521,7 +520,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find a mobile inside" in {
 
             Given("A room with 3 mobiles")
-            val room         = Room("room")
+            val room = Room("room")
             val bottomMobile = room.createNonPlayerCharacter("bottomMobile")
             bottomMobile.name = "mobileName"
             val mobileToBeFound = room.createNonPlayerCharacter("mobileToBeFound")
@@ -542,8 +541,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find an item next to the character" in {
 
             Given("A mobile next to 3 items")
-            val room       = Room("room")
-            val mobile     = room.createNonPlayerCharacter("mobile")
+            val room = Room("room")
+            val mobile = room.createNonPlayerCharacter("mobile")
             val bottomItem = room.createItem("bottomItem")
             bottomItem.name = "itemName"
             val itemToBeFound = room.createItem("itemToBeFound")
@@ -561,8 +560,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find an item in the character's inventory" in {
 
             Given("A mobile with 3 items")
-            val room       = Room("room")
-            val mobile     = room.createNonPlayerCharacter("mobile")
+            val room = Room("room")
+            val mobile = room.createNonPlayerCharacter("mobile")
             val bottomItem = mobile.createItem("bottomItem")
             bottomItem.name = "itemName"
             val itemToBeFound = mobile.createItem("itemToBeFound")
@@ -572,7 +571,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             val equippedItem = mobile.createItem("equippedItem")
             equippedItem.name = "itemName"
             equippedItem.itemSlot = Some(ItemSlotHead)
-            mobile equip equippedItem
+            mobile.equip(equippedItem)
 
             When("The player searches for the item")
             val result = mobile.findInInventory("itemName")
@@ -584,20 +583,20 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find an item among the character's equipped items" in {
 
             Given("A mobile with 3 equipped items")
-            val room       = Room("room")
-            val mobile     = room.createNonPlayerCharacter("mobile")
+            val room = Room("room")
+            val mobile = room.createNonPlayerCharacter("mobile")
             val bottomItem = mobile.createItem("bottomItem")
             bottomItem.name = "itemName"
             bottomItem.itemSlot = Some(ItemSlotHead)
-            mobile equip bottomItem
+            mobile.equip(bottomItem)
             val itemToBeFound = mobile.createItem("itemToBeFound")
             itemToBeFound.name = "itemName"
             itemToBeFound.itemSlot = Some(ItemSlotFeet)
-            mobile equip itemToBeFound
+            mobile.equip(itemToBeFound)
             val topItem = mobile.createItem("topItem")
             topItem.name = "otherName"
             topItem.itemSlot = Some(ItemSlotChest)
-            mobile equip topItem
+            mobile.equip(topItem)
             val inventoryItem = mobile.createItem("inventoryItem")
             inventoryItem.name = "itemName"
 
@@ -611,22 +610,22 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find an item among all the character's items" in {
 
             Given("A mobile with 3 out of 5 items equipped")
-            val room       = Room("room")
-            val mobile     = room.createNonPlayerCharacter("mobile")
+            val room = Room("room")
+            val mobile = room.createNonPlayerCharacter("mobile")
             val bottomItem = mobile.createItem("bottomItem")
             bottomItem.name = "itemName"
             val bottomEquippedItem = mobile.createItem("bottomEquippedItem")
             bottomEquippedItem.name = "itemName"
             bottomEquippedItem.itemSlot = Some(ItemSlotChest)
-            mobile equip bottomEquippedItem
+            mobile.equip(bottomEquippedItem)
             val itemToBeFound = mobile.createItem("itemToBeFound")
             itemToBeFound.name = "itemName"
             itemToBeFound.itemSlot = Some(ItemSlotFeet)
-            mobile equip itemToBeFound
+            mobile.equip(itemToBeFound)
             val topEquippedItem = mobile.createItem("topEquippedItem")
             topEquippedItem.name = "otherName"
             topEquippedItem.itemSlot = Some(ItemSlotHands)
-            mobile equip topEquippedItem
+            mobile.equip(topEquippedItem)
             val topItem = mobile.createItem("topItem")
             topItem.name = "itemName"
 
@@ -640,7 +639,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find a sibling mobile" in {
 
             Given("A room with two mobiles")
-            val room            = Room("room")
+            val room = Room("room")
             val searchingMobile = room.createNonPlayerCharacter("searchingMobile")
             val mobileToBeFound = room.createNonPlayerCharacter("mobileToBeFound")
             mobileToBeFound.name = "mobileName"
@@ -655,7 +654,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         "Find a sibling mobile out of mobiles and all items" in {
 
             Given("A room with two mobiles")
-            val room            = Room("room")
+            val room = Room("room")
             val searchingMobile = room.createNonPlayerCharacter("searchingMobile")
             val mobileToBeFound = room.createNonPlayerCharacter("mobileToBeFound")
             mobileToBeFound.name = "mobileName"

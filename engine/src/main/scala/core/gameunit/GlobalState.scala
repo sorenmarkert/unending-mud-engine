@@ -11,8 +11,8 @@ class GlobalState extends Clearable:
 
     var runState: RunState = Starting
 
-    val global  = ListBuffer[Findable]() // TODO: https://www.javadoc.io/doc/org.scala-lang.modules/scala-collection-contrib_3/latest/scala/collection/mutable/MultiDict.html
-    val rooms   = LinkedHashMap[String, Room]()
+    val global = ListBuffer[Findable]() // TODO: https://www.javadoc.io/doc/org.scala-lang.modules/scala-collection-contrib_3/latest/scala/collection/mutable/MultiDict.html
+    val rooms = LinkedHashMap[String, Room]()
     val players = LinkedHashMap[String, PlayerCharacter]()
 
     def clear() = Seq(global, players, rooms) foreach (_.clear)

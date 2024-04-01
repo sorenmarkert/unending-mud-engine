@@ -2,7 +2,6 @@ package core.commands
 
 import core.*
 import core.MessageSender.*
-import core.CommandExecution
 import core.commands.Commands.{Command, InstantCommand, TimedCommand}
 import core.gameunit.*
 
@@ -16,7 +15,7 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
     import equipmentCommands.*
     import messageSender.*
 
-    private val emptyInput     = InstantCommand((char, _) => sendMessage(char, ""))
+    private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
     private val unknownCommand = InstantCommand((char, _) => sendMessage(char, "What's that?"))
 
     private val commandList: Seq[(String, Command)] = Seq(
@@ -45,18 +44,18 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
         "remove" -> InstantCommand(remove),
 
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
-        )
+    )
 
     def executeCommand(character: Mobile, input: String)(using globalState: GlobalState): String =
 
-        val inputWords = (input split " ") filterNot (_.isBlank)
+        val inputWords = input.split(" ") filterNot (_.isBlank)
 
         val (command, commandWords) =
             inputWords.toList match
-                case "" :: _ | Nil              => (emptyInput, Nil)
+                case "" :: _ | Nil => (emptyInput, Nil)
                 case commandPrefix :: arguments =>
                     commandList
-                        .find { case (k, _) => k startsWith commandPrefix.toLowerCase } // TODO: use a trie
+                        .find { case (k, _) => k.startsWith(commandPrefix.toLowerCase) } // TODO: use a trie
                         .map { case (commandString, command) => (command, commandString :: arguments) }
                         .getOrElse((unknownCommand, Nil))
 

@@ -10,7 +10,7 @@ object WebApp {
 
     val form: Div = div(
         contentTextArea,
-        )
+    )
 
     @main def start =
         document.body.appendChild(form)

@@ -66,8 +66,6 @@ lazy val models = crossProject(JSPlatform, JVMPlatform)
         name := "Unending Data Models",
     )
 
-ThisBuild / scalacOptions ++= Seq(
-    "-Ykind-projector:underscores",
-    "-Wconf:msg=Alphanumeric method .* is not declared infix:s"
-)
+ThisBuild / scalacOptions ++= Seq("-Ykind-projector:underscores")
+
 ThisBuild / Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")

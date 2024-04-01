@@ -34,17 +34,17 @@ object MiniMap:
 
         def maxCoordinates(mapNode: MapNode): (Int, Int) =
             Vector(mapNode.north map maxCoordinates,
-                   mapNode.south map maxCoordinates,
-                   mapNode.east map maxCoordinates,
-                   mapNode.west map maxCoordinates)
+                mapNode.south map maxCoordinates,
+                mapNode.east map maxCoordinates,
+                mapNode.west map maxCoordinates)
                 .flatten
                 .fold(abs(mapNode.x), abs(mapNode.y))((pairA, pairB) => (max(pairA._1, pairB._1), max(pairA._2, pairB._2)))
 
-        val graphMap           = mapToGraph(room, 0, 0, 0)
-        val maxPair            = maxCoordinates(graphMap)
-        val (maxX, maxY)       = (max(range, maxPair._1), max(range, maxPair._2))
+        val graphMap = mapToGraph(room, 0, 0, 0)
+        val maxPair = maxCoordinates(graphMap)
+        val (maxX, maxY) = (max(range, maxPair._1), max(range, maxPair._2))
         val (centerX, centerY) = (3 * maxX, 2 * maxY)
-        val theMap             = tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
+        val theMap = tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
 
         def drawMiniMap(mapNode: MapNode): Unit = {
             val (fromX, fromY) = (centerX + 3 * mapNode.x, centerY + 2 * mapNode.y)
@@ -68,7 +68,7 @@ object MiniMap:
     end miniMap
 
     def frameMiniMap(miniMap: List[String]) =
-        val line   = tabulate(miniMap.head.length)(_ => '-').mkString
+        val line = tabulate(miniMap.head.length)(_ => '-').mkString
         val header = "/" + line + "\\"
         val footer = "\\" + line + "/"
         header :: (miniMap map ("|" + _ + "|")) appended footer
@@ -83,5 +83,5 @@ end MiniMap
 
 
 case class MapNode(north: Option[MapNode], south: Option[MapNode],
-                   east : Option[MapNode], west: Option[MapNode],
-                   room : Room, x: Int, y: Int)
+                   east: Option[MapNode], west: Option[MapNode],
+                   room: Room, x: Int, y: Int)

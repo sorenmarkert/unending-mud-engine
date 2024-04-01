@@ -18,16 +18,16 @@ class MessageSender:
                 .linesIterator
                 .flatMap(groupedIgnoringColourCodes(_, textWidth))
                 .toSeq
-        
+
         character match
             case pc: PlayerCharacter =>
                 pc.connection.enqueueMessage(
                     formattedMessageLines.map(substituteColours(_, pc.connection.substituteColourCodes)))
                 Set(pc)
-            case _ => Set()// TODO: send to controlling admin
+            case _ => Set() // TODO: send to controlling admin
     end sendMessage
-    
-    def sendAllEnqueuedMessages(character: Mobile, addMiniMap: Boolean = false, addPrompt: Boolean = true) =
+
+    def sendAllEnqueuedMessages(character: Mobile, addMiniMap: Boolean = false, addPrompt: Boolean = true): Unit =
 
         val prompt = "(12/20) fake-prompt (12/20)"
         val promptLines = if addPrompt then groupedIgnoringColourCodes(prompt, textWidth).toSeq else Seq()
@@ -37,9 +37,9 @@ class MessageSender:
             case _ => Seq()
 
         character match
-                case pc: PlayerCharacter => pc.connection.sendEnqueuedMessages(promptLines, mapLines)
-                case _ => // TODO: send to controlling admin
-    
+            case pc: PlayerCharacter => pc.connection.sendEnqueuedMessages(promptLines, mapLines)
+            case _ => // TODO: send to controlling admin
+
     def act(message: String, visibility: ActVisibility,
             actor: Option[Mobile], medium: Option[Findable], target: Option[Findable],
             toWhom: ActRecipient, text: Option[String]): Set[PlayerCharacter] =

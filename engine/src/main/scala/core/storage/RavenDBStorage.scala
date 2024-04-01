@@ -16,9 +16,9 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
 
     private val ravenConfig = config.getConfig("storage.ravendb")
     private val certificate = ravenConfig.getString("certificate")
-    private val password    = ravenConfig.getString("password")
-    private val hostname    = ravenConfig.getString("hostname")
-    private val database    = ravenConfig.getString("database")
+    private val password = ravenConfig.getString("password")
+    private val hostname = ravenConfig.getString("hostname")
+    private val database = ravenConfig.getString("database")
 
     private val documentStore = new DocumentStore
     documentStore.setCertificate(getKeyStore)
@@ -32,31 +32,31 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
         def mapContainable(gameUnit: Containable[?]): Option[GameUnitDB] = gameUnit match
-            case item@Item(name, title, description, _)              => Some(ItemDB("Item",
-                                                                                    name,
-                                                                                    title,
-                                                                                    description,
-                                                                                    item.itemSlot,
-                                                                                    item.contents flatMap mapContainable))
+            case item@Item(name, title, description, _) => Some(ItemDB("Item",
+                name,
+                title,
+                description,
+                item.itemSlot,
+                item.contents flatMap mapContainable))
             case npc@NonPlayerCharacter(name, title, description, _) => Some(NonPlayerCharacterDB("NonPlayerCharacter",
-                                                                                                  name,
-                                                                                                  title,
-                                                                                                  description,
-                                                                                                  npc.equippedItems flatMap mapContainable,
-                                                                                                  npc.inventory flatMap mapContainable))
-            case _                                                   => None
+                name,
+                title,
+                description,
+                npc.equippedItems flatMap mapContainable,
+                npc.inventory flatMap mapContainable))
+            case _ => None
 
         Using(documentStore.openSession) { session =>
             val playerToStore = PlayerCharacterDB("PlayerCharacter",
-                                                  playerCharacter.name,
-                                                  playerCharacter.title,
-                                                  playerCharacter.description,
-                                                  playerCharacter.equippedItems flatMap mapContainable,
-                                                  playerCharacter.inventory flatMap mapContainable)
+                playerCharacter.name,
+                playerCharacter.title,
+                playerCharacter.description,
+                playerCharacter.equippedItems flatMap mapContainable,
+                playerCharacter.inventory flatMap mapContainable)
             session.store(playerToStore, playerCharacter.name)
             session.saveChanges()
         } match
-            case Success(_)         => log.info(s"Saved ${playerCharacter.name}")
+            case Success(_) => log.info(s"Saved ${playerCharacter.name}")
             case Failure(exception) => log.error(s"Failed saving ${playerCharacter.name}", exception)
 
 
@@ -72,10 +72,10 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
 
 sealed trait GameUnitDB
 
-case class PlayerCharacterDB(unitType     : String, name: String, title: String, description: String,
+case class PlayerCharacterDB(unitType: String, name: String, title: String, description: String,
                              equippedItems: Seq[GameUnitDB], inventory: Seq[GameUnitDB]) extends GameUnitDB
 
-case class NonPlayerCharacterDB(unitType     : String, name: String, title: String, description: String,
+case class NonPlayerCharacterDB(unitType: String, name: String, title: String, description: String,
                                 equippedItems: Seq[GameUnitDB], inventory: Seq[GameUnitDB]) extends GameUnitDB
 
 case class ItemDB(unitType: String, name: String, title: String, description: String,

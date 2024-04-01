@@ -10,7 +10,7 @@ class TelnetConnection(private val socket: Socket) extends Connection:
 
     private val reader = new BufferedReader(new InputStreamReader(socket.getInputStream))
     private val writer = new PrintWriter(socket.getOutputStream, true)
-    
+
     override def readLine() = reader.readLine()
 
     override def sendEnqueuedMessages(prompt: Seq[String], miniMap: Seq[String]) =
@@ -47,7 +47,7 @@ class TelnetConnection(private val socket: Socket) extends Connection:
             case Reset => "\u001b[0m"
 
     private def combineMessageWithPromptAndMiniMap(message: Seq[String], prompt: Seq[String], miniMap: Seq[String]) =
-        
+
         val miniMapWidth = miniMap.map(_.length).maxOption.getOrElse(0)
         val miniMapWideSpace = "".padTo(miniMapWidth, ' ')
         val miniMapOfFinalHeight = miniMap.padTo(message.size + prompt.size, miniMapWideSpace)

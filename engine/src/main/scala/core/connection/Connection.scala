@@ -11,9 +11,11 @@ trait Connection:
     def enqueueMessage(message: Seq[String]) = messageQueue.enqueueAll(message)
 
     def readLine(): String
+
     def sendEnqueuedMessages(prompt: Seq[String], miniMap: Seq[String]): Unit
 
     def close(): Unit
+
     def isClosed: Boolean
-    
+
     def substituteColourCodes(colour: Colour): String

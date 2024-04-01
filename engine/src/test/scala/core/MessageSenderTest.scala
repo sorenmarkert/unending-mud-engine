@@ -1,8 +1,8 @@
 package core
 
-import core.ActRecipient.{ToActor, ToAllExceptActor, ToBystanders, ToEntireRoom, ToTarget}
+import core.ActRecipient.*
 import core.ActVisibility.Always
-import core.connection.{Output, WebSocketConnection}
+import core.connection.WebSocketConnection
 import core.gameunit.*
 import core.gameunit.Gender.{GenderFemale, GenderMale}
 import org.mockito.ArgumentMatchers
@@ -58,9 +58,9 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
             verify(connectionMock).enqueueMessage(message.linesIterator.toList)
         }
     }
-    
+
     "sendAllEnqueuedMessages" should {
-        
+
         "Add the prompt" in {
 
             Given("A player with a connection")
@@ -91,24 +91,24 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
 
             Then("It's sent as three lines")
             verify(connectionMock).sendEnqueuedMessages(
-                    Seq("(12/20) fake-prompt (12/20)"),
-                    Seq(
-                        "/-------------------\\",
-                        "|                   |",
-                        "|                   |",
-                        "|                   |",
-                        "|                   |",
-                        "|                   |",
-                        "|                   |",
-                        "|         $BrightRedX$Reset         |",
-                        "|         |         |",
-                        "|         $Yellow#$Reset         |",
-                        "|                   |",
-                        "|                   |",
-                        "|                   |",
-                        "|                   |",
-                        "\\-------------------/"
-                    ))
+                Seq("(12/20) fake-prompt (12/20)"),
+                Seq(
+                    "/-------------------\\",
+                    "|                   |",
+                    "|                   |",
+                    "|                   |",
+                    "|                   |",
+                    "|                   |",
+                    "|                   |",
+                    "|         $BrightRedX$Reset         |",
+                    "|         |         |",
+                    "|         $Yellow#$Reset         |",
+                    "|                   |",
+                    "|                   |",
+                    "|                   |",
+                    "|                   |",
+                    "\\-------------------/"
+                ))
         }
 
         "Send to controller of an NPC" is pending

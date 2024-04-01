@@ -14,7 +14,7 @@ import java.time.Duration.ofMinutes
 object WebSocketServer extends SLF4JLogging:
 
     def apply(config: Config)(using globalState: GlobalState, commands: Commands) =
-        
+
         val port = config.getInt("websocket.port")
 
         log.info("Starting websocket client on port " + port)

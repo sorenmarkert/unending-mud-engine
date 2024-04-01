@@ -28,8 +28,9 @@ class AreaGeneratorTest extends AnyWordSpec with GivenWhenThen with Matchers wit
             val result = testObj.generate(1, 1)
 
             Then("A board is returned")
-            result map { case (dir, room) => (dir, room.id) } shouldBe Map((0, 0) -> "generated[0,0]",
-                                                                           (0, -1) -> "generated[0,-1]")
+            result map { case (dir, room) => (dir, room.id) } shouldBe Map(
+                (0, 0) -> "generated[0,0]",
+                (0, -1) -> "generated[0,-1]")
 
             And("The rooms are linked")
             println(globalState)
@@ -77,21 +78,23 @@ class AreaGeneratorTest extends AnyWordSpec with GivenWhenThen with Matchers wit
         "Return adjacent rooms" in {
 
             Given("A board with rooms")
-            val boardWithRooms = Map((0, 0) -> Room("centerRoom"),
-                                     (0, 1) -> Room("adjacentRoomNorth"),
-                                     (0, -1) -> Room("adjacentRoomSouth"),
-                                     (1, 0) -> Room("adjacentRoomEast"),
-                                     (-1, 0) -> Room("adjacentRoomWest"),
-                                     (-2, 0) -> Room("nonAdjacentRoomWest"),
-                                     (-1, 1) -> Room("nonAdjacentRoomNorthWest"))
+            val boardWithRooms = Map(
+                (0, 0) -> Room("centerRoom"),
+                (0, 1) -> Room("adjacentRoomNorth"),
+                (0, -1) -> Room("adjacentRoomSouth"),
+                (1, 0) -> Room("adjacentRoomEast"),
+                (-1, 0) -> Room("adjacentRoomWest"),
+                (-2, 0) -> Room("nonAdjacentRoomWest"),
+                (-1, 1) -> Room("nonAdjacentRoomNorthWest"))
 
             When("Getting the rooms adjacent to the center room")
             val result = testObj invokePrivate getAdjacentRooms((0, 0), boardWithRooms)
 
             Then("The adjacent rooms are returned")
-            result map { case (room, direction) => (room.id, direction) } shouldBe Map("adjacentRoomNorth" -> North,
-                                                                                       "adjacentRoomSouth" -> South,
-                                                                                       "adjacentRoomEast" -> East,
-                                                                                       "adjacentRoomWest" -> West)
+            result map { case (room, direction) => (room.id, direction) } shouldBe Map(
+                "adjacentRoomNorth" -> North,
+                "adjacentRoomSouth" -> South,
+                "adjacentRoomEast" -> East,
+                "adjacentRoomWest" -> West)
         }
     }
