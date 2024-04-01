@@ -1,22 +1,23 @@
 package core.util
 
+import core.connection.WebSocketConnection
 import core.gameunit.*
-import core.util.MessagingUtils.{collapseDuplicates, joinOrElse, unitDisplay}
+import core.util.MessagingUtils.*
 import org.mockito.Mockito.when
+import org.scalatest.GivenWhenThen
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
 import org.scalatestplus.mockito.MockitoSugar
 
 class MessagingUtilsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with Matchers:
 
-    val playerMock  = mock[PlayerCharacter]
-    val playerName  = "playerName"
+    val playerMock = mock[PlayerCharacter]
+    val playerName = "playerName"
     val playerTitle = "playerTitle"
     when(playerMock.name).thenReturn(playerName)
     when(playerMock.title).thenReturn(playerTitle)
 
-    val unitMock  = mock[GameUnit]
+    val unitMock = mock[GameUnit]
     val unitTitle = "unitTitle"
     when(unitMock.title).thenReturn(unitTitle)
 
@@ -37,7 +38,7 @@ class MessagingUtilsTest extends AnyWordSpec with MockitoSugar with GivenWhenThe
         "Return a single input" in {
 
             Given("A single input")
-            val input       = "input"
+            val input = "input"
             val singleInput = List(input)
 
             When("Joining the input")
@@ -50,11 +51,11 @@ class MessagingUtilsTest extends AnyWordSpec with MockitoSugar with GivenWhenThe
         "Return multiple inputs joined with the separator" in {
 
             Given("Multiple inputs and a separator")
-            val input1         = "input1"
-            val input2         = "input2"
-            val input3         = "input3"
+            val input1 = "input1"
+            val input2 = "input2"
+            val input3 = "input3"
             val multipleInputs = List(input1, input2, input3)
-            val separator      = "separator"
+            val separator = "separator"
 
             When("Joining the inputs")
             val result = joinOrElse(multipleInputs, separator, "default")
@@ -126,4 +127,49 @@ class MessagingUtilsTest extends AnyWordSpec with MockitoSugar with GivenWhenThe
             result should contain inOrderOnly("[x2] first", "[x3] second", "[x3] third")
         }
 
+    }
+
+    "groupedIgnoringColourCodes" should {
+
+        "Wrap lines longer than textWidth" in {
+
+            Given("A message longer than 2x 50 characters")
+            val message1 = "This message string is exactly 49 characters long"
+            val message2 = "and it continues in this string which is also 49"
+            val message3 = "and then it ends here."
+
+            When("Grouping the message")
+            val result = groupedIgnoringColourCodes(s"$message1 $message2 $message3", 50)
+
+            Then("It's grouped as three lines")
+            result.toSeq shouldBe Seq(message1, message2, message3)
+        }
+
+        "Not count colour codes when wrapping words" in {
+
+            Given("A long message with colour codes")
+            val message1 = "This message $BrightMagentastring has colour codes and it"
+            val message2 = "continues in the next $Reset string."
+
+            When("Grouping the message")
+            val result = groupedIgnoringColourCodes(message1 + " " + message2, 50)
+
+            Then("Word wrap counts the message without formatting")
+            result.toSeq shouldBe Seq(message1, message2)
+        }
+    }
+
+    "substituteColours" should {
+
+        "Replace colour codes" in {
+
+            Given("A message with colour codes")
+            val message = "Here $Greenare so$BrightMagentame colo$Reseturs"
+
+            When("Substituting the colour codes")
+            val result = substituteColours(message, WebSocketConnection(null).substituteColourCodes)
+
+            Then("The colour codes have been replace with connection specific style formatting")
+            result shouldBe "Here <span style=\"color:green\">are so<span style=\"color:magenta;font-weight:bold;\">me colo</span>urs"
+        }
     }

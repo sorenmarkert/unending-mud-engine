@@ -11,7 +11,7 @@ class GlobalState extends Clearable:
 
     var runState: RunState = Starting
 
-    val global  = ListBuffer[Mobile | Item]() // TODO: https://www.javadoc.io/doc/org.scala-lang.modules/scala-collection-contrib_3/latest/scala/collection/mutable/MultiDict.html
+    val global  = ListBuffer[Findable]() // TODO: https://www.javadoc.io/doc/org.scala-lang.modules/scala-collection-contrib_3/latest/scala/collection/mutable/MultiDict.html
     val rooms   = LinkedHashMap[String, Room]()
     val players = LinkedHashMap[String, PlayerCharacter]()
 

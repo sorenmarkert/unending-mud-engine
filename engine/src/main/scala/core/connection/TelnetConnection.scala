@@ -13,7 +13,10 @@ class TelnetConnection(private val socket: Socket) extends Connection:
     
     override def readLine() = reader.readLine()
 
-    override def send(output: Output) = writer.println(combineMessageWithPromptAndMiniMap(output))
+    override def sendEnqueuedMessages(prompt: Seq[String], miniMap: Seq[String]) =
+        writer.println(combineMessageWithPromptAndMiniMap(messageQueue.toSeq, prompt, miniMap))
+        messageQueue.clear()
+
 
     override def close() =
         socket.close()
@@ -43,9 +46,8 @@ class TelnetConnection(private val socket: Socket) extends Connection:
             case BrightWhite => "\u001b[97;1m"
             case Reset => "\u001b[0m"
 
-    private def combineMessageWithPromptAndMiniMap(output: Output) =
-        import output.*
-
+    private def combineMessageWithPromptAndMiniMap(message: Seq[String], prompt: Seq[String], miniMap: Seq[String]) =
+        
         val miniMapWidth = miniMap.map(_.length).maxOption.getOrElse(0)
         val miniMapWideSpace = "".padTo(miniMapWidth, ' ')
         val miniMapOfFinalHeight = miniMap.padTo(message.size + prompt.size, miniMapWideSpace)

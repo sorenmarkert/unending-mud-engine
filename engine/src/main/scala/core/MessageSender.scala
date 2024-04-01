@@ -1,77 +1,48 @@
 package core
 
 import core.ActRecipient.*
-import core.Colour.colourCodePattern
 import core.MiniMap.*
-import core.connection.Output
 import core.gameunit.*
 import core.gameunit.Gender.*
-import core.util.MessagingUtils.unitDisplay
-
-import scala.annotation.tailrec
+import core.util.MessagingUtils.{groupedIgnoringColourCodes, substituteColours, unitDisplay}
 
 class MessageSender:
 
+    val textWidth = 50
+
     def sendMessage(character: Mobile, message: String, addMiniMap: Boolean = false, addPrompt: Boolean = true) =
 
-        // TODO: don't send prompt until all messages have been sent
-        val textWidth = 50
-
-        def groupedIgnoringColourCodes(msg: String): Iterator[String] =
-
-            @tailrec
-            def rec(words: List[String], accumulated: String, accumulatedLength: Int): String =
-                words match
-                    case toAdd :: restWords =>
-                        val lengthToAddWithoutColourCodes = toAdd.replaceAll(colourCodePattern, "").length
-                        val (newAccu, newAccuLength) =
-                            if accumulatedLength + lengthToAddWithoutColourCodes > textWidth then
-                                (accumulated + "\n" + toAdd, lengthToAddWithoutColourCodes)
-                            else if accumulated == "" then
-                                (toAdd, lengthToAddWithoutColourCodes)
-                            else
-                                (accumulated + " " + toAdd, accumulatedLength + 1 + lengthToAddWithoutColourCodes)
-                        rec(restWords, newAccu, newAccuLength)
-                    case _ => accumulated
-
-            rec(msg.split(' ').filterNot(_.isBlank).toList, "", 0).linesIterator
-
-        val formattedMessageLines =
+        lazy val formattedMessageLines =
             message
                 .capitalize
                 .linesIterator
-                .flatMap(groupedIgnoringColourCodes)
+                .flatMap(groupedIgnoringColourCodes(_, textWidth))
                 .toSeq
-
-        val prompt = "(12/20) fake-prompt (12/20)"
-        val promptLines = if addPrompt then (prompt grouped textWidth).toList else Seq()
-
-        val mapLines = (addMiniMap, character.outside) match {
-            case (true, room: Room) => colourMiniMap(frameMiniMap(miniMap(room, 3)))
-            case _ => Seq()
-        }
-
-        def substituteColours(msg: String, mapper: Colour => String) = {
-            val colourCodeRegex = colourCodePattern.r
-            colourCodeRegex.replaceAllIn(msg, _ match
-                case colourCodeRegex(colourCode) =>
-                    mapper(Colour.valueOf(colourCode)))
-        }
-
+        
         character match
             case pc: PlayerCharacter =>
-                val subColours = substituteColours(_, pc.connection.substituteColourCodes)
-                pc.connection.send(
-                    Output(
-                        formattedMessageLines.map(subColours),
-                        promptLines.map(subColours),
-                        mapLines.map(subColours)))
-            case _ => // TODO: send to controlling admin
+                pc.connection.enqueueMessage(
+                    formattedMessageLines.map(substituteColours(_, pc.connection.substituteColourCodes)))
+                Set(pc)
+            case _ => Set()// TODO: send to controlling admin
     end sendMessage
+    
+    def sendAllEnqueuedMessages(character: Mobile, addMiniMap: Boolean = false, addPrompt: Boolean = true) =
 
+        val prompt = "(12/20) fake-prompt (12/20)"
+        val promptLines = if addPrompt then groupedIgnoringColourCodes(prompt, textWidth).toSeq else Seq()
+
+        val mapLines = (addMiniMap, character.outside) match
+            case (true, room: Room) => colourMiniMap(frameMiniMap(miniMap(room, 3)))
+            case _ => Seq()
+
+        character match
+                case pc: PlayerCharacter => pc.connection.sendEnqueuedMessages(promptLines, mapLines)
+                case _ => // TODO: send to controlling admin
+    
     def act(message: String, visibility: ActVisibility,
             actor: Option[Mobile], medium: Option[Findable], target: Option[Findable],
-            toWhom: ActRecipient, text: Option[String]) =
+            toWhom: ActRecipient, text: Option[String]): Set[PlayerCharacter] =
 
         def charactersInRoom =
             actor map (_.outside.mobiles) getOrElse Seq()
@@ -115,12 +86,13 @@ class MessageSender:
                     .map(formatUnit(_, formatter))
                     .getOrElse("[null]"))
 
-        recipients foreach (sendMessage(_, replaceUnits(message)))
+        recipients.flatMap(sendMessage(_, replaceUnits(message))).toSet
     end act
 
 
 object MessageSender:
     given MessageSender = new MessageSender
+
 
 enum ActRecipient:
     case ToActor, ToTarget, ToBystanders, ToAllExceptActor, ToEntireRoom

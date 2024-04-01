@@ -42,22 +42,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
             messageSender.sendMessage(actingPlayerMock, "message", addPrompt = false)
 
             Then("The message is sent capitalized")
-            verify(connectionMock).send(Output(Seq("Message"), Seq(), Seq()))
-        }
-
-        "Wrap lines longer than textWidth" in {
-
-            Given("A player with a connection")
-            val connectionMock = setUpConnectionMockOnPlayer(actingPlayerMock)
-
-            When("Sending a message longer than 2x textWidth (50)")
-            val message1 = "This message string is exactly 49 characters long"
-            val message2 = "and it continues in this string which is also 49"
-            val message3 = "and then it ends here."
-            messageSender.sendMessage(actingPlayerMock, s"$message1 $message2 $message3", addPrompt = false)
-
-            Then("It's sent as three lines")
-            verify(connectionMock).send(Output(Seq(message1, message2, message3), Seq(), Seq()))
+            verify(connectionMock).enqueueMessage(Seq("Message"))
         }
 
         "Retain line breaks of input" in {
@@ -70,39 +55,12 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
             messageSender.sendMessage(actingPlayerMock, message, addPrompt = false)
 
             Then("The line breaks are retained")
-            verify(connectionMock).send(Output(message.linesIterator.toList, Seq(), Seq()))
+            verify(connectionMock).enqueueMessage(message.linesIterator.toList)
         }
-
-        "Replace colour codes" in {
-
-            Given("A player with a connection")
-            val connectionMock = setUpConnectionMockOnPlayer(actingPlayerMock)
-
-            When("Sending a message with colour codes")
-            val message = "Here $Greenare so$BrightMagentame colo$Reseturs"
-            messageSender.sendMessage(actingPlayerMock, message, addPrompt = false)
-
-            Then("The colour codes have been replace with connection specific style formatting")
-            val expectedMessage = "Here <span style=\"color:green\">are so<span style=\"color:magenta;font-weight:bold;\">me colo</span>urs"
-            verify(connectionMock).send(Output(Seq(expectedMessage), Seq(), Seq()))
-        }
-
-        "Not count colour codes when wrapping words" in {
-
-            Given("A player with a connection")
-            val connectionMock = setUpConnectionMockOnPlayer(actingPlayerMock)
-
-            When("Sending a long message with colour codes")
-            val message1 = "This message $BrightMagentastring has colour codes and it continues"
-            val message2 = "in the next $Reset string."
-            messageSender.sendMessage(actingPlayerMock, message1 + " " + message2, addPrompt = false)
-
-            Then("Word wrap counts the message without formatting")
-            val expectedMessage1 = "This message <span style=\"color:magenta;font-weight:bold;\">string has colour codes and it"
-            val expectedMessage2 = "continues in the next </span> string."
-            verify(connectionMock).send(Output(Seq(expectedMessage1, expectedMessage2), Seq(), Seq()))
-        }
-
+    }
+    
+    "sendAllEnqueuedMessages" should {
+        
         "Add the prompt" in {
 
             Given("A player with a connection")
@@ -110,10 +68,10 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
 
             When("Sending a message")
             val message = "This is a message"
-            messageSender.sendMessage(actingPlayerMock, message)
+            messageSender.sendAllEnqueuedMessages(actingPlayerMock)
 
             Then("It's sent with the prompt")
-            verify(connectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
+            verify(connectionMock).sendEnqueuedMessages(Seq(thePrompt), Seq())
         }
 
         "Add the mini map with frame and colours" in {
@@ -129,12 +87,10 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
 
             When("Sending a long message with colour codes")
             val message = "This is a message"
-            messageSender.sendMessage(actingPlayerMock, message, addMiniMap = true)
+            messageSender.sendAllEnqueuedMessages(actingPlayerMock, addMiniMap = true)
 
             Then("It's sent as three lines")
-            verify(connectionMock).send(
-                Output(
-                    Seq(message),
+            verify(connectionMock).sendEnqueuedMessages(
                     Seq("(12/20) fake-prompt (12/20)"),
                     Seq(
                         "/-------------------\\",
@@ -144,15 +100,15 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
                         "|                   |",
                         "|                   |",
                         "|                   |",
-                        "|         <span style=\"color:red;font-weight:bold;\">X</span>         |",
+                        "|         $BrightRedX$Reset         |",
                         "|         |         |",
-                        "|         <span style=\"color:yellow\">#</span>         |",
+                        "|         $Yellow#$Reset         |",
                         "|                   |",
                         "|                   |",
                         "|                   |",
                         "|                   |",
                         "\\-------------------/"
-                    )))
+                    ))
         }
 
         "Send to controller of an NPC" is pending
@@ -172,7 +128,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
                 messageSender.act(message, Always, Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock), ToActor, None)
 
                 Then("It's sent only to Actor")
-                verify(actingPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
+                verify(actingPlayerConnectionMock).enqueueMessage(Seq(message))
                 verifyNoInteractions(targetPlayerConnectionMock)
                 verifyNoInteractions(bystanderPlayerConnectionMock)
             }
@@ -188,7 +144,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
 
                 Then("It's sent only to Actor")
                 verifyNoInteractions(actingPlayerConnectionMock)
-                verify(targetPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
+                verify(targetPlayerConnectionMock).enqueueMessage(Seq(message))
                 verifyNoInteractions(bystanderPlayerConnectionMock)
             }
 
@@ -204,7 +160,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
                 Then("It's sent only to Actor")
                 verifyNoInteractions(actingPlayerConnectionMock)
                 verifyNoInteractions(targetPlayerConnectionMock)
-                verify(bystanderPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
+                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message))
             }
 
             "Send message only to All Except Actor" in {
@@ -218,8 +174,8 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
 
                 Then("It's sent only to Actor")
                 verifyNoInteractions(actingPlayerConnectionMock)
-                verify(targetPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
-                verify(bystanderPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
+                verify(targetPlayerConnectionMock).enqueueMessage(Seq(message))
+                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message))
             }
 
             "Send message only to Entire Room" in {
@@ -232,9 +188,9 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
                 messageSender.act("message", Always, Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock), ToEntireRoom, None)
 
                 Then("It's sent only to Actor")
-                verify(actingPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
-                verify(targetPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
-                verify(bystanderPlayerConnectionMock).send(Output(Seq(message), Seq(thePrompt), Seq()))
+                verify(actingPlayerConnectionMock).enqueueMessage(Seq(message))
+                verify(targetPlayerConnectionMock).enqueueMessage(Seq(message))
+                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message))
             }
         }
 
@@ -261,7 +217,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
                 val message1 = "ActorName waves at targetName with a"
                 val message2 = "mediumItemName, before she breaks it over him, her"
                 val message3 = "best enemy."
-                verify(bystanderPlayerConnectionMock).send(Output(Seq(message1, message2, message3), Seq(thePrompt), Seq()))
+                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message1, message2, message3))
             }
         }
     }

@@ -2,18 +2,11 @@ package core.commands
 
 import core.*
 import core.MessageSender.*
-import core.StateActor.CommandExecution
+import core.CommandExecution
+import core.commands.Commands.{Command, InstantCommand, TimedCommand}
 import core.gameunit.*
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
-
-sealed trait Command
-
-case class InstantCommand(func: (Mobile, Seq[String]) => Unit, canInterrupt: Boolean = false) extends Command
-
-case class TimedCommand(baseDuration: FiniteDuration,
-                        beginFunc   : (Mobile, Seq[String]) => Option[String],
-                        endFunc     : (Mobile, Seq[String]) => Unit) extends Command
 
 
 class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, messageSender: MessageSender):
@@ -29,14 +22,14 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
     private val commandList: Seq[(String, Command)] = Seq(
         "quit" -> InstantCommand(quit),
 
-        "north" -> InstantCommand(movement),
-        "south" -> InstantCommand(movement),
-        "east" -> InstantCommand(movement),
-        "west" -> InstantCommand(movement),
-        "up" -> InstantCommand(movement),
-        "down" -> InstantCommand(movement),
+        "north" -> InstantCommand(movement, addMiniMap = true),
+        "south" -> InstantCommand(movement, addMiniMap = true),
+        "east" -> InstantCommand(movement, addMiniMap = true),
+        "west" -> InstantCommand(movement, addMiniMap = true),
+        "up" -> InstantCommand(movement, addMiniMap = true),
+        "down" -> InstantCommand(movement, addMiniMap = true),
 
-        "look" -> InstantCommand(look, canInterrupt = true),
+        "look" -> InstantCommand(look, canInterrupt = true, addMiniMap = true),
         "minimap" -> InstantCommand(minimap, canInterrupt = true),
 
         "inventory" -> InstantCommand(inventory, canInterrupt = true),
@@ -72,3 +65,13 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
         commandWords.headOption getOrElse ""
 
 end Commands
+
+object Commands:
+
+    type CommandFunction = (Mobile, Seq[String]) => Set[PlayerCharacter]
+
+    sealed trait Command
+
+    case class InstantCommand(func: CommandFunction, canInterrupt: Boolean = false, addMiniMap: Boolean = false) extends Command
+
+    case class TimedCommand(baseDuration: FiniteDuration, beginFunc: CommandFunction, endFunc: CommandFunction) extends Command

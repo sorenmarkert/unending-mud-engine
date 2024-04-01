@@ -12,7 +12,10 @@ class WebSocketConnection(private val session: Session) extends Connection:
 
     override def readLine() = ???
 
-    override def send(output: Output) = session.sendText(jsonMapper.writeValueAsString(output), Callback.NOOP)
+    override def sendEnqueuedMessages(prompt: Seq[String], miniMap: Seq[String]) =
+        val output = Output(messageQueue.toSeq, prompt, miniMap)
+        messageQueue.clear()
+        session.sendText(jsonMapper.writeValueAsString(output), Callback.NOOP)
 
     override def close() =
         session.close()
@@ -38,3 +41,6 @@ class WebSocketConnection(private val session: Session) extends Connection:
             case BrightCyan => "<span style=\"color:cyan;font-weight:bold;\">"
             case BrightWhite => "<span style=\"color:white;font-weight:bold;\">"
             case Reset => "</span>"
+
+
+case class Output(message: Seq[String], prompt: Seq[String], miniMap: Seq[String])

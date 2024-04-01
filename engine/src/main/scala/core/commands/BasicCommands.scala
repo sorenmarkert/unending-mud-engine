@@ -22,11 +22,12 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 pc.connection.close()
                 storage.savePlayer(pc)
                 pc.destroy
-            case _                   => // TODO: un-control NPC and quit controlling player
+                Set(pc)
+            case _                   => Set() // TODO: un-control NPC and quit controlling player
 
     private[commands] def look(character: Mobile, commandWords: Seq[String]) =
 
-        commandWords match {
+        commandWords match
             case "look" :: Nil =>
                 val room   = character.outside
                 val chars  = room.mobiles filterNot (_ == character)
@@ -55,7 +56,7 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
             case "look" :: "at" :: _ | "look" :: _ =>
                 val arg = if commandWords(1) == "at" then commandWords drop 2 else commandWords.tail
 
-                character.findInOrNextToMe(arg mkString " ") match {
+                character.findInOrNextToMe(arg mkString " ") match
                     case Some(unitToLookAt: Mobile) => sendMessage(character, "You look at the %s.\n%s\n%s".format(
                         unitToLookAt.name,
                         unitToLookAt.description,
@@ -65,29 +66,24 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                         unitToLookAt.name,
                         unitToLookAt.description))
                     case None                       => sendMessage(character, "No such thing here to look at.")
-                }
-        }
     end look
 
     private[commands] def movement(character: Mobile, commandWords: Seq[String]) =
         // TODO: check if allowed to move
         val direction = Direction.valueOf(commandWords.head.toLowerCase.capitalize)
 
-        character.outside.exits.get(direction) match {
+        character.outside.exits.get(direction) match
             case Some(Exit(toRoom, _)) =>
                 act("$1n leaves $1t.", Always, Some(character), None, None, ToAllExceptActor, Some(direction.display))
                 toRoom addMobile character
                 act("$1n has arrived from the $1t.", Always, Some(character), None, None, ToAllExceptActor, Some(direction.display))
                 look(character, "look" :: Nil)
             case None                  => sendMessage(character, "No such exit here.")
-        }
 
     private[commands] def minimap(character: Mobile, commandWords: Seq[String]) =
-
         val range = Try(commandWords(1).toInt) match
             case Success(value) => value
             case Failure(_)     => 2
-
         sendMessage(character, colourMiniMap(frameMiniMap(miniMap(character.outside, range))) mkString "\n")
 
 end BasicCommands

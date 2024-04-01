@@ -4,6 +4,7 @@ import core.*
 import core.ActRecipient.ToAllExceptActor
 import core.ActVisibility.Always
 import core.commands.*
+import core.commands.Commands.TimedCommand
 import core.connection.Connection
 import core.gameunit.Direction.*
 import core.gameunit.Gender.GenderMale
@@ -147,6 +148,7 @@ sealed trait Mobile extends Containable[Room]:
 end Mobile
 
 
+// TODO: merge pc and npc into one, add Player to hold connection and a char being controlled 
 case class PlayerCharacter private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: Room, var connection: Connection)
     extends Mobile:
 
