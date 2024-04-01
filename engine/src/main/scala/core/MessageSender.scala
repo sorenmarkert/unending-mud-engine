@@ -40,6 +40,7 @@ class MessageSender:
             case pc: PlayerCharacter => pc.connection.sendEnqueuedMessages(promptLines, mapLines)
             case _ => // TODO: send to controlling admin
 
+    // TODO: can we get rid of toWhom, and format $[split, splits] instead? with $1n and $3n becoming 'you'?
     def act(message: String, visibility: ActVisibility,
             actor: Option[Mobile], medium: Option[Findable], target: Option[Findable],
             toWhom: ActRecipient, text: Option[String]): Set[PlayerCharacter] =

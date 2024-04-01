@@ -30,8 +30,9 @@ class EquipmentCommands(using messageSender: MessageSender):
                                 character.addItem(target)
                                 act("You $1t $2n from $3n.", Always,
                                     Some(character), Some(target), Some(container), ToActor, Some(commandWords.head))
-                                act("$1N $1ts $2n from $3n.", Always,
-                                    Some(character), Some(target), Some(container), ToAllExceptActor, Some(commandWords.head))
+                                    ++
+                                    act("$1N $1ts $2n from $3n.", Always,
+                                        Some(character), Some(target), Some(container), ToAllExceptActor, Some(commandWords.head))
                             case None => sendMessage(character, s"The ${container.name} does not seem to contain such a thing.")
                         }
                     case None => sendMessage(character, s"No such thing here to ${commandWords.head} things from.")
@@ -42,7 +43,8 @@ class EquipmentCommands(using messageSender: MessageSender):
                     case Some(target) =>
                         character.addItem(target)
                         act("You $1t $2n.", Always, Some(character), Some(target), None, ToActor, Some(commandWords.head))
-                        act("$1n $1ts $2n.", Always, Some(character), Some(target), None, ToAllExceptActor, Some(commandWords.head))
+                            ++
+                            act("$1n $1ts $2n.", Always, Some(character), Some(target), None, ToAllExceptActor, Some(commandWords.head))
                     case None => sendMessage(character, s"No such thing here to ${commandWords.head}.")
                 }
 
@@ -55,7 +57,8 @@ class EquipmentCommands(using messageSender: MessageSender):
             case Some(target) =>
                 character.outside.addItem(target)
                 act("You drop your $2N.", Always, Some(character), Some(target), None, ToActor, None)
-                act("$1N drops $1s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
+                    ++
+                    act("$1N drops $1s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
             case None => sendMessage(character, "You don't seem to have any such thing.")
         }
 
@@ -72,8 +75,9 @@ class EquipmentCommands(using messageSender: MessageSender):
                         container.addItem(target)
                         act("You $1t your $2N in $3n.", Always,
                             Some(character), Some(target), Some(container), ToActor, Some(commandWords.head))
-                        act("$1N $1ts $1s $2N in $3n.", Always,
-                            Some(character), Some(target), Some(container), ToAllExceptActor, Some(commandWords.head))
+                            ++
+                            act("$1N $1ts $1s $2N in $3n.", Always,
+                                Some(character), Some(target), Some(container), ToAllExceptActor, Some(commandWords.head))
                     case (None, _) => sendMessage(character, s"You don't have any such thing on you.")
                     case _ => sendMessage(character, s"No such thing here to ${commandWords.head} things in.")
                 }
@@ -92,10 +96,12 @@ class EquipmentCommands(using messageSender: MessageSender):
                         target.addItem(medium)
                         act("You $1t $2n to $3n.", Always,
                             Some(character), Some(medium), Some(target), ToActor, Some(commandWords.head))
-                        act("$1n $1ts you $2n.", Always,
-                            Some(character), Some(medium), Some(target), ToTarget, Some(commandWords.head))
-                        act("$1n $1ts $2n to $3n.", Always,
-                            Some(character), Some(medium), Some(target), ToBystanders, Some(commandWords.head))
+                            ++
+                            act("$1n $1ts you $2n.", Always,
+                                Some(character), Some(medium), Some(target), ToTarget, Some(commandWords.head))
+                            ++
+                            act("$1n $1ts $2n to $3n.", Always,
+                                Some(character), Some(medium), Some(target), ToBystanders, Some(commandWords.head))
                     case (None, _) =>
                         sendMessage(character, s"You don't have any such thing on you.")
                     case _ =>
@@ -125,7 +131,8 @@ class EquipmentCommands(using messageSender: MessageSender):
                 character.equip(target) match {
                     case None =>
                         act("You wear your $2N.", Always, Some(character), Some(target), None, ToActor, None)
-                        act("$1N wears $1s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
+                            ++
+                            act("$1N wears $1s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
                     case Some(errorMessage) => sendMessage(character, errorMessage)
                 }
             case _ => sendMessage(character, "You don't seem to have any such thing.")
@@ -137,7 +144,8 @@ class EquipmentCommands(using messageSender: MessageSender):
                 character.remove(target) match {
                     case None =>
                         act("You remove your $2N.", Always, Some(character), Some(target), None, ToActor, None)
-                        act("$1N removes $1s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
+                            ++
+                            act("$1N removes $1s $2N.", Always, Some(character), Some(target), None, ToAllExceptActor, None)
                     case Some(errorMessage) => sendMessage(character, errorMessage)
                 }
             case _ => sendMessage(character, "You don't seem to have any such thing equipped.")
