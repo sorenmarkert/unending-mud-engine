@@ -1,8 +1,6 @@
 package core.gameunit
 
 import core.*
-import core.ActRecipient.ToAllExceptActor
-import core.ActVisibility.Always
 import core.commands.*
 import core.commands.Commands.TimedCommand
 import core.connection.Connection
@@ -24,9 +22,9 @@ sealed trait GameUnit:
 
     private[gameunit] val _contents = ListBuffer.empty[Item]
 
-    def contents = _contents.toSeq
+    def contents: Seq[Item] = _contents.toSeq
 
-    def addItem(itemToAdd: Item) =
+    def addItem(itemToAdd: Item): _contents.type =
         itemToAdd.removeFromContainer()
         itemToAdd._outside = this
         _contents prepend itemToAdd
@@ -34,7 +32,7 @@ sealed trait GameUnit:
     def destroy(using globalState: GlobalState): Unit =
         while _contents.nonEmpty do _contents.head.destroy
 
-    def canContain[T <: GameUnit](unit: Containable[T]) = ??? // TODO: check if can contain/carry
+    def canContain[T <: GameUnit](unit: Containable[T]): Boolean = ??? // TODO: check if can contain/carry
 
     def createItem(name: String, title: String = "", description: String = "")(using globalState: GlobalState): Item =
         val item = Item(name, title, description, this)
@@ -249,7 +247,7 @@ case class Room private[gameunit](id: String, var title: String, var description
         _mobiles prepend playerCharacter
 
         commands.executeCommand(playerCharacter, "look")
-        messageSender.act("$1N has entered the game.", Always, Some(playerCharacter), None, None, ToAllExceptActor, None)
+        messageSender.sendMessageToBystandersOf(playerCharacter, s"${playerCharacter.name} has entered the game.")
 
         playerCharacter
 

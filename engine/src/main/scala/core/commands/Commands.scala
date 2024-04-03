@@ -15,8 +15,8 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
     import equipmentCommands.*
     import messageSender.*
 
-    private val emptyInput = InstantCommand((char, _) => sendMessage(char, ""))
-    private val unknownCommand = InstantCommand((char, _) => sendMessage(char, "What's that?"))
+    private val emptyInput = InstantCommand((char, _) => sendMessageToCharacter(char, ""))
+    private val unknownCommand = InstantCommand((char, _) => sendMessageToCharacter(char, "What's that?"))
 
     private val commandList: Seq[(String, Command)] = Seq(
         "quit" -> InstantCommand(quit),
@@ -35,10 +35,8 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
         "equipment" -> InstantCommand(equipment, canInterrupt = true),
         "examine" -> InstantCommand(examine, canInterrupt = true),
         "get" -> InstantCommand(get),
-        "take" -> InstantCommand(get),
         "drop" -> InstantCommand(drop),
         "put" -> InstantCommand(put),
-        "place" -> InstantCommand(put),
         "give" -> InstantCommand(give),
         "wear" -> InstantCommand(wear),
         "remove" -> InstantCommand(remove),
@@ -46,28 +44,27 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
     )
 
-    def executeCommand(character: Mobile, input: String)(using globalState: GlobalState): String =
+    def executeCommand(character: Mobile, input: String)(using globalState: GlobalState): Unit =
 
         val inputWords = input.split(" ") filterNot (_.isBlank)
 
         val (command, commandWords) =
             inputWords.toList match
                 case "" :: _ | Nil => (emptyInput, Nil)
-                case commandPrefix :: arguments =>
+                case receivedCommandPrefix :: arguments =>
                     commandList
-                        .find { case (k, _) => k.startsWith(commandPrefix.toLowerCase) } // TODO: use a trie
+                        .find { case (commandString, _) => commandString.startsWith(receivedCommandPrefix.toLowerCase) } // TODO: use a trie
                         .map { case (commandString, command) => (command, commandString :: arguments) }
                         .getOrElse((unknownCommand, Nil))
 
         globalState.actorSystem tell CommandExecution(command, character, commandWords)
 
-        commandWords.headOption getOrElse ""
-
 end Commands
+
 
 object Commands:
 
-    type CommandFunction = (Mobile, Seq[String]) => Set[PlayerCharacter]
+    type CommandFunction = (Mobile, Seq[String]) => Seq[PlayerCharacter]
 
     sealed trait Command
 

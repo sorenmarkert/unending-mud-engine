@@ -1,18 +1,18 @@
 package core
 
-import core.ActRecipient.*
 import core.ActVisibility.Always
 import core.connection.WebSocketConnection
 import core.gameunit.*
 import core.gameunit.Gender.{GenderFemale, GenderMale}
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.*
 import org.scalatest.*
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
-class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with BeforeAndAfterEach:
+class MessageSenderTest extends AnyWordSpec with MockitoSugar with Matchers with GivenWhenThen with BeforeAndAfterEach:
 
     given globalState: GlobalState = new GlobalState()
 
@@ -29,9 +29,72 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
     override def beforeEach() =
         globalState.clear()
         when(actingPlayerMock.outside).thenReturn(roomMock)
+        when(targetPlayerMock.outside).thenReturn(roomMock)
+        when(bystanderPlayerMock.outside).thenReturn(roomMock)
         when(roomMock.mobiles).thenReturn(Seq(actingPlayerMock, targetPlayerMock, bystanderPlayerMock))
 
-    "sendMessage()" should {
+    "sendMessageToRoomOf" should {
+
+        "call sendMessageToCharacter on all characters in the same room" in {
+
+            Given("Some characters in a room and a message")
+            val message = "message"
+            val messageSenderSpy = setupSendMessageToCharacterAndSpy(message)
+
+            When("Sending a message to the room of a character")
+            val result = messageSenderSpy.sendMessageToRoomOf(actingPlayerMock, message)
+
+            Then("Only bystanders get sent the message")
+            result shouldBe Seq(actingPlayerMock, targetPlayerMock, bystanderPlayerMock)
+            verify(messageSenderSpy).sendMessageToCharacter(actingPlayerMock, message)
+            verify(messageSenderSpy).sendMessageToCharacter(targetPlayerMock, message)
+            verify(messageSenderSpy).sendMessageToCharacter(bystanderPlayerMock, message)
+
+        }
+    }
+
+    "sendMessageToBystandersOf" should {
+
+        "call sendMessageToCharacter on all given characters" in {
+
+            Given("Some characters in a room and a message")
+            val message = "message"
+            val messageSenderSpy = setupSendMessageToCharacterAndSpy(message)
+
+            When("Sending a message to bystanders of a character")
+            val result = messageSenderSpy.sendMessageToBystandersOf(actingPlayerMock, message)
+
+            Then("Only bystanders get sent the message")
+            result shouldBe Seq(targetPlayerMock, bystanderPlayerMock)
+            verify(messageSenderSpy, never).sendMessageToCharacter(actingPlayerMock, message)
+            verify(messageSenderSpy).sendMessageToCharacter(targetPlayerMock, message)
+            verify(messageSenderSpy).sendMessageToCharacter(bystanderPlayerMock, message)
+
+        }
+    }
+
+    "sendMessageToCharacters" should {
+
+        "call sendMessageToCharacter on all given characters" in {
+
+            Given("Some characters and a message")
+            val characters = Seq(actingPlayerMock, targetPlayerMock, bystanderPlayerMock)
+            val message = "message"
+            val messageSenderSpy = setupSendMessageToCharacterAndSpy(message)
+
+            When("Sending a message to all the characters")
+            val result = messageSenderSpy.sendMessageToCharacters(characters, message)
+
+            Then("All characters get sent the message")
+            result shouldBe characters
+            verify(messageSenderSpy).sendMessageToCharacter(actingPlayerMock, message)
+            verify(messageSenderSpy).sendMessageToCharacter(targetPlayerMock, message)
+            verify(messageSenderSpy).sendMessageToCharacter(bystanderPlayerMock, message)
+
+        }
+    }
+
+    "sendMessageToCharacter" should {
 
         "Capitalize the message" in {
 
@@ -39,7 +102,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
             val connectionMock = setUpConnectionMockOnPlayer(actingPlayerMock)
 
             When("Sending a message starting with a lower case letter")
-            messageSender.sendMessage(actingPlayerMock, "message", addPrompt = false)
+            messageSender.sendMessageToCharacter(actingPlayerMock, "message")
 
             Then("The message is sent capitalized")
             verify(connectionMock).enqueueMessage(Seq("Message"))
@@ -52,7 +115,7 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
 
             When("Sending a message with line breaks")
             val message = "This message\nhas two\nline breaks."
-            messageSender.sendMessage(actingPlayerMock, message, addPrompt = false)
+            messageSender.sendMessageToCharacter(actingPlayerMock, message)
 
             Then("The line breaks are retained")
             verify(connectionMock).enqueueMessage(message.linesIterator.toList)
@@ -114,124 +177,57 @@ class MessageSenderTest extends AnyWordSpec with MockitoSugar with GivenWhenThen
         "Send to controller of an NPC" is pending
     }
 
-    "act()" when {
+    "act" should {
 
-        "Choosing recipient" should {
+        "Replace formatter codes with units and verbs" in {
 
-            "Send message only to Actor" in {
+            Given("Characters in a room")
+            val (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock) = setUpConnections
+            when(actingPlayerMock.name).thenReturn("actorName")
+            when(actingPlayerMock.gender).thenReturn(GenderFemale)
+            when(targetPlayerMock.name).thenReturn("targetName")
+            when(targetPlayerMock.gender).thenReturn(GenderMale)
+            when(mediumItemMock.name).thenReturn("mediumItemName")
 
-                Given("Characters in a room")
-                val (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock) = setUpConnections
+            When("Performing an act with unit and verb formatters")
+            val message = "$1N $[wave|waves] at $3N with $2a $2N, before $1e $[break|breaks] $2e over $3m, $1s best $1t."
+            messageSender.act(
+                message, Always,
+                Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock),
+                Some("enemy"))
 
-                When("Performing an act for Actor")
-                val message = "Message"
-                messageSender.act(message, Always, Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock), ToActor, None)
-
-                Then("It's sent only to Actor")
-                verify(actingPlayerConnectionMock).enqueueMessage(Seq(message))
-                verifyNoInteractions(targetPlayerConnectionMock)
-                verifyNoInteractions(bystanderPlayerConnectionMock)
-            }
-
-            "Send message only to Target" in {
-
-                Given("Characters in a room")
-                val (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock) = setUpConnections
-
-                When("Performing an act for Target")
-                val message = "Message"
-                messageSender.act("message", Always, Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock), ToTarget, None)
-
-                Then("It's sent only to Actor")
-                verifyNoInteractions(actingPlayerConnectionMock)
-                verify(targetPlayerConnectionMock).enqueueMessage(Seq(message))
-                verifyNoInteractions(bystanderPlayerConnectionMock)
-            }
-
-            "Send message only to Bystanders" in {
-
-                Given("Characters in a room")
-                val (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock) = setUpConnections
-
-                When("Performing an act for Bystanders")
-                val message = "Message"
-                messageSender.act("message", Always, Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock), ToBystanders, None)
-
-                Then("It's sent only to Actor")
-                verifyNoInteractions(actingPlayerConnectionMock)
-                verifyNoInteractions(targetPlayerConnectionMock)
-                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message))
-            }
-
-            "Send message only to All Except Actor" in {
-
-                Given("Characters in a room")
-                val (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock) = setUpConnections
-
-                When("Performing an act for All Except Actor")
-                val message = "Message"
-                messageSender.act("message", Always, Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock), ToAllExceptActor, None)
-
-                Then("It's sent only to Actor")
-                verifyNoInteractions(actingPlayerConnectionMock)
-                verify(targetPlayerConnectionMock).enqueueMessage(Seq(message))
-                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message))
-            }
-
-            "Send message only to Entire Room" in {
-
-                Given("Characters in a room")
-                val (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock) = setUpConnections
-
-                When("Performing an act for Entire Room")
-                val message = "Message"
-                messageSender.act("message", Always, Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock), ToEntireRoom, None)
-
-                Then("It's sent only to Actor")
-                verify(actingPlayerConnectionMock).enqueueMessage(Seq(message))
-                verify(targetPlayerConnectionMock).enqueueMessage(Seq(message))
-                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message))
-            }
-        }
-
-        "Using unit formatters" should {
-
-            "Replace units" in {
-
-                Given("Characters in a room")
-                val (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock) = setUpConnections
-                when(actingPlayerMock.name).thenReturn("actorName")
-                when(actingPlayerMock.gender).thenReturn(GenderFemale)
-                when(targetPlayerMock.name).thenReturn("targetName")
-                when(targetPlayerMock.gender).thenReturn(GenderMale)
-                when(mediumItemMock.name).thenReturn("mediumItemName")
-
-                When("Performing an act with unit formatters")
-                val message = "$1N waves at $3N with $2a $2N, before $1e breaks $2e over $3m, $1s best $1t."
-                messageSender.act(
-                    message, Always,
-                    Some(actingPlayerMock), Some(mediumItemMock), Some(targetPlayerMock),
-                    ToBystanders, Some("enemy"))
-
-                Then("It's sent only to Actor")
-                val message1 = "ActorName waves at targetName with a"
-                val message2 = "mediumItemName, before she breaks it over him, her"
-                val message3 = "best enemy."
-                verify(bystanderPlayerConnectionMock).enqueueMessage(Seq(message1, message2, message3))
-            }
+            Then("It's sent only to Actor")
+            val expectedMessageForActor =
+                """You wave at targetName with a mediumItemName,
+                  |before you break it over him, your best enemy.""".stripMargin.linesIterator.toSeq
+            val expectedMessageForTarget =
+                """ActorName waves at you with a mediumItemName,
+                  |before she breaks it over you, her best enemy.""".stripMargin.linesIterator.toSeq
+            val expectedMessageForBystander =
+                """ActorName waves at targetName with a
+                  |mediumItemName, before she breaks it over him, her
+                  |best enemy.""".stripMargin.linesIterator.toSeq
+            verify(actingPlayerConnectionMock).enqueueMessage(expectedMessageForActor)
+            verify(targetPlayerConnectionMock).enqueueMessage(expectedMessageForTarget)
+            verify(bystanderPlayerConnectionMock).enqueueMessage(expectedMessageForBystander)
         }
     }
 
-    private def setUpConnectionMockOnPlayer(playerMock: PlayerCharacter) = {
+    private def setupSendMessageToCharacterAndSpy(message: String): MessageSender =
+        val messageSenderSpy = spy(classOf[MessageSender])
+        doReturn(Seq(actingPlayerMock)).when(messageSenderSpy).sendMessageToCharacter(actingPlayerMock, message)
+        doReturn(Seq(targetPlayerMock)).when(messageSenderSpy).sendMessageToCharacter(targetPlayerMock, message)
+        doReturn(Seq(bystanderPlayerMock)).when(messageSenderSpy).sendMessageToCharacter(bystanderPlayerMock, message)
+        messageSenderSpy
+
+    private def setUpConnectionMockOnPlayer(playerMock: PlayerCharacter): WebSocketConnection =
         val connectionMock = mock[WebSocketConnection]
         when(connectionMock.substituteColourCodes(any())).thenCallRealMethod()
         when(playerMock.connection).thenReturn(connectionMock)
         connectionMock
-    }
 
-    private def setUpConnections = {
+    private def setUpConnections: (WebSocketConnection, WebSocketConnection, WebSocketConnection) =
         val actingPlayerConnectionMock = setUpConnectionMockOnPlayer(actingPlayerMock)
         val targetPlayerConnectionMock = setUpConnectionMockOnPlayer(targetPlayerMock)
         val bystanderPlayerConnectionMock = setUpConnectionMockOnPlayer(bystanderPlayerMock)
         (actingPlayerConnectionMock, targetPlayerConnectionMock, bystanderPlayerConnectionMock)
-    }

@@ -1,6 +1,5 @@
 package core.gameunit
 
-import core.ActRecipient.ToAllExceptActor
 import core.ActVisibility.Always
 import core.MessageSender
 import core.commands.Commands
@@ -151,8 +150,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             And("The player looks")
             verify(commandsMock).executeCommand(newPlayer, "look")
 
-            And("")
-            verify(messageSenderMock).act("$1N has entered the game.", Always, Some(newPlayer), None, None, ToAllExceptActor, None)
+            And("Surrounding players see the player enter the game")
+            verify(messageSenderMock).sendMessageToBystandersOf(newPlayer, "newPlayer has entered the game.")
         }
     }
 
@@ -402,7 +401,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         }
     }
 
-    "Item.findInside()" should {
+    "Item.findInside" should {
 
         "Find an item inside" in {
 
@@ -494,7 +493,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         }
     }
 
-    "Room.findItem()" should {
+    "Room.findItem" should {
 
         "Find an item inside" in {
 
@@ -515,7 +514,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         }
     }
 
-    "Room.findMobile()" should {
+    "Room.findMobile" should {
 
         "Find a mobile inside" in {
 
@@ -536,7 +535,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         }
     }
 
-    "Mobile.find*()" should {
+    "Mobile.find*" should {
 
         "Find an item next to the character" in {
 

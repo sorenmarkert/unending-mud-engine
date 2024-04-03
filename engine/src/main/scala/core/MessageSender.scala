@@ -1,16 +1,30 @@
 package core
 
-import core.ActRecipient.*
 import core.MiniMap.*
 import core.gameunit.*
 import core.gameunit.Gender.*
 import core.util.MessagingUtils.{groupedIgnoringColourCodes, substituteColours, unitDisplay}
 
+import scala.util.matching.Regex
+
 class MessageSender:
+
+    val nounPattern: Regex = "\\$([1-3])([aemsnNpt])".r
+    val verbPattern: Regex = "\\$\\[(\\w+)\\|(\\w+)]".r
 
     val textWidth = 50
 
-    def sendMessage(character: Mobile, message: String, addMiniMap: Boolean = false, addPrompt: Boolean = true) =
+    def sendMessageToRoomOf(character: Mobile, message: String): Seq[PlayerCharacter] =
+        character.outside.mobiles.flatMap(c => sendMessageToCharacter(c, message))
+
+    def sendMessageToBystandersOf(character: Mobile, message: String): Seq[PlayerCharacter] =
+        val characters = character.outside.mobiles.filterNot(_ == character)
+        characters.flatMap(c => sendMessageToCharacter(c, message))
+
+    def sendMessageToCharacters(characters: Seq[Mobile], message: String): Seq[PlayerCharacter] =
+        characters.flatMap(c => sendMessageToCharacter(c, message))
+
+    def sendMessageToCharacter(character: Mobile, message: String): Seq[PlayerCharacter] =
 
         lazy val formattedMessageLines =
             message
@@ -23,9 +37,9 @@ class MessageSender:
             case pc: PlayerCharacter =>
                 pc.connection.enqueueMessage(
                     formattedMessageLines.map(substituteColours(_, pc.connection.substituteColourCodes)))
-                Set(pc)
-            case _ => Set() // TODO: send to controlling admin
-    end sendMessage
+                Seq(pc)
+            case _ => Seq() // TODO: send to controlling admin
+    end sendMessageToCharacter
 
     def sendAllEnqueuedMessages(character: Mobile, addMiniMap: Boolean = false, addPrompt: Boolean = true): Unit =
 
@@ -37,66 +51,79 @@ class MessageSender:
             case _ => Seq()
 
         character match
-            case pc: PlayerCharacter => pc.connection.sendEnqueuedMessages(promptLines, mapLines)
+            case pc: PlayerCharacter =>
+                def subColours = substituteColours(_, pc.connection.substituteColourCodes)
+                pc.connection.sendEnqueuedMessages(
+                    promptLines.map(subColours),
+                    mapLines.map(subColours))
             case _ => // TODO: send to controlling admin
+    end sendAllEnqueuedMessages
 
-    // TODO: can we get rid of toWhom, and format $[split, splits] instead? with $1n and $3n becoming 'you'?
     def act(message: String, visibility: ActVisibility,
-            actor: Option[Mobile], medium: Option[Findable], target: Option[Findable],
-            toWhom: ActRecipient, text: Option[String]): Set[PlayerCharacter] =
+            actor: Option[Mobile], medium: Option[Findable] = None, target: Option[Findable] = None,
+            text: Option[String] = None): Seq[PlayerCharacter] =
 
-        def charactersInRoom =
-            actor map (_.outside.mobiles) getOrElse Seq()
+        def isSame(unitA: GameUnit, unitB: Option[Findable]) =
+            unitB.contains(unitA)
 
-        def isSame(unitA: GameUnit, unitB: Option[GameUnit]) =
-            unitB contains unitA
+        val charactersInRoom = actor.toSeq.flatMap(_.outside.mobiles)
+        val bystanders = charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
 
-        val recipients =
-            toWhom match
-                case ToActor => actor.toSeq
-                case ToTarget => target match
-                    case Some(m: Mobile) => Seq(m)
-                    case _ => Seq()
-                case ToBystanders => charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
-                case ToAllExceptActor => charactersInRoom filterNot (isSame(_, actor))
-                case ToEntireRoom => charactersInRoom
-
-        def formatGender(unit: Findable, genderToNoun: Gender => String) =
-            unit match
-                case character: Mobile => genderToNoun(character.gender)
-                case _ => genderToNoun(GenderNeutral)
-
-        def formatUnit(unit: Findable, formatter: String) =
-            formatter match // TODO: visibility
-                case "a" => if Set('a', 'e', 'i', 'o') contains unit.name.head then "an" else "a"
+        def format3rdPersonUnit(unit: Findable, formatterLetter: String) =
+            formatterLetter match // TODO: visibility
+                case "a" => if Set('a', 'e', 'i', 'o').contains(unit.name.head) then "an" else "a"
                 case "e" => formatGender(unit, _.subject)
                 case "m" => formatGender(unit, _.obJect)
                 case "s" => formatGender(unit, _.possessive)
                 case "n" => unitDisplay(unit, includePlayerTitle = false)
                 case "N" => unit.name
                 case "p" => "unit.position" // TODO: positions
-                case "t" => text getOrElse "null"
-                case _ => "[invalidFormatter]"
+                case "t" => text.getOrElse("null")
 
-        val nounPattern = "\\$([1-3])([aemsnNpt])".r
-        val recipientUnits = Array(actor, medium, target)
+        def formatGender(unit: Findable, genderToNoun: Gender => String) =
+            unit match
+                case character: Mobile => genderToNoun(character.gender)
+                case _ => genderToNoun(GenderNeutral)
 
-        def replaceUnits(msg: String) = nounPattern.replaceAllIn(msg, _ match
-            case nounPattern(unitIndex, formatter) =>
-                recipientUnits(unitIndex.toInt - 1)
-                    .map(formatUnit(_, formatter))
-                    .getOrElse("[null]"))
+        def format2ndPersonUnit(unit: Findable, formatterLetter: String) =
+            formatterLetter match // TODO: visibility
+                case "a" => ""
+                case "s" => "your"
+                case "e" | "m" | "n" | "N" => "you"
+                case "p" => "unit.position" // TODO: positions
+                case "t" => text.getOrElse("null")
 
-        recipients.flatMap(sendMessage(_, replaceUnits(message))).toSet
+        val nounUnits = Map("1" -> actor, "2" -> medium, "3" -> target)
+
+        def replaceFormatters(msg: String, indexOf2ndPerson: String) = {
+            val messageWithNouns = nounPattern.replaceAllIn(msg, {
+                case nounPattern(unitIndex, formatterLetter) =>
+                    val formatUnit = if unitIndex == indexOf2ndPerson then format2ndPersonUnit else format3rdPersonUnit
+                    nounUnits(unitIndex)
+                        .map(formatUnit(_, formatterLetter))
+                        .getOrElse("[None]")
+            })
+            val messageWithNounsAndVerbs = verbPattern.replaceAllIn(messageWithNouns, {
+                case verbPattern(secondPerson, thirdPerson) =>
+                    if indexOf2ndPerson == "1" then secondPerson else thirdPerson
+            })
+            messageWithNounsAndVerbs
+        }
+
+        val actorRecipient = actor.toSeq.flatMap(sendMessageToCharacter(_, replaceFormatters(message, "1")))
+        val bystanderRecipients = bystanders.flatMap(sendMessageToCharacter(_, replaceFormatters(message, "")))
+        val targetRecipient = (target match {
+            case Some(m: Mobile) => Seq(m)
+            case _ => Seq()
+        }).flatMap(sendMessageToCharacter(_, replaceFormatters(message, "3")))
+
+        actorRecipient ++ bystanderRecipients ++ targetRecipient
     end act
 
 
 object MessageSender:
     given MessageSender = new MessageSender
 
-
-enum ActRecipient:
-    case ToActor, ToTarget, ToBystanders, ToAllExceptActor, ToEntireRoom
 
 enum ActVisibility:
     case Always, Someone, HideInvisible
@@ -113,4 +140,4 @@ enum Colour:
     case Reset
 
 object Colour:
-    val colourCodePattern = "\\$" + Colour.values.map(_.toString).mkString("(", "|", ")")
+    val colourCodePattern: String = "\\$" + Colour.values.map(_.toString).mkString("(", "|", ")")

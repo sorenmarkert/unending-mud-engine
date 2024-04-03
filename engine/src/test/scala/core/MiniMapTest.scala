@@ -13,7 +13,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
     override def beforeEach() =
         globalState.clear()
 
-    "miniMap()" should {
+    "miniMap" should {
 
         "Map the zero range map" in {
 
@@ -174,7 +174,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
         }
     }
 
-    "frameMiniMap()" should {
+    "frameMiniMap" should {
 
         "frame a given mini map" in {
 
@@ -208,7 +208,7 @@ class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with Befo
                 "\\-------------/")
         }
     }
-    "colourMiniMap()" should {
+    "colourMiniMap" should {
 
         "colour a given mini map" in {
 

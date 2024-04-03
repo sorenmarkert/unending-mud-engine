@@ -8,6 +8,8 @@ import java.net.Socket
 
 class TelnetConnection(private val socket: Socket) extends Connection:
 
+    private val usualMiniMapWidth = 21
+
     private val reader = new BufferedReader(new InputStreamReader(socket.getInputStream))
     private val writer = new PrintWriter(socket.getOutputStream, true)
 
@@ -48,7 +50,7 @@ class TelnetConnection(private val socket: Socket) extends Connection:
 
     private def combineMessageWithPromptAndMiniMap(message: Seq[String], prompt: Seq[String], miniMap: Seq[String]) =
 
-        val miniMapWidth = miniMap.map(_.length).maxOption.getOrElse(0)
+        val miniMapWidth = miniMap.map(_.length).maxOption.getOrElse(usualMiniMapWidth)
         val miniMapWideSpace = "".padTo(miniMapWidth, ' ')
         val miniMapOfFinalHeight = miniMap.padTo(message.size + prompt.size, miniMapWideSpace)
 

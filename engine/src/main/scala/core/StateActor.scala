@@ -22,6 +22,7 @@ case class CommandExecution(command: Command, character: gameunit.Mobile, argume
 case class Interrupt(character: gameunit.Mobile) extends StateActorMessage
 
 
+// TODO: unit test
 object StateActor extends SLF4JLogging:
 
     private val tickInterval = 100.milliseconds // TODO: make configurable
@@ -43,6 +44,7 @@ object StateActor extends SLF4JLogging:
     private def handleActorMessage(context: ActorContext[StateActorMessage])(using globalState: GlobalState, messageSender: MessageSender): Behavior[StateActorMessage] =
         receiveMessage {
             case commandExecution: CommandExecution =>
+                // TODO: one command per character per tick
                 log.info("Received command: " + commandExecution.argument.mkString(" "))
                 commandQueue append commandExecution
                 same
