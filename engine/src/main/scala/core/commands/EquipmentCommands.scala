@@ -15,10 +15,10 @@ class EquipmentCommands(using messageSender: MessageSender):
 
     private[commands] def equipment(character: Mobile, commandWords: Seq[String]) =
         val lines = ItemSlot.values.map { slot =>
-            val slotDisplay = s"<${slot.display}>$$s" + (24 - slot.display.length)
-            s"$$BrightWhite$slotDisplay ${character.equippedAt(slot).map(_.title).getOrElse("-nothing-")}"
+            val slotDisplay = s"${slot.display}:$$s" + (22 - slot.display.length)
+            val itemDisplay = character.equippedAt(slot).map(_.title).getOrElse("-nothing-")
+            s"$$BrightWhite$slotDisplay $itemDisplay"
         }
-        // TODO: display item slots
         val titles = joinOrElse(lines, "\n", "Nothing.")
         sendMessageToCharacter(character, "$BrightBlueYou are using:\n" + titles + "$Reset")
 
@@ -100,10 +100,13 @@ class EquipmentCommands(using messageSender: MessageSender):
             case "examine" :: argumentWords =>
                 character.findItemInOrNextToMe(argumentWords mkString " ") match {
                     case Some(itemToExamine) =>
-                        sendMessageToCharacter(character, "You examine the %s.\n%s\nIt contains:\n%s".format(
-                            itemToExamine.name,
-                            itemToExamine.description,
-                            joinOrElse(collapseDuplicates(itemToExamine.contents map (unitDisplay(_))), "\n", "Nothing.")))
+                        val itemsDisplay = joinOrElse(collapseDuplicates(itemToExamine.contents map (unitDisplay(_))), "\n", "Nothing.")
+                        sendMessageToCharacter(
+                            character,
+                            s"""You examine the ${itemToExamine.name}.
+                               |${itemToExamine.description}
+                               |It contains:
+                               |$itemsDisplay""".stripMargin)
                     case None => sendMessageToCharacter(character, "No such thing here to look inside.")
                 }
         }

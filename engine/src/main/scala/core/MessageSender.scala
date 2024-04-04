@@ -9,8 +9,8 @@ import scala.util.matching.Regex
 
 class MessageSender:
 
-    val nounPattern: Regex = "\\$([1-3])([aemsnNpt])".r
-    val verbPattern: Regex = "\\$\\[(\\w+)\\|(\\w+)]".r
+    val nounRegex: Regex = "\\$([1-3])([aemsnNpt])".r
+    val verbRegex: Regex = "\\$\\[(\\w+)\\|(\\w+)]".r
 
     val textWidth = 50
 
@@ -96,15 +96,15 @@ class MessageSender:
         val nounUnits = Map("1" -> actor, "2" -> medium, "3" -> target)
 
         def replaceFormatters(msg: String, indexOf2ndPerson: String) = {
-            val messageWithNouns = nounPattern.replaceAllIn(msg, {
-                case nounPattern(unitIndex, formatterLetter) =>
+            val messageWithNouns = nounRegex.replaceAllIn(msg, {
+                case nounRegex(unitIndex, formatterLetter) =>
                     val formatUnit = if unitIndex == indexOf2ndPerson then format2ndPersonUnit else format3rdPersonUnit
                     nounUnits(unitIndex)
                         .map(formatUnit(_, formatterLetter))
                         .getOrElse("[None]")
             })
-            val messageWithNounsAndVerbs = verbPattern.replaceAllIn(messageWithNouns, {
-                case verbPattern(secondPerson, thirdPerson) =>
+            val messageWithNounsAndVerbs = verbRegex.replaceAllIn(messageWithNouns, {
+                case verbRegex(secondPerson, thirdPerson) =>
                     if indexOf2ndPerson == "1" then secondPerson else thirdPerson
             })
             messageWithNounsAndVerbs

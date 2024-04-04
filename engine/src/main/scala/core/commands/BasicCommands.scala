@@ -37,17 +37,20 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 // TODO: adjust for character position
                 sendMessageToCharacter(
                     character,
-                    "$BrightWhite%s$Reset\n   %s\n$BrightYellowExits: %s$Reset\n%s".format(
-                        room.title, room.description, exits, titles mkString "\n"))
+                    s"""$$BrightWhite${room.title}$$Reset
+                       |$$s3${room.description}
+                       |$$BrightYellowExits: $exits$$Reset
+                       |${titles mkString "\n"}""".stripMargin)
 
             case "look" :: ("in" | "inside") :: Nil => sendMessageToCharacter(character, "Look inside what?")
             case "look" :: ("in" | "inside") :: argumentWords =>
                 character.findItemInOrNextToMe(argumentWords mkString " ") match {
                     case None => sendMessageToCharacter(character, "No such thing here to look inside.")
                     case Some(unitToLookAt) =>
-                        sendMessageToCharacter(character, "You look inside the %s. It contains:\n%s".format(
-                            unitToLookAt.name,
-                            joinOrElse(collapseDuplicates(unitToLookAt.contents map (unitDisplay(_))), "\n", "Nothing.")))
+                        val itemsDisplay = joinOrElse(collapseDuplicates(unitToLookAt.contents map (unitDisplay(_))), "\n", "Nothing.")
+                        sendMessageToCharacter(character,
+                            s"""You look inside the ${unitToLookAt.name}. It contains:
+                               |$itemsDisplay""".stripMargin)
                 }
 
             case "look" :: "at" :: Nil => sendMessageToCharacter(character, "Look at what?")
@@ -55,14 +58,19 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 val arg = if commandWords(1) == "at" then commandWords drop 2 else commandWords.tail
 
                 character.findInOrNextToMe(arg mkString " ") match
-                    case Some(unitToLookAt: Mobile) => sendMessageToCharacter(character, "You look at the %s.\n%s\n%s".format(
-                        unitToLookAt.name,
-                        unitToLookAt.description,
+                    case Some(unitToLookAt: Mobile) =>
                         // TODO: display item slots
-                        unitToLookAt.equippedItems map (_.title) mkString "\n"))
-                    case Some(unitToLookAt) => sendMessageToCharacter(character, "You look at the %s.\n%s".format(
-                        unitToLookAt.name,
-                        unitToLookAt.description))
+                        val itemsDisplay = unitToLookAt.equippedItems map (_.title) mkString "\n"
+                        sendMessageToCharacter(
+                            character,
+                            s"""You look at the ${unitToLookAt.name}.
+                               |${unitToLookAt.description}
+                               |$itemsDisplay""".stripMargin)
+                    case Some(unitToLookAt) =>
+                        sendMessageToCharacter(
+                            character,
+                            s"""You look at the ${unitToLookAt.name}.
+                               |${unitToLookAt.description}""".stripMargin)
                     case None => sendMessageToCharacter(character, "No such thing here to look at.")
     end look
 

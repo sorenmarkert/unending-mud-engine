@@ -6,6 +6,7 @@ import core.gameunit.{GameUnit, PlayerCharacter}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.LinkedHashMap
+import scala.util.matching.Regex
 
 object MessagingUtils:
 
@@ -52,11 +53,16 @@ object MessagingUtils:
                     reduce(restWords, newAccu, newAccuLength)
                 case _ => accumulated
 
-        reduce(message.split(' ').filterNot(_.isBlank).toList, "", 0).linesIterator
+        reduce(message.split(' ').filterNot(_.isBlank).map(substituteSpaces).toList, "", 0).linesIterator
 
-    def substituteColours(msg: String, mapper: Colour => String) = {
+    def substituteColours(message: String, mapper: Colour => String) =
         val colourCodeRegex = colourCodePattern.r
-        colourCodeRegex.replaceAllIn(msg, _ match
-            case colourCodeRegex(colourCode) =>
-                mapper(Colour.valueOf(colourCode)))
-    }
+        colourCodeRegex.replaceAllIn(message, {
+            case colourCodeRegex(colourCode) => mapper(Colour.valueOf(colourCode))
+        })
+
+    private def substituteSpaces(message: String) =
+        val spacesRegex: Regex = "\\$s(\\d+)".r
+        spacesRegex.replaceAllIn(message, {
+            case spacesRegex(colourCode) => "".padTo(colourCode.toInt, ' ')
+        })

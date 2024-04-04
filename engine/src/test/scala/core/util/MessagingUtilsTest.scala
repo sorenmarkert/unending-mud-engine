@@ -157,6 +157,21 @@ class MessagingUtilsTest extends AnyWordSpec with MockitoSugar with GivenWhenThe
             Then("Word wrap counts the message without formatting")
             result.toSeq shouldBe Seq(message1, message2)
         }
+
+        "Replace space formatters" in {
+
+            Given("A long message with space formatters")
+            val message1 = "This message has$s10space formatters and it"
+            val message2 = "continues in$s10the next string."
+
+            When("Grouping the message")
+            val result = groupedIgnoringColourCodes(message1 + " " + message2, 50)
+
+            Then("Word wrap counts the message without formatting")
+            val expectedMessage1 = "This message has          space formatters and it"
+            val expectedMessage2 = "continues in          the next string."
+            result.toSeq shouldBe Seq(expectedMessage1, expectedMessage2)
+        }
     }
 
     "substituteColours" should {
