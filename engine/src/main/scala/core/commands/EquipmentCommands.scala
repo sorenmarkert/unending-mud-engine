@@ -14,9 +14,13 @@ class EquipmentCommands(using messageSender: MessageSender):
         sendMessageToCharacter(character, "You are carrying:\n" + titles)
 
     private[commands] def equipment(character: Mobile, commandWords: Seq[String]) =
+        val lines = ItemSlot.values.map { slot =>
+            val slotDisplay = s"<${slot.display}>$$s" + (24 - slot.display.length)
+            s"$$BrightWhite$slotDisplay ${character.equippedAt(slot).map(_.title).getOrElse("-nothing-")}"
+        }
         // TODO: display item slots
-        val titles = joinOrElse(character.equippedItems map (_.title), "\n", "Nothing.")
-        sendMessageToCharacter(character, "You are using:\n" + titles)
+        val titles = joinOrElse(lines, "\n", "Nothing.")
+        sendMessageToCharacter(character, "$BrightBlueYou are using:\n" + titles + "$Reset")
 
     private[commands] def get(character: Mobile, commandWords: Seq[String]) =
 
@@ -46,12 +50,11 @@ class EquipmentCommands(using messageSender: MessageSender):
     end get
 
     private[commands] def drop(character: Mobile, commandWords: Seq[String]) =
-        character.findInInventory(commandWords.tail mkString " ") match {
+        character.findInInventory(commandWords.tail mkString " ") match
             case Some(target) =>
                 character.outside.addItem(target)
                 act("$1N $[drop|drops] $1s $2N.", Always, Some(character), Some(target))
             case None => sendMessageToCharacter(character, "You don't seem to have any such thing.")
-        }
 
     private[commands] def put(character: Mobile, commandWords: Seq[String]) =
         // TODO: check if can contain
@@ -119,7 +122,7 @@ class EquipmentCommands(using messageSender: MessageSender):
         character.findInEquipped(commandWords.tail mkString " ") match {
             case Some(target) =>
                 character.remove(target) match {
-                    case None => act("$1N $[$[|removes] $1s $2N.", Always, Some(character), Some(target))
+                    case None => act("$1N $[remove|removes] $1s $2N.", Always, Some(character), Some(target))
                     case Some(errorMessage) => sendMessageToCharacter(character, errorMessage)
                 }
             case _ => sendMessageToCharacter(character, "You don't seem to have any such thing equipped.")

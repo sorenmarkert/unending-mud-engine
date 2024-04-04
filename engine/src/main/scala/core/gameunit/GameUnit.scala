@@ -80,9 +80,7 @@ sealed trait Containable[In <: GameUnit] extends GameUnit:
 
 sealed trait Mobile extends Containable[Room]:
 
-    // TODO: bi-map?
     private val _equipped = LinkedHashMap[ItemSlot, Item]()
-    private val _equippedReverse = LinkedHashMap[Item, ItemSlot]()
 
     override private[gameunit] def removeFromContainer(): Unit =
         _outside._mobiles subtractOne this
@@ -95,8 +93,7 @@ sealed trait Mobile extends Containable[Room]:
 
     override def destroy(using globalState: GlobalState): Unit =
         super.destroy
-        _equippedReverse.clear()
-        while _equipped.nonEmpty do _equipped.head._2.destroy
+        _equipped.iterator.foreach { case (_, item) => item.destroy}
         removeFromContainer()
 
     def equippedItems: Seq[Item] = contents filter _equipped.values.toList.contains
@@ -106,22 +103,19 @@ sealed trait Mobile extends Containable[Room]:
     def equippedAt(itemSlot: ItemSlot): Option[Item] = _equipped get itemSlot
 
     def equip(item: Item): Option[String] =
-        // TODO: should equipped items be in contents?
         item.itemSlot match
             case Some(_) if !(inventory contains item) => Some("You can only equip items from your inventory.")
             case Some(itemSlot) if _equipped contains itemSlot => Some("You already have something equipped there.")
             case Some(itemSlot) =>
                 _equipped addOne (itemSlot -> item)
-                _equippedReverse addOne (item -> itemSlot)
                 None
             case None => Some("This item cannot be equipped.")
 
     def remove(item: Item): Option[String] =
-        _equippedReverse remove item match
-            case Some(value) =>
-                _equipped remove value
-                None
-            case None => Some("You don't have that item equipped.")
+        item.itemSlot
+            .map(_equipped.remove) match
+                case Some(_) => None
+                case None => Some("You don't have that item equipped.")
 
     def findInInventory(searchString: String): Option[Item] =
         findUnit(searchString, contents)

@@ -80,7 +80,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             Given("An room containing an mobile containing an item")
             val room = Room("roomWithMobileWithItem")
             val mobileToBeDestroyed = room.createNonPlayerCharacter("mobileToBeDestroyed")
-            val containedItem = mobileToBeDestroyed.createItem("containedItem")
+            val containedItem1 = mobileToBeDestroyed.createItem("containedItem1")
+            val containedItem2 = mobileToBeDestroyed.createItem("containedItem2")
 
             When("The mobile is destroyed")
             mobileToBeDestroyed.destroy
@@ -90,7 +91,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             mobileToBeDestroyed.contents shouldBe empty
 
             And("On the global list")
-            globalState.global should contain noElementsOf Set(mobileToBeDestroyed, containedItem)
+            globalState.global should contain noElementsOf Set(mobileToBeDestroyed, containedItem1, containedItem2)
         }
     }
 
@@ -359,31 +360,39 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
         }
     }
 
-    "Removing an item" should {
+    "Removing an equipped item" should {
 
-        "Placed it in the inventory" in {
+        "Place it in the inventory" in {
 
             Given("A character with an equipped item")
             val room = Room("room")
             val character = room.createNonPlayerCharacter("character")
-            val item = character.createItem("item")
-            item.itemSlot = Some(ItemSlotHead)
-            character.equip(item)
+            val item1 = character.createItem("item1")
+            val item2 = character.createItem("item2")
+            item1.itemSlot = Some(ItemSlotHead)
+            item2.itemSlot = Some(ItemSlotFeet)
+            character.equip(item1)
+            character.equip(item2)
 
-            When("The character removes the item")
-            val result = character.remove(item)
+            When("The character removes the items")
+            val result1 = character.remove(item1)
+            val result2 = character.remove(item2)
 
             Then("It is placed in the character's inventory")
-            character.inventory should contain(item)
+            character.inventory should contain(item1)
+            character.inventory should contain(item2)
 
             And("The character no longer has the item equipped")
-            character.equippedItems should not contain item
+            character.equippedItems should not contain item1
+            character.equippedItems should not contain item2
 
             And("The item is not equipped")
-            item.isEquipped shouldBe false
+            item1.isEquipped shouldBe false
+            item2.isEquipped shouldBe false
 
             And("No error message was returned")
-            result shouldBe None
+            result1 shouldBe None
+            result2 shouldBe None
         }
 
         "Return an error when it's not equipped" in {

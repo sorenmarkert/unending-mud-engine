@@ -36,6 +36,7 @@ object MessagingUtils:
     def groupedIgnoringColourCodes(message: String, size: Int): Iterator[String] =
 
         // TODO: account for msg containing \n
+        // TODO: add formatter code for spaces
         @tailrec
         def reduce(words: List[String], accumulated: String, accumulatedLength: Int): String =
             words match

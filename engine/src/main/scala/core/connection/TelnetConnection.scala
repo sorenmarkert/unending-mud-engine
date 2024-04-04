@@ -13,21 +13,21 @@ class TelnetConnection(private val socket: Socket) extends Connection:
     private val reader = new BufferedReader(new InputStreamReader(socket.getInputStream))
     private val writer = new PrintWriter(socket.getOutputStream, true)
 
-    override def readLine() = reader.readLine()
+    override def readLine(): String = reader.readLine()
 
-    override def sendEnqueuedMessages(prompt: Seq[String], miniMap: Seq[String]) =
+    override def sendEnqueuedMessages(prompt: Seq[String], miniMap: Seq[String]): Unit =
         writer.println(combineMessageWithPromptAndMiniMap(messageQueue.toSeq, prompt, miniMap))
         messageQueue.clear()
 
 
-    override def close() =
+    override def close(): Unit =
         socket.close()
         reader.close()
         writer.close()
 
-    override def isClosed = socket.isClosed
+    override def isClosed: Boolean = socket.isClosed
 
-    override def substituteColourCodes(colour: Colour) =
+    override def substituteColourCodes(colour: Colour): String =
         // ANSI colour codes https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
         colour match
             case Black => "\u001b[30m"
