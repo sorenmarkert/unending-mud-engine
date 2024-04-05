@@ -40,7 +40,7 @@ sealed trait GameUnit:
         globalState.global prepend item
         item
 
-    protected def findUnit[T <: Findable](searchString: String, listToSearch: Seq[T]) =
+    protected def findUnit[T <: Findable](searchString: String, listToSearch: Seq[T]): Option[T] =
 
         lazy val (index, searchStringWithoutIndex) =
             val indexSplit = searchString.split("\\.", 2)

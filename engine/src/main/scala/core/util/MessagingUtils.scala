@@ -10,19 +10,19 @@ import scala.util.matching.Regex
 
 object MessagingUtils:
 
-    def joinOrElse(strings: Iterable[String], separator: String = "\n", default: String = "Nothing.") =
+    def joinOrElse(strings: Iterable[String], separator: String = "\n", default: String = "Nothing."): String =
         if strings.isEmpty then
             default
         else
             strings mkString separator
 
-    def unitDisplay(unit: GameUnit, includePlayerTitle: Boolean = true) =
+    def unitDisplay(unit: GameUnit, includePlayerTitle: Boolean = true): String =
         (unit, includePlayerTitle) match
             case (player: PlayerCharacter, true) => player.name + " " + player.title
             case (player: PlayerCharacter, false) => player.name
             case _ => unit.title
 
-    def collapseDuplicates(names: Seq[String]) =
+    def collapseDuplicates(names: Seq[String]): Seq[String] =
 
         val namesWithCounts = LinkedHashMap[String, Int]().withDefaultValue(0)
 
@@ -33,7 +33,7 @@ object MessagingUtils:
             case (a, i) => s"[x$i] $a"
         }).toSeq
 
-    def getEquipmentDisplay(character: Mobile) =
+    def getEquipmentDisplay(character: Mobile): Array[String] =
         val slotMaxLength = ItemSlot.values.map(_.display.length).max
         ItemSlot.values.map { slot =>
             val slotDisplay = s"${slot.display}:$$s" + (slotMaxLength + 3 - slot.display.length)
@@ -60,13 +60,13 @@ object MessagingUtils:
 
         reduce(message.split(' ').filterNot(_.isBlank).map(substituteSpaces).toList, "", 0).linesIterator
 
-    def substituteColours(message: String, mapper: Colour => String) =
+    def substituteColours(message: String, mapper: Colour => String): String =
         val colourCodeRegex = colourCodePattern.r
         colourCodeRegex.replaceAllIn(message, {
             case colourCodeRegex(colourCode) => mapper(Colour.valueOf(colourCode))
         })
 
-    private def substituteSpaces(message: String) =
+    private def substituteSpaces(message: String): String =
         val spacesRegex: Regex = "\\$s(\\d+)".r
         spacesRegex.replaceAllIn(message, {
             case spacesRegex(colourCode) => "".padTo(colourCode.toInt, ' ')

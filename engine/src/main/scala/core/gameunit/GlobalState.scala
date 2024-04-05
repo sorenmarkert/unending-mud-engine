@@ -5,19 +5,20 @@ import core.*
 import core.gameunit.*
 import core.gameunit.RunState.Starting
 
+import scala.collection.mutable
 import scala.collection.mutable.{Clearable, LinkedHashMap, ListBuffer}
 
 class GlobalState extends Clearable:
 
     var runState: RunState = Starting
 
-    val global = ListBuffer[Findable]()
-    val rooms = LinkedHashMap[String, Room]()
-    val players = LinkedHashMap[String, PlayerCharacter]()
+    val global: ListBuffer[Findable] = ListBuffer[Findable]()
+    val rooms: mutable.Map[String, Room] = mutable.LinkedHashMap[String, Room]()
+    val players: mutable.Map[String, PlayerCharacter] = mutable.LinkedHashMap[String, PlayerCharacter]()
 
-    def clear() = Seq(global, players, rooms) foreach (_.clear)
+    def clear(): Unit = Seq(global, players, rooms) foreach (_.clear)
 
-    val actorSystem = ActorSystem(StateActor(), "unending")
+    val actorSystem: ActorSystem[StateActorMessage] = ActorSystem(StateActor(), "unending")
 
 
 object GlobalState:

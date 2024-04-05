@@ -28,7 +28,7 @@ object GameEngineSetup extends SLF4JLogging:
     given Commands = new Commands
 
 
-    @main def startEngine: Unit =
+    @main def startEngine(): Unit =
 
         log.info("Starting the Unending MUD Engine.")
 

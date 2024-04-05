@@ -22,7 +22,7 @@ object TelnetServer extends SLF4JLogging:
 
         log.info("Starting telnet client on port " + port)
 
-        def initConnection(socket: Socket) =
+        def initConnection(socket: Socket): Unit =
             val startingRoom = rooms.head._2
             val player = startingRoom.createPlayerCharacter("player1", TelnetConnection(socket))
             log.info(s"Connection from ${player.name}@${socket.getInetAddress.getHostAddress}")

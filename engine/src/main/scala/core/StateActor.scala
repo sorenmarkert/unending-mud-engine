@@ -14,11 +14,11 @@ import scala.concurrent.duration.DurationInt
 
 sealed trait StateActorMessage
 
-case object Tick extends StateActorMessage
-
 case class CommandExecution(command: Command, character: gameunit.Mobile, argument: List[String]) extends StateActorMessage
 
 case class Interrupt(character: gameunit.Mobile) extends StateActorMessage
+
+case object Tick extends StateActorMessage
 
 
 object StateActor extends SLF4JLogging:
@@ -60,8 +60,14 @@ object StateActor extends SLF4JLogging:
     private def executeQueuedCommands()(using messageSender: MessageSender): Unit = {
 
         val playerCharactersWhoReceivedMessages = MSet.empty[PlayerCharacter]
-        val playerCharactersWhoNeedMiniMap = MSet.empty[Mobile]
+        val recipientsCharactersWhoNeedMiniMap = MSet.empty[Mobile]
 
+        executeTimeCommands(playerCharactersWhoReceivedMessages)
+        executeQueuedCommands(playerCharactersWhoReceivedMessages, recipientsCharactersWhoNeedMiniMap)
+        sendQueuedMessagesAndAddPrompts(playerCharactersWhoReceivedMessages, recipientsCharactersWhoNeedMiniMap)
+    }
+
+    private def executeTimeCommands(playerCharactersWhoReceivedMessages: MSet[PlayerCharacter]) = {
         timedCommandsWaitingMap get tickCounter foreach {
             _ foreach {
                 case CommandExecution(TimedCommand(_, _, endFunc), character, argument) =>
@@ -71,12 +77,15 @@ object StateActor extends SLF4JLogging:
             }
         }
         timedCommandsWaitingMap remove tickCounter
+    }
 
+    private def executeQueuedCommands(playerCharactersWhoReceivedMessages: MSet[PlayerCharacter],
+                                      recipientsCharactersWhoNeedMiniMap: MSet[Mobile]): Unit = {
         commandQueue foreach {
             case CommandExecution(InstantCommand(func, canInterrupt), character, argument) =>
                 val commandResult = func(character, argument)
                 playerCharactersWhoReceivedMessages.addAll(commandResult.playersWhoReceivedMessages)
-                if commandResult.addMiniMap then playerCharactersWhoNeedMiniMap.add(character)
+                if commandResult.addMiniMap then recipientsCharactersWhoNeedMiniMap.add(character)
             case commandExecution@CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
                 val commandResult = beginFunc(character, argument)
                 playerCharactersWhoReceivedMessages.addAll(commandResult.playersWhoReceivedMessages)
@@ -86,11 +95,14 @@ object StateActor extends SLF4JLogging:
                 charactersInActionMap(character) = tickToExecuteAt
         }
         commandQueue.clear()
+    }
 
+    private def sendQueuedMessagesAndAddPrompts(playerCharactersWhoReceivedMessages: MSet[PlayerCharacter],
+                                                recipientsCharactersWhoNeedMiniMap: MSet[Mobile])
+                                               (using messageSender: MessageSender): Unit =
         playerCharactersWhoReceivedMessages.foreach {
             playerCharacter =>
                 messageSender.sendAllEnqueuedMessages(
                     playerCharacter,
-                    addMiniMap = playerCharactersWhoNeedMiniMap.contains(playerCharacter))
+                    addMiniMap = recipientsCharactersWhoNeedMiniMap.contains(playerCharacter))
         }
-    }
