@@ -59,13 +59,12 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
 
                 character.findInOrNextToMe(arg mkString " ") match
                     case Some(unitToLookAt: Mobile) =>
-                        // TODO: display item slots
-                        val itemsDisplay = unitToLookAt.equippedItems map (_.title) mkString "\n"
+                        val equipmentDisplay = getEquipmentDisplay(unitToLookAt) mkString "\n"
                         sendMessageToCharacter(
                             character,
                             s"""You look at the ${unitToLookAt.name}.
                                |${unitToLookAt.description}
-                               |$itemsDisplay""".stripMargin)
+                               |$equipmentDisplay""".stripMargin)
                     case Some(unitToLookAt) =>
                         sendMessageToCharacter(
                             character,

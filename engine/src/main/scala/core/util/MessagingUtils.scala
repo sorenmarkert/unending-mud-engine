@@ -2,7 +2,7 @@ package core.util
 
 import core.Colour
 import core.Colour.colourCodePattern
-import core.gameunit.{GameUnit, PlayerCharacter}
+import core.gameunit.{GameUnit, ItemSlot, Mobile, PlayerCharacter}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.LinkedHashMap
@@ -33,6 +33,14 @@ object MessagingUtils:
             case (a, 1) => a
             case (a, i) => s"[x$i] $a"
         }).toSeq
+
+    def getEquipmentDisplay(character: Mobile) =
+        val slotMaxLength = ItemSlot.values.map(_.display.length).max
+        ItemSlot.values.map { slot =>
+            val slotDisplay = s"${slot.display}:$$s" + (slotMaxLength + 3 - slot.display.length)
+            val itemDisplay = character.equippedAt(slot).map(_.title).getOrElse("-nothing-")
+            s"$$Reset$slotDisplay $itemDisplay"
+        }
 
     def groupedIgnoringColourCodes(message: String, size: Int): Iterator[String] =
 

@@ -14,12 +14,7 @@ class EquipmentCommands(using messageSender: MessageSender):
         sendMessageToCharacter(character, "You are carrying:\n" + titles)
 
     private[commands] def equipment(character: Mobile, commandWords: Seq[String]) =
-        val lines = ItemSlot.values.map { slot =>
-            val slotDisplay = s"${slot.display}:$$s" + (22 - slot.display.length)
-            val itemDisplay = character.equippedAt(slot).map(_.title).getOrElse("-nothing-")
-            s"$$BrightWhite$slotDisplay $itemDisplay"
-        }
-        val titles = joinOrElse(lines, "\n", "Nothing.")
+        val titles = joinOrElse(getEquipmentDisplay(character), "\n", "Nothing.")
         sendMessageToCharacter(character, "$BrightBlueYou are using:\n" + titles + "$Reset")
 
     private[commands] def get(character: Mobile, commandWords: Seq[String]) =
