@@ -1,7 +1,6 @@
 package core
 
 import akka.actor.typed.Behavior
-import akka.actor.typed.scaladsl.ActorContext
 import akka.actor.typed.scaladsl.Behaviors.*
 import akka.event.slf4j.SLF4JLogging
 import core.commands.*
@@ -37,11 +36,11 @@ object StateActor extends SLF4JLogging:
 
                 log.info("Starting state actor with tick interval " + tickInterval)
                 timers.startTimerAtFixedRate(Tick, tickInterval)
-                handleActorMessage(context)
+                handleActorMessage
             }
         }
 
-    private def handleActorMessage(context: ActorContext[StateActorMessage])(using globalState: GlobalState, messageSender: MessageSender): Behavior[StateActorMessage] =
+    private def handleActorMessage(using globalState: GlobalState, messageSender: MessageSender): Behavior[StateActorMessage] =
         receiveMessage {
             case commandExecution: CommandExecution =>
                 // TODO: one command per character per tick
@@ -60,7 +59,7 @@ object StateActor extends SLF4JLogging:
                 else same
         }
 
-    private def executeQueuedCommands()(using messageSender: MessageSender) = {
+    private def executeQueuedCommands()(using messageSender: MessageSender): Unit = {
 
         val playerCharactersWhoReceivedMessages = MSet.empty[PlayerCharacter]
         val playerCharactersWhoNeedMiniMap = MSet.empty[Mobile]
@@ -68,8 +67,8 @@ object StateActor extends SLF4JLogging:
         timedCommandsWaitingMap get tickCounter foreach {
             _ foreach {
                 case CommandExecution(TimedCommand(_, _, endFunc), character, argument) =>
-                    val playerCharacters = endFunc(character, argument)
-                    playerCharactersWhoReceivedMessages.addAll(playerCharacters)
+                    val commandResult = endFunc(character, argument)
+                    playerCharactersWhoReceivedMessages.addAll(commandResult.playersWhoReceivedMessages)
                 case _ =>
             }
         }
@@ -77,13 +76,13 @@ object StateActor extends SLF4JLogging:
 
         commandQueue foreach {
             // TODO: check if need to block if waiting for a TimedCommand
-            case CommandExecution(InstantCommand(func, canInterrupt, addMiniMap), character, argument) =>
-                val playerCharacters = func(character, argument)
-                playerCharactersWhoReceivedMessages.addAll(playerCharacters)
-                if addMiniMap then playerCharactersWhoNeedMiniMap.add(character)
+            case CommandExecution(InstantCommand(func, canInterrupt), character, argument) =>
+                val commandResult = func(character, argument)
+                playerCharactersWhoReceivedMessages.addAll(commandResult.playersWhoReceivedMessages)
+                if commandResult.addMiniMap then playerCharactersWhoNeedMiniMap.add(character)
             case commandExecution@CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
-                val playerCharacters = beginFunc(character, argument)
-                playerCharactersWhoReceivedMessages.addAll(playerCharacters)
+                val commandResult = beginFunc(character, argument)
+                playerCharactersWhoReceivedMessages.addAll(commandResult.playersWhoReceivedMessages)
                 val tickToExecuteAt = tickCounter + (duration / tickInterval).toInt
                 val commandsEndingAtTick = timedCommandsWaitingMap.getOrElse(tickToExecuteAt, Vector.empty)
                 timedCommandsWaitingMap(tickToExecuteAt) = commandsEndingAtTick appended commandExecution
