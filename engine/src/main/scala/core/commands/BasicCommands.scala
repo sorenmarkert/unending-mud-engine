@@ -23,7 +23,7 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 storage.savePlayer(pc)
                 pc.destroy
                 recipients
-            case _ => Seq() // TODO: un-control NPC and quit controlling player
+            case _ => Seq()
         CommandResult(recipients)
 
     private[commands] def look(character: Mobile, commandWords: Seq[String]): CommandResult =
@@ -36,7 +36,6 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 val titles =
                     collapseDuplicates(room.contents map (unitDisplay(_))) ++
                         collapseDuplicates(chars map (unitDisplay(_)))
-                // TODO: adjust for character position
                 CommandResult(
                     sendMessageToCharacter(
                         character,
@@ -79,7 +78,6 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
     end look
 
     private[commands] def movement(character: Mobile, commandWords: Seq[String]): CommandResult =
-        // TODO: check if allowed to move
         val direction = Direction.valueOf(commandWords.head.toLowerCase.capitalize)
 
         character.outside.exits.get(direction) match

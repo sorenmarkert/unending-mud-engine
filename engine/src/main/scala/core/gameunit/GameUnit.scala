@@ -32,7 +32,7 @@ sealed trait GameUnit:
     def destroy(using globalState: GlobalState): Unit =
         while _contents.nonEmpty do _contents.head.destroy
 
-    def canContain[T <: GameUnit](unit: Containable[T]): Boolean = ??? // TODO: check if can contain/carry
+    def canContain[T <: GameUnit](unit: Containable[T]): Boolean = ???
 
     def createItem(name: String, title: String = "", description: String = "")(using globalState: GlobalState): Item =
         val item = Item(name, title, description, this)
@@ -60,7 +60,6 @@ sealed trait GameUnit:
 
         listToSearch
             .filter(u => matches((u.name.toLowerCase.split(' ').filterNot(_.isBlank)).toList, searchTerms.toList))
-            // TODO: add visibility check: .filter(character.canSee)
             .drop(index - 1)
             .headOption
 
@@ -142,7 +141,6 @@ sealed trait Mobile extends Containable[Room]:
 end Mobile
 
 
-// TODO: merge pc and npc into one, add Player to hold connection and a char being controlled 
 case class PlayerCharacter private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: Room, var connection: Connection)
     extends Mobile:
 
@@ -161,7 +159,6 @@ case class NonPlayerCharacter private[gameunit](var name: String, var title: Str
         globalState.global subtractOne this
 
 
-// TODO: item templates with item refs
 case class Item private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: GameUnit)
     extends Containable[GameUnit]:
 
@@ -234,8 +231,6 @@ case class Room private[gameunit](id: String, var title: String, var description
 
     def createPlayerCharacter(name: String, connection: Connection)(using globalState: GlobalState, commands: Commands, messageSender: MessageSender): PlayerCharacter =
 
-        // TODO: player to choose name
-        // TODO: load player data
         val playerCharacter = PlayerCharacter(name, title, description, this, connection)
         globalState.players += name -> playerCharacter
         _mobiles prepend playerCharacter

@@ -21,10 +21,9 @@ case class CommandExecution(command: Command, character: gameunit.Mobile, argume
 case class Interrupt(character: gameunit.Mobile) extends StateActorMessage
 
 
-// TODO: unit test
 object StateActor extends SLF4JLogging:
 
-    private val tickInterval = 100.milliseconds // TODO: make configurable
+    private val tickInterval = 100.milliseconds
     private var tickCounter = 0
     private val commandQueue = ListBuffer.empty[CommandExecution]
     private val timedCommandsWaitingMap = MSortedMap.empty[Int, Vector[CommandExecution]]
@@ -43,7 +42,6 @@ object StateActor extends SLF4JLogging:
     private def handleActorMessage(using globalState: GlobalState, messageSender: MessageSender): Behavior[StateActorMessage] =
         receiveMessage {
             case commandExecution: CommandExecution =>
-                // TODO: one command per character per tick
                 log.info("Received command: " + commandExecution.argument.mkString(" "))
                 commandQueue append commandExecution
                 same
@@ -75,7 +73,6 @@ object StateActor extends SLF4JLogging:
         timedCommandsWaitingMap remove tickCounter
 
         commandQueue foreach {
-            // TODO: check if need to block if waiting for a TimedCommand
             case CommandExecution(InstantCommand(func, canInterrupt), character, argument) =>
                 val commandResult = func(character, argument)
                 playerCharactersWhoReceivedMessages.addAll(commandResult.playersWhoReceivedMessages)

@@ -39,7 +39,6 @@ object Builder:
         r.addLink(Down, globalState.rooms(d), distance)
 
 
-    // TODO: create Item with ""s and set them after? make more sensible
     def item(name: String, title: String = "", description: String = "")(init: Item ?=> Unit)(using u: GameUnit): Unit =
         given i: Item = u.createItem(name, title, description)
 

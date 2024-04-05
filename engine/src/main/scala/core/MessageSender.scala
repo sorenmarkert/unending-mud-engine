@@ -38,7 +38,7 @@ class MessageSender:
                 pc.connection.enqueueMessage(
                     formattedMessageLines.map(substituteColours(_, pc.connection.substituteColourCodes)))
                 Seq(pc)
-            case _ => Seq() // TODO: send to controlling admin
+            case _ => Seq()
     end sendMessageToCharacter
 
     def sendAllEnqueuedMessages(character: Mobile, addMiniMap: Boolean = false, addPrompt: Boolean = true): Unit =
@@ -56,7 +56,7 @@ class MessageSender:
                 pc.connection.sendEnqueuedMessages(
                     promptLines.map(subColours),
                     mapLines.map(subColours))
-            case _ => // TODO: send to controlling admin
+            case _ =>
     end sendAllEnqueuedMessages
 
     def act(message: String, visibility: ActVisibility,
@@ -70,14 +70,14 @@ class MessageSender:
         val bystanders = charactersInRoom filterNot (isSame(_, actor)) filterNot (isSame(_, target))
 
         def format3rdPersonUnit(unit: Findable, formatterLetter: String) =
-            formatterLetter match // TODO: visibility
+            formatterLetter match
                 case "a" => if Set('a', 'e', 'i', 'o').contains(unit.name.head) then "an" else "a"
                 case "e" => formatGender(unit, _.subject)
                 case "m" => formatGender(unit, _.obJect)
                 case "s" => formatGender(unit, _.possessive)
                 case "n" => unitDisplay(unit, includePlayerTitle = false)
                 case "N" => unit.name
-                case "p" => "unit.position" // TODO: positions
+                case "p" => "unit.position"
                 case "t" => text.getOrElse("null")
 
         def formatGender(unit: Findable, genderToNoun: Gender => String) =
@@ -86,11 +86,11 @@ class MessageSender:
                 case _ => genderToNoun(GenderNeutral)
 
         def format2ndPersonUnit(unit: Findable, formatterLetter: String) =
-            formatterLetter match // TODO: visibility
+            formatterLetter match
                 case "a" => ""
                 case "s" => "your"
                 case "e" | "m" | "n" | "N" => "you"
-                case "p" => "unit.position" // TODO: positions
+                case "p" => "unit.position"
                 case "t" => text.getOrElse("null")
 
         val nounUnits = Map("1" -> actor, "2" -> medium, "3" -> target)

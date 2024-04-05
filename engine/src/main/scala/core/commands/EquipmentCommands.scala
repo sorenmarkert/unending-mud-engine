@@ -50,7 +50,6 @@ class EquipmentCommands(using messageSender: MessageSender):
         CommandResult(recipients)
 
     private[commands] def put(character: Mobile, commandWords: Seq[String]): CommandResult =
-        // TODO: check if can contain
         val recipients = commandWords splitAt (commandWords indexOf "in") match
             case (_ :: targetWords, "in" :: containerWords) =>
                 val mediumOption = character.findInInventory(targetWords mkString " ")
@@ -68,7 +67,6 @@ class EquipmentCommands(using messageSender: MessageSender):
     end put
 
     private[commands] def give(character: Mobile, commandWords: Seq[String]): CommandResult = {
-        // TODO: check if can carry
         val recipients = commandWords splitAt (commandWords indexOf "to") match
             case (_ :: mediumWords, "to" :: targetWords) =>
                 val mediumOption = character.findInInventory(mediumWords mkString " ")

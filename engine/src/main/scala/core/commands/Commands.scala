@@ -53,7 +53,7 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
                 case "" :: _ | Nil => (emptyInput, Nil)
                 case receivedCommandPrefix :: arguments =>
                     commandList
-                        .find { case (commandString, _) => commandString.startsWith(receivedCommandPrefix.toLowerCase) } // TODO: use a trie
+                        .find { case (commandString, _) => commandString.startsWith(receivedCommandPrefix.toLowerCase) }
                         .map { case (commandString, command) => (command, commandString :: arguments) }
                         .getOrElse((unknownCommand, Nil))
 

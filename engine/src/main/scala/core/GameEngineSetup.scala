@@ -33,7 +33,7 @@ object GameEngineSetup extends SLF4JLogging:
         log.info("Starting the Unending MUD Engine.")
 
         summon[GlobalState].runState = Running
-        ZoneData //  TODO: find a better solution to make this run
+        ZoneData
         TelnetServer(config)
         WebSocketServer(config)
         WebServer(config)
