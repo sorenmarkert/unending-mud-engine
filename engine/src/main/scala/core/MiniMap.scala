@@ -81,6 +81,6 @@ object MiniMap:
 end MiniMap
 
 
-case class MapNode(north: Option[MapNode], south: Option[MapNode],
+private case class MapNode(north: Option[MapNode], south: Option[MapNode],
                    east: Option[MapNode], west: Option[MapNode],
                    room: Room, x: Int, y: Int)

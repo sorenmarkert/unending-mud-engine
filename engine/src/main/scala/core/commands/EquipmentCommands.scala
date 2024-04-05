@@ -22,20 +22,20 @@ class EquipmentCommands(using messageSender: MessageSender):
         val recipients = commandWords splitAt (commandWords indexOf "from") match
             case (_ :: targetWords, "from" :: containerWords) =>
                 character.findItemInOrNextToMe(containerWords mkString " ") match
+                    case None => sendMessageToCharacter(character, s"No such thing here to ${commandWords.head} things from.")
                     case Some(container) =>
                         container.findInside(targetWords mkString " ") match
+                            case None => sendMessageToCharacter(character, s"The ${container.name} does not seem to contain such a thing.")
                             case Some(target) =>
                                 character.addItem(target)
                                 act("$1N $[get|gets] $2n from $3n.", Always, Some(character), Some(target), Some(container))
-                            case None => sendMessageToCharacter(character, s"The ${container.name} does not seem to contain such a thing.")
-                    case None => sendMessageToCharacter(character, s"No such thing here to ${commandWords.head} things from.")
 
             case (Nil, _ :: targetWords) =>
                 character.findItemNextToMe(targetWords mkString " ") match
+                    case None => sendMessageToCharacter(character, s"No such thing here to ${commandWords.head}.")
                     case Some(target) =>
                         character.addItem(target)
                         act("$1N $[get|gets] $2n.", Always, Some(character), Some(target))
-                    case None => sendMessageToCharacter(character, s"No such thing here to ${commandWords.head}.")
 
             case _ => sendMessageToCharacter(character, commandWords.head + " 'what' [from 'what'] ?")
         CommandResult(recipients)
@@ -43,10 +43,10 @@ class EquipmentCommands(using messageSender: MessageSender):
 
     private[commands] def drop(character: Mobile, commandWords: Seq[String]): CommandResult =
         val recipients = character.findInInventory(commandWords.tail mkString " ") match
+            case None => sendMessageToCharacter(character, "You don't seem to have any such thing.")
             case Some(target) =>
                 character.outside.addItem(target)
                 act("$1N $[drop|drops] $1s $2N.", Always, Some(character), Some(target))
-            case None => sendMessageToCharacter(character, "You don't seem to have any such thing.")
         CommandResult(recipients)
 
     private[commands] def put(character: Mobile, commandWords: Seq[String]): CommandResult =
@@ -88,6 +88,7 @@ class EquipmentCommands(using messageSender: MessageSender):
             case "examine" :: Nil => sendMessageToCharacter(character, "Examine 'what'?")
             case "examine" :: argumentWords =>
                 character.findItemInOrNextToMe(argumentWords mkString " ") match
+                    case None => sendMessageToCharacter(character, "No such thing here to look inside.")
                     case Some(itemToExamine) =>
                         val itemsDisplay = joinOrElse(collapseDuplicates(itemToExamine.contents map (unitDisplay(_))))
                         sendMessageToCharacter(
@@ -96,25 +97,24 @@ class EquipmentCommands(using messageSender: MessageSender):
                                |${itemToExamine.description}
                                |It contains:
                                |$itemsDisplay""".stripMargin)
-                    case None => sendMessageToCharacter(character, "No such thing here to look inside.")
         CommandResult(recipients)
 
     private[commands] def wear(character: Mobile, commandWords: Seq[String]): CommandResult =
         val recipients = character.findInInventory(commandWords.tail mkString " ") match
+            case None => sendMessageToCharacter(character, "You don't seem to have any such thing.")
             case Some(target) =>
                 character.equip(target) match
                     case None => act("$1N $[wear|wears] $1s $2N.", Always, Some(character), Some(target))
                     case Some(errorMessage) => sendMessageToCharacter(character, errorMessage)
-            case _ => sendMessageToCharacter(character, "You don't seem to have any such thing.")
         CommandResult(recipients)
 
     private[commands] def remove(character: Mobile, commandWords: Seq[String]): CommandResult =
         val recipients = character.findInEquipped(commandWords.tail mkString " ") match
+            case None => sendMessageToCharacter(character, "You don't seem to have any such thing equipped.")
             case Some(target) =>
                 character.remove(target) match
                     case None => act("$1N $[remove|removes] $1s $2N.", Always, Some(character), Some(target))
                     case Some(errorMessage) => sendMessageToCharacter(character, errorMessage)
-            case _ => sendMessageToCharacter(character, "You don't seem to have any such thing equipped.")
         CommandResult(recipients)
 
 end EquipmentCommands

@@ -2,9 +2,9 @@ package core.gameunit
 
 enum Direction(val display: String, private val oppo: String):
 
-    def opposite = Direction.valueOf(this.oppo)
+    def opposite: Direction = Direction.valueOf(this.oppo)
 
-    def to(toRoomId: String)(using r: Room, globalState: GlobalState) =
+    infix def to(toRoomId: String)(using r: Room, globalState: GlobalState): Room =
         r.addLink(this, globalState.rooms(toRoomId))
 
     case North extends Direction("north", "South")

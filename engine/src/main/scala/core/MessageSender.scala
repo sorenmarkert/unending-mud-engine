@@ -43,10 +43,10 @@ class MessageSender:
 
     def sendAllEnqueuedMessages(character: Mobile, addMiniMap: Boolean = false, addPrompt: Boolean = true): Unit =
 
-        val prompt = "(12/20) fake-prompt (12/20)"
-        val promptLines = if addPrompt then groupedIgnoringColourCodes(prompt, textWidth).toSeq else Seq()
+        def prompt = "(12/20) fake-prompt (12/20)"
+        def promptLines = if addPrompt then groupedIgnoringColourCodes(prompt, textWidth).toSeq else Seq()
 
-        val mapLines = (addMiniMap, character.outside) match
+        def mapLines = (addMiniMap, character.outside) match
             case (true, room: Room) => colourMiniMap(frameMiniMap(miniMap(room, 3)))
             case _ => Seq()
 
