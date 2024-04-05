@@ -11,11 +11,11 @@ class EquipmentCommands(using messageSender: MessageSender):
     import messageSender.*
 
     private[commands] def inventory(character: Mobile, commandWords: Seq[String]): CommandResult =
-        val titles = joinOrElse(character.inventory map (_.title), "\n", "Nothing.")
+        val titles = joinOrElse(character.inventory map (_.title))
         CommandResult(sendMessageToCharacter(character, "You are carrying:\n" + titles))
 
     private[commands] def equipment(character: Mobile, commandWords: Seq[String]): CommandResult =
-        val titles = joinOrElse(getEquipmentDisplay(character), "\n", "Nothing.")
+        val titles = joinOrElse(getEquipmentDisplay(character))
         CommandResult(sendMessageToCharacter(character, "$BrightBlueYou are using:\n" + titles + "$Reset"))
 
     private[commands] def get(character: Mobile, commandWords: Seq[String]): CommandResult =
@@ -91,7 +91,7 @@ class EquipmentCommands(using messageSender: MessageSender):
             case "examine" :: argumentWords =>
                 character.findItemInOrNextToMe(argumentWords mkString " ") match
                     case Some(itemToExamine) =>
-                        val itemsDisplay = joinOrElse(collapseDuplicates(itemToExamine.contents map (unitDisplay(_))), "\n", "Nothing.")
+                        val itemsDisplay = joinOrElse(collapseDuplicates(itemToExamine.contents map (unitDisplay(_))))
                         sendMessageToCharacter(
                             character,
                             s"""You examine the ${itemToExamine.name}.

@@ -51,7 +51,7 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 val recipients = character.findItemInOrNextToMe(argumentWords mkString " ") match
                     case None => sendMessageToCharacter(character, "No such thing here to look inside.")
                     case Some(unitToLookAt) =>
-                        val itemsDisplay = joinOrElse(collapseDuplicates(unitToLookAt.contents map (unitDisplay(_))), "\n", "Nothing.")
+                        val itemsDisplay = joinOrElse(collapseDuplicates(unitToLookAt.contents map (unitDisplay(_))))
                         sendMessageToCharacter(character,
                             s"""You look inside the ${unitToLookAt.name}. It contains:
                                |$itemsDisplay""".stripMargin)

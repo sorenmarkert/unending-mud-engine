@@ -10,7 +10,7 @@ import scala.util.matching.Regex
 
 object MessagingUtils:
 
-    def joinOrElse(strings: Iterable[String], separator: String, default: String) =
+    def joinOrElse(strings: Iterable[String], separator: String = "\n", default: String = "Nothing.") =
         if strings.isEmpty then
             default
         else
