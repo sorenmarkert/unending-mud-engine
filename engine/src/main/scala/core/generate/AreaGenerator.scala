@@ -3,6 +3,7 @@ package core.generate
 import core.gameunit
 import core.gameunit.*
 import core.gameunit.Direction.*
+import core.state.GlobalState
 
 import scala.annotation.tailrec
 import scala.util.Random

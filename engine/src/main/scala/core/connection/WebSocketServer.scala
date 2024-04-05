@@ -3,7 +3,7 @@ package core.connection
 import akka.event.slf4j.SLF4JLogging
 import com.typesafe.config.Config
 import core.commands.Commands
-import core.gameunit.GlobalState
+import core.state.GlobalState
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler

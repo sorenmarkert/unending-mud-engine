@@ -2,7 +2,8 @@ package core.connection
 
 import akka.event.slf4j.SLF4JLogging
 import core.commands.Commands
-import core.gameunit.{GlobalState, PlayerCharacter}
+import core.gameunit.PlayerCharacter
+import core.state.GlobalState
 import org.eclipse.jetty.websocket.api.Session
 
 class WebSocketEndPoint(private val playerID: String)(using globalState: GlobalState, commands: Commands)
@@ -20,7 +21,7 @@ class WebSocketEndPoint(private val playerID: String)(using globalState: GlobalS
         log.info(s"Connection from ${player.name}@${session.getRemoteSocketAddress}")
 
     override def onWebSocketText(input: String) =
-        commands.executeCommand(player, input)
+        commands.executeCommandAtNextTick(player, input)
 
     override def onWebSocketError(cause: Throwable) =
         cause.getClass.getSimpleName match

@@ -1,10 +1,11 @@
 package core.connection
 
-import akka.event.slf4j.{Logger, SLF4JLogging}
+import akka.event.slf4j.SLF4JLogging
 import com.typesafe.config.Config
 import core.commands.Commands
-import core.gameunit.RunState.Running
-import core.gameunit.{GlobalState, PlayerCharacter}
+import core.gameunit.PlayerCharacter
+import core.state.GlobalState
+import core.state.RunState.Running
 
 import java.net.{ServerSocket, Socket}
 import scala.annotation.tailrec
@@ -19,7 +20,6 @@ object TelnetServer extends SLF4JLogging:
         import globalState.*
 
         val port = config.getInt("telnet.port")
-
         log.info("Starting telnet client on port " + port)
 
         def initConnection(socket: Socket): Unit =
@@ -33,7 +33,7 @@ object TelnetServer extends SLF4JLogging:
         @tailrec
         def serve(player: PlayerCharacter): Unit =
             val input = player.connection.readLine()
-            commands.executeCommand(player, input)
+            commands.executeCommandAtNextTick(player, input)
             if !player.connection.isClosed
                 && runState == Running then serve(player)
 

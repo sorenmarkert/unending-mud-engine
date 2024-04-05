@@ -2,6 +2,7 @@ package core.generate
 
 import core.gameunit.*
 import core.gameunit.Direction.*
+import core.state.GlobalState
 import org.scalatest.*
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

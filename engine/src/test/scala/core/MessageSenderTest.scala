@@ -4,6 +4,7 @@ import core.ActVisibility.Always
 import core.connection.WebSocketConnection
 import core.gameunit.*
 import core.gameunit.Gender.{GenderFemale, GenderMale}
+import core.state.GlobalState
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.{any, anyString}
 import org.mockito.Mockito.*

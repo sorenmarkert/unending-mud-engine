@@ -5,6 +5,7 @@ import core.MessageSender
 import core.commands.Commands
 import core.connection.Connection
 import core.gameunit.ItemSlot.*
+import core.state.GlobalState
 import org.mockito.Mockito.verify
 import org.scalatest.*
 import org.scalatest.matchers.should.Matchers
@@ -149,7 +150,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             globalState.players should contain only ("newPlayer" -> newPlayer)
 
             And("The player looks")
-            verify(commandsMock).executeCommand(newPlayer, "look")
+            verify(commandsMock).executeCommandAtNextTick(newPlayer, "look")
 
             And("Surrounding players see the player enter the game")
             verify(messageSenderMock).sendMessageToBystandersOf(newPlayer, "newPlayer has entered the game.")

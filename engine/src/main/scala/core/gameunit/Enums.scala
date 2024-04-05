@@ -1,5 +1,7 @@
 package core.gameunit
 
+import core.state.GlobalState
+
 enum Direction(val display: String, private val oppo: String):
 
     def opposite: Direction = Direction.valueOf(this.oppo)

@@ -1,6 +1,7 @@
 package core.gameunit
 
 import core.gameunit.Direction.*
+import core.state.GlobalState
 
 object Builder:
 

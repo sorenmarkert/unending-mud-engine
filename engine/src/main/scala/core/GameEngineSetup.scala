@@ -1,11 +1,13 @@
 package core
 
+import akka.actor.typed.{ActorSystem, Behavior}
 import akka.event.slf4j.SLF4JLogging
 import com.typesafe.config.{Config, ConfigFactory}
 import core.commands.*
 import core.connection.{TelnetServer, WebSocketServer}
-import core.gameunit.GlobalState
-import core.gameunit.RunState.Running
+import core.login.{LoginActor, LoginActorMessage}
+import core.state.RunState.Running
+import core.state.{GlobalState, StateActor, StateActorMessage}
 import core.storage.*
 import webserver.WebServer
 
@@ -13,19 +15,18 @@ object GameEngineSetup extends SLF4JLogging:
 
     given config: Config = ConfigFactory.load()
 
+    given actorSystem: ActorSystem[StateActorMessage] = ActorSystem(StateActor(), "unending")
+
     given Storage =
         if config.getBoolean("storage.useMongo") then
-            new MongoDbStorage()
+            MongoDbStorage()
         else
-            new RavenDBStorage()
+            RavenDBStorage()
 
-    given BasicCommands = new BasicCommands
-
-    given CombatCommands = new CombatCommands
-
-    given EquipmentCommands = new EquipmentCommands
-
-    given Commands = new Commands
+    given BasicCommands = BasicCommands()
+    given CombatCommands = CombatCommands()
+    given EquipmentCommands = EquipmentCommands()
+    given Commands = Commands()
 
 
     @main def startEngine(): Unit =

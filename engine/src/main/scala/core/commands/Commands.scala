@@ -1,14 +1,16 @@
 package core.commands
 
+import akka.actor.typed.ActorSystem
 import core.*
 import core.MessageSender.*
 import core.commands.Commands.{Command, CommandResult, InstantCommand, TimedCommand}
 import core.gameunit.*
+import core.state.{CommandExecution, StateActorMessage}
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 
-class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, messageSender: MessageSender):
+class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, messageSender: MessageSender):
 
     import basicCommands.*
     import combatCommands.*
@@ -44,7 +46,7 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
     )
 
-    def executeCommand(character: Mobile, input: String)(using globalState: GlobalState): Unit =
+    def executeCommandAtNextTick(character: Mobile, input: String): Unit =
 
         val inputWords = input.split(" ") filterNot (_.isBlank)
 
@@ -57,7 +59,7 @@ class Commands(using basicCommands: BasicCommands, combatCommands: CombatCommand
                         .map { case (commandString, command) => (command, commandString :: arguments) }
                         .getOrElse((unknownCommand, Nil))
 
-        globalState.actorSystem tell CommandExecution(command, character, commandWords)
+        actorSystem tell CommandExecution(command, character, commandWords)
 
 end Commands
 

@@ -7,6 +7,7 @@ import core.connection.Connection
 import core.gameunit.Direction.*
 import core.gameunit.Gender.GenderMale
 import core.gameunit.Position.Standing
+import core.state.GlobalState
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -235,7 +236,7 @@ case class Room private[gameunit](id: String, var title: String, var description
         globalState.players += name -> playerCharacter
         _mobiles prepend playerCharacter
 
-        commands.executeCommand(playerCharacter, "look")
+        commands.executeCommandAtNextTick(playerCharacter, "look")
         messageSender.sendMessageToBystandersOf(playerCharacter, s"${playerCharacter.name} has entered the game.")
 
         playerCharacter

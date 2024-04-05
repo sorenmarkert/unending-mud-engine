@@ -2,6 +2,7 @@ package core
 
 import core.MiniMap.{colourMiniMap, frameMiniMap, miniMap}
 import core.gameunit.*
+import core.state.GlobalState
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}

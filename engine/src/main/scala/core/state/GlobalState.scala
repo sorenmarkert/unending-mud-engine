@@ -1,9 +1,9 @@
-package core.gameunit
+package core.state
 
 import akka.actor.typed.ActorSystem
 import core.*
 import core.gameunit.*
-import core.gameunit.RunState.Starting
+import core.state.RunState.Starting
 
 import scala.collection.mutable
 import scala.collection.mutable.{Clearable, LinkedHashMap, ListBuffer}
@@ -17,8 +17,6 @@ class GlobalState extends Clearable:
     val players: mutable.Map[String, PlayerCharacter] = mutable.LinkedHashMap[String, PlayerCharacter]()
 
     def clear(): Unit = Seq(global, players, rooms) foreach (_.clear)
-
-    val actorSystem: ActorSystem[StateActorMessage] = ActorSystem(StateActor(), "unending")
 
 
 object GlobalState:
