@@ -48,6 +48,9 @@ class TelnetConnection(private val socket: Socket) extends Connection:
             case BrightWhite => "\u001b[97;1m"
             case Reset => "\u001b[0m"
 
+    private[connection] def write(message: String) =
+        writer.println(message)
+    
     private def combineMessageWithPromptAndMiniMap(message: Seq[String], prompt: Seq[String], miniMap: Seq[String]) =
 
         val miniMapWidth = miniMap.map(_.length).maxOption.getOrElse(usualMiniMapWidth)
