@@ -3,6 +3,7 @@ package core.storage
 import akka.event.slf4j.SLF4JLogging
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.typesafe.config.Config
+import core.connection.Connection
 import core.gameunit.*
 import net.ravendb.client.documents.DocumentStore
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -28,6 +29,8 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
     documentStore.initialize
 
     log.info(s"Connected to $hostname")
+
+    override def checkName(name: String): Boolean = ???
 
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
@@ -60,9 +63,9 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
             case Failure(exception) => log.error(s"Failed saving ${playerCharacter.name}", exception)
 
 
-    override def loadPlayer(name: String): PlayerCharacter = ???
+    override def loadPlayer(name: String, connection: Connection, connectPlayer: PlayerCharacter => Unit): Unit = ???
 
-    override def close() = documentStore.close()
+    override def close(): Unit = documentStore.close()
 
     private def getKeyStore =
         val keyStore = KeyStore.getInstance("PKCS12", new BouncyCastleProvider())

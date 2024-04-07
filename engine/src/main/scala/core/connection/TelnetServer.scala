@@ -6,16 +6,17 @@ import core.commands.Commands
 import core.gameunit.PlayerCharacter
 import core.state.GlobalState
 import core.state.RunState.Running
+import core.storage.Storage
 
 import java.net.{ServerSocket, Socket}
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Using
+import scala.util.{Try, Using}
 
 object TelnetServer extends SLF4JLogging:
 
-    def apply(config: Config)(using globalState: GlobalState, commands: Commands): Future[Unit] =
+    def apply(config: Config)(using globalState: GlobalState, commands: Commands, storage: Storage): Future[Unit] =
 
         import globalState.*
 
@@ -32,21 +33,26 @@ object TelnetServer extends SLF4JLogging:
             val connection = TelnetConnection(socket)
             val clientIpAddress = socket.getInetAddress.getHostAddress
             log.info(s"Connection from $clientIpAddress")
-            
+
             val name = chooseName(NamePrompt, connection)
-            val startingRoom = rooms.head._2
-            val player = startingRoom.createPlayerCharacter(name, connection)
-            log.info(s"Login from ${player.name}@${clientIpAddress}")
-            serve(player)
-            socket.close()
-            log.info(s"Connection closed ${player.name}@${clientIpAddress}")
+            log.info(s"Login from $name@$clientIpAddress")
+
+            storage.loadPlayer(name, connection, playerCharacter => Future {
+                serve(playerCharacter)
+                socket.close()
+                log.info(s"Connection closed $name@$clientIpAddress")
+                storage.savePlayer(playerCharacter)
+                playerCharacter.destroy
+            })
 
         @tailrec
-        def serve(player: PlayerCharacter): Unit =
-            val input = player.connection.readLine()
-            commands.executeCommandAtNextTick(player, input)
-            if !player.connection.isClosed
-                && runState == Running then serve(player)
+        def serve(playerCharacter: PlayerCharacter): Unit =
+            Try {
+                val input = playerCharacter.connection.readLine()
+                commands.executeCommandAtNextTick(playerCharacter, input)
+            }
+            if !playerCharacter.connection.isClosed
+                && runState == Running then serve(playerCharacter)
 
         Future {
             Using(ServerSocket(port)) { serverSocket =>
@@ -55,6 +61,7 @@ object TelnetServer extends SLF4JLogging:
                     Future(initConnection(socket))
             }
         }
+
 
     private sealed trait LoginState:
         def nextState(connection: TelnetConnection): LoginState
@@ -75,4 +82,4 @@ object TelnetServer extends SLF4JLogging:
         override def nextState(connection: TelnetConnection): LoginState = ???
 
     private case class Done(name: String) extends LoginState:
-        override def nextState(connection: TelnetConnection): LoginState = ???
+        override def nextState(connection: TelnetConnection): LoginState = throw IllegalStateException()

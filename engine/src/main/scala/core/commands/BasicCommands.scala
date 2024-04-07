@@ -4,12 +4,11 @@ import core.MessageSender
 import core.MiniMap.*
 import core.commands.Commands.CommandResult
 import core.gameunit.*
-import core.storage.Storage
 import core.util.MessagingUtils.*
 
 import scala.util.*
 
-class BasicCommands()(using storage: Storage, messageSender: MessageSender):
+class BasicCommands()(using messageSender: MessageSender):
 
     import messageSender.*
 
@@ -20,8 +19,6 @@ class BasicCommands()(using storage: Storage, messageSender: MessageSender):
                 pc.connection.enqueueMessage(Seq("Goodbye."))
                 pc.connection.sendEnqueuedMessages(Seq(), Seq())
                 pc.connection.close()
-                storage.savePlayer(pc)
-                pc.destroy
                 recipients
             case _ => Seq()
         CommandResult(recipients)

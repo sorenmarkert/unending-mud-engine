@@ -4,6 +4,7 @@ import akka.event.slf4j.SLF4JLogging
 import com.typesafe.config.Config
 import core.commands.Commands
 import core.state.GlobalState
+import core.storage.Storage
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler
@@ -13,7 +14,7 @@ import java.time.Duration.ofMinutes
 
 object WebSocketServer extends SLF4JLogging:
 
-    def apply(config: Config)(using globalState: GlobalState, commands: Commands) =
+    def apply(config: Config)(using commands: Commands, storage: Storage) =
 
         val port = config.getInt("websocket.port")
 
