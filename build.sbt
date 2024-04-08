@@ -20,12 +20,12 @@ lazy val engine = project
             "org.eclipse.jetty.websocket" % "jetty-websocket-jetty-api" % "12.0.7",
             "org.eclipse.jetty.websocket" % "jetty-websocket-jetty-server" % "12.0.7",
 
-
+            "de.flapdoodle.embed" % "de.flapdoodle.embed.mongo" % "4.12.6" % Test,
             "net.ravendb" % "ravendb-test-driver" % ravenDbVersion % Test,
             "org.scalatestplus" %% "mockito-4-6" % "3.2.15.0" % Test,
             "org.scalatest" %% "scalatest" % "3.2.18" % Test,
             "com.vladsch.flexmark" % "flexmark-all" % "0.64.8" % Test,
-            "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion,
+            "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaActorVersion % Test,
         ),
 
         coverageEnabled := true,

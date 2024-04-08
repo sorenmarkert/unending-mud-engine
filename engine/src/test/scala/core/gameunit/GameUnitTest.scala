@@ -1,6 +1,5 @@
 package core.gameunit
 
-import core.ActVisibility.Always
 import core.MessageSender
 import core.commands.Commands
 import core.connection.Connection
@@ -35,24 +34,27 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             newMobile.outside shouldBe room
 
             And("On the global list")
-            globalState.global should contain only newMobile
+            globalState.nonPlayerCharacters.keys should contain only newMobile.name
+            globalState.nonPlayerCharacters(newMobile.name) should contain only newMobile
         }
 
         "Be before other mobiles in a non-empty unit" in {
 
             Given("An room containing an mobile")
             val room = Room("roomWithMobile")
-            val oldMobile = room.createNonPlayerCharacter("oldMobile")
+            val mobileName = "mobileName"
+            val oldMobile = room.createNonPlayerCharacter(mobileName, "oldMobile")
 
             When("A new mobile is created inside the room")
-            val newMobile = room.createNonPlayerCharacter("newMobile")
+            val newMobile = room.createNonPlayerCharacter(mobileName, "newMobile")
 
             Then("The new mobile is the top mobile inside the room")
             room.mobiles should contain theSameElementsInOrderAs Seq(newMobile, oldMobile)
             newMobile.outside shouldBe room
 
             And("The global list is unchanged")
-            globalState.global should contain theSameElementsInOrderAs Seq(newMobile, oldMobile)
+            globalState.nonPlayerCharacters.keys should contain only mobileName
+            globalState.nonPlayerCharacters(mobileName) should contain theSameElementsInOrderAs Seq(newMobile, oldMobile)
         }
     }
 
@@ -62,9 +64,10 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
             Given("An room containing three mobiles")
             val room = Room("roomWith3mobiles")
-            val bottomMobile = room.createNonPlayerCharacter("bottomMobile")
-            val mobileToBeDestroyed = room.createNonPlayerCharacter("mobileToBeDestroyed")
-            val topMobile = room.createNonPlayerCharacter("topMobile")
+            val mobileName = "mobileName"
+            val bottomMobile = room.createNonPlayerCharacter(mobileName, "bottomMobile")
+            val mobileToBeDestroyed = room.createNonPlayerCharacter(mobileName, "mobileToBeDestroyed")
+            val topMobile = room.createNonPlayerCharacter(mobileName, "topMobile")
 
             When("The middle mobile is destroyed")
             mobileToBeDestroyed.destroy
@@ -73,7 +76,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             room.mobiles should contain theSameElementsInOrderAs Seq(topMobile, bottomMobile)
 
             And("On the global list")
-            globalState.global should contain theSameElementsInOrderAs Seq(topMobile, bottomMobile)
+            globalState.nonPlayerCharacters.keys should contain only mobileName
+            globalState.nonPlayerCharacters(mobileName) should contain theSameElementsInOrderAs Seq(topMobile, bottomMobile)
         }
 
         "Destroy its contents recursively" in {
@@ -92,7 +96,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             mobileToBeDestroyed.contents shouldBe empty
 
             And("On the global list")
-            globalState.global should contain noElementsOf Set(mobileToBeDestroyed, containedItem1, containedItem2)
+            globalState.nonPlayerCharacters.keys should not contain mobileToBeDestroyed.name
+            globalState.items.keys should contain noneOf (containedItem1.name, containedItem2.name)
         }
     }
 
@@ -102,14 +107,16 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
             Given("An room containing three mobiles")
             val fromRoom = Room("fromRoom")
-            val bottomMobile = fromRoom.createNonPlayerCharacter("bottomMobile")
-            val mobileToBeMoved = fromRoom.createNonPlayerCharacter("mobileToBeMoved")
-            val topMobile = fromRoom.createNonPlayerCharacter("topMobile")
+            val mobileName = "mobileName"
+            val bottomMobile = fromRoom.createNonPlayerCharacter(mobileName, "bottomMobile")
+            val mobileToBeMoved = fromRoom.createNonPlayerCharacter(mobileName, "mobileToBeMoved")
+            val topMobile = fromRoom.createNonPlayerCharacter(mobileName, "topMobile")
             val toRoom = Room("toRoom")
-            val oldMobile = toRoom.createNonPlayerCharacter("oldMobile")
+            val oldMobile = toRoom.createNonPlayerCharacter(mobileName, "oldMobile")
 
             And("The global list contains all the mobiles")
-            globalState.global should contain theSameElementsInOrderAs Seq(oldMobile, topMobile, mobileToBeMoved, bottomMobile)
+            globalState.nonPlayerCharacters.keys should contain only mobileName
+            globalState.nonPlayerCharacters(mobileName) should contain theSameElementsInOrderAs Seq(oldMobile, topMobile, mobileToBeMoved, bottomMobile)
 
             When("The middle mobile is moved to another room")
             toRoom.addMobile(mobileToBeMoved)
@@ -122,7 +129,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             mobileToBeMoved.outside shouldBe toRoom
 
             And("The global list is unchanged")
-            globalState.global should contain theSameElementsInOrderAs Seq(oldMobile, topMobile, mobileToBeMoved, bottomMobile)
+            globalState.nonPlayerCharacters.keys should contain only mobileName
+            globalState.nonPlayerCharacters(mobileName) should contain theSameElementsInOrderAs Seq(oldMobile, topMobile, mobileToBeMoved, bottomMobile)
         }
     }
 
@@ -175,7 +183,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             playerToBeDestroyed.destroy
 
             Then("It's no longer on the global list")
-            globalState.players should not contain playerToBeDestroyed
+            globalState.players.keys should not contain playerToBeDestroyed.name
         }
     }
 
@@ -194,24 +202,27 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             newItem.outside shouldBe room
 
             And("On the global list")
-            globalState.global should contain only newItem
+            globalState.items.keys should contain only newItem.name
+            globalState.items(newItem.name) should contain only newItem
         }
 
         "Be before other items in a non-empty unit" in {
 
             Given("An room containing an item")
             val room = Room("roomWithItem")
-            val oldItem = room.createItem("oldItem")
+            val itemName = "itemName"
+            val oldItem = room.createItem(itemName, "oldItem")
 
             When("A new item is created inside the room")
-            val newItem = room.createItem("newItem")
+            val newItem = room.createItem(itemName, "newItem")
 
             Then("The new item is the top item inside the room")
             room.contents should contain theSameElementsInOrderAs Seq(newItem, oldItem)
             newItem.outside shouldBe room
 
             And("The global list is unchanged")
-            globalState.global should contain theSameElementsInOrderAs Seq(newItem, oldItem)
+            globalState.items.keys should contain only itemName
+            globalState.items(itemName) should contain theSameElementsInOrderAs Seq(newItem, oldItem)
         }
     }
 
@@ -221,9 +232,10 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
             Given("An room containing three items")
             val room = Room("roomWith3items")
-            val bottomItem = room.createItem("bottomItem")
-            val itemToBeDestroyed = room.createItem("itemToBeDestroyed")
-            val topItem = room.createItem("topItem")
+            val itemName = "itemName"
+            val bottomItem = room.createItem(itemName, "bottomItem")
+            val itemToBeDestroyed = room.createItem(itemName, "itemToBeDestroyed")
+            val topItem = room.createItem(itemName, "topItem")
 
             When("The middle item is destroyed")
             itemToBeDestroyed.destroy
@@ -232,7 +244,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             room.contents should contain theSameElementsInOrderAs Seq(topItem, bottomItem)
 
             And("On the global list")
-            globalState.global should contain theSameElementsInOrderAs Seq(topItem, bottomItem)
+            globalState.items.keys should contain only itemName
+            globalState.items(itemName) should contain theSameElementsInOrderAs Seq(topItem, bottomItem)
         }
 
         "Destroy its contents recursively" in {
@@ -250,7 +263,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             itemToBeDestroyed.contents shouldBe empty
 
             And("On the global list")
-            globalState.global should contain noElementsOf Set(itemToBeDestroyed, containedItem)
+            globalState.items.keys should contain noneOf (itemToBeDestroyed.name, containedItem.name)
         }
     }
 
@@ -260,11 +273,12 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
             Given("An room containing three items")
             val fromRoom = Room("fromRoom")
-            val bottomItem = fromRoom.createItem("bottomItem")
-            val itemToBeMoved = fromRoom.createItem("itemToBeMoved")
-            val topItem = fromRoom.createItem("topItem")
+            val itemName = "itemName"
+            val bottomItem = fromRoom.createItem(itemName, "bottomItem")
+            val itemToBeMoved = fromRoom.createItem(itemName, "itemToBeMoved")
+            val topItem = fromRoom.createItem(itemName, "topItem")
             val toRoom = Room("toRoom")
-            val oldItem = toRoom.createItem("oldItem")
+            val oldItem = toRoom.createItem(itemName, "oldItem")
 
             When("The middle item is moved to another room")
             toRoom.addItem(itemToBeMoved)
@@ -277,7 +291,8 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             itemToBeMoved.outside shouldBe toRoom
 
             And("The global list contains all the items")
-            globalState.global should contain theSameElementsInOrderAs Seq(oldItem, topItem, itemToBeMoved, bottomItem)
+            globalState.items.keys should contain only itemName
+            globalState.items(itemName) should contain theSameElementsInOrderAs Seq(oldItem, topItem, itemToBeMoved, bottomItem)
         }
     }
 

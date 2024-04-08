@@ -38,7 +38,7 @@ sealed trait GameUnit:
     def createItem(name: String, title: String = "", description: String = "")(using globalState: GlobalState): Item =
         val item = Item(name, title, description, this)
         _contents prepend item
-        globalState.global prepend item
+        globalState.items.getOrElseUpdate(name, ListBuffer.empty[Item]) prepend item
         item
 
     protected def findUnit[T <: Findable](searchString: String, listToSearch: Seq[T]): Option[T] =
@@ -157,7 +157,9 @@ case class NonPlayerCharacter private[gameunit](var name: String, var title: Str
 
     override def destroy(using globalState: GlobalState): Unit =
         super.destroy
-        globalState.global subtractOne this
+        val charactersWithName = globalState.nonPlayerCharacters(name) subtractOne this
+        if charactersWithName.isEmpty then
+            globalState.nonPlayerCharacters.remove(name)
 
 
 case class Item private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: GameUnit)
@@ -171,7 +173,9 @@ case class Item private[gameunit](var name: String, var title: String, var descr
     override def destroy(using globalState: GlobalState): Unit =
         super.destroy
         removeFromContainer()
-        globalState.global subtractOne this
+        val itemsWithName = globalState.items(name) subtractOne this
+        if itemsWithName.isEmpty then
+            globalState.items.remove(name)
 
     def isEquipped: Boolean = (itemSlot, outside) match
         case (Some(itemSlot), character: Mobile) => character.equippedAt(itemSlot) contains this
@@ -233,7 +237,7 @@ case class Room private[gameunit](id: String, var title: String, var description
     def createPlayerCharacter(name: String, connection: Connection)(using globalState: GlobalState, commands: Commands, messageSender: MessageSender): PlayerCharacter =
 
         val playerCharacter = PlayerCharacter(name, title, description, this, connection)
-        globalState.players += name -> playerCharacter
+        globalState.players(name) = playerCharacter
         _mobiles prepend playerCharacter
 
         commands.executeCommandAtNextTick(playerCharacter, "look")
@@ -243,7 +247,8 @@ case class Room private[gameunit](id: String, var title: String, var description
 
     def createNonPlayerCharacter(name: String, title: String = "", description: String = "")(using globalState: GlobalState): NonPlayerCharacter =
         val nonPlayerCharacter = NonPlayerCharacter(name, title, description, this)
-        globalState.global prepend nonPlayerCharacter
+        globalState.nonPlayerCharacters.getOrElseUpdate(name, ListBuffer.empty[NonPlayerCharacter])
+            .prepend(nonPlayerCharacter)
         _mobiles prepend nonPlayerCharacter
         nonPlayerCharacter
 
