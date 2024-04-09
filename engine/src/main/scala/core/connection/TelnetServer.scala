@@ -14,72 +14,110 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Try, Using}
 
-object TelnetServer extends SLF4JLogging:
+class TelnetServer(using config: Config, globalState: GlobalState, commands: Commands, storage: Storage) extends SLF4JLogging:
 
-    def apply(config: Config)(using globalState: GlobalState, commands: Commands, storage: Storage): Future[Unit] =
+    import globalState.*
 
-        import globalState.*
+    private val port = config.getInt("telnet.port")
+    log.info("Starting telnet client on port " + port)
 
-        val port = config.getInt("telnet.port")
-        log.info("Starting telnet client on port " + port)
+    private def doLoginMenuAndGetPlayerCharacter(state: LoginState, connection: TelnetConnection): Future[PlayerCharacter] =
+        state.nextState(connection).flatMap {
+            case Done(playerCharacter) => Future.successful(playerCharacter)
+            case nextState: _ => doLoginMenuAndGetPlayerCharacter(nextState, connection)
+        }
 
-        @tailrec
-        def chooseName(state: LoginState, connection: TelnetConnection): String =
-            state.nextState(connection) match
-                case Done(name) => name.toLowerCase.capitalize
-                case nextState: _ => chooseName(nextState, connection)
+    private def initConnection(socket: Socket): Unit =
+        val connection = TelnetConnection(socket)
+        val clientIpAddress = socket.getInetAddress.getHostAddress
+        log.info(s"Connection from $clientIpAddress")
 
-        def initConnection(socket: Socket): Unit =
-            val connection = TelnetConnection(socket)
-            val clientIpAddress = socket.getInetAddress.getHostAddress
-            log.info(s"Connection from $clientIpAddress")
-
-            val name = chooseName(NamePrompt, connection)
-            log.info(s"Login from $name@$clientIpAddress")
-
-            storage.loadPlayer(name, connection, playerCharacter => Future {
+        doLoginMenuAndGetPlayerCharacter(CreateOrLogin, connection)
+            .foreach { playerCharacter =>
+                log.info(s"Login from ${playerCharacter.name}@$clientIpAddress")
                 serve(playerCharacter)
                 socket.close()
-                log.info(s"Connection closed $name@$clientIpAddress")
+                log.info(s"Connection closed ${playerCharacter.name}@$clientIpAddress")
                 storage.savePlayer(playerCharacter)
                 playerCharacter.destroy
-            })
-
-        @tailrec
-        def serve(playerCharacter: PlayerCharacter): Unit =
-            Try {
-                val input = playerCharacter.connection.readLine()
-                commands.executeCommandAtNextTick(playerCharacter, input)
             }
-            if !playerCharacter.connection.isClosed
-                && runState == Running then serve(playerCharacter)
 
-        Future {
-            Using(ServerSocket(port)) { serverSocket =>
-                while runState == Running do
-                    val socket = serverSocket.accept
-                    Future(initConnection(socket))
-            }
+    @tailrec
+    private def serve(playerCharacter: PlayerCharacter): Unit =
+        Try {
+            val input = playerCharacter.connection.readLine()
+            commands.executeCommandAtNextTick(playerCharacter, input)
         }
+        if !playerCharacter.connection.isClosed
+            && runState == Running then serve(playerCharacter)
+
+    Future {
+        Using(ServerSocket(port)) { serverSocket =>
+            while runState == Running do
+                val socket = serverSocket.accept
+                Future(initConnection(socket))
+        }
+    }
 
 
     private sealed trait LoginState:
-        def nextState(connection: TelnetConnection): LoginState
+        def nextState(connection: TelnetConnection): Future[LoginState]
+
+    private case object CreateOrLogin extends LoginState:
+        override def nextState(connection: TelnetConnection): Future[LoginState] =
+            connection.write("Welcome! Create new char?")
+            val name = connection.readLine()
+            Future.successful(if "yes".startsWith(name) then NewCharName else NamePrompt)
+
+    private case object NewCharName extends LoginState:
+        override def nextState(connection: TelnetConnection): Future[LoginState] =
+            connection.write("What will be your name?")
+            val name = connection.readLine()
+            Future.successful(IsNameAvailable(name))
+
+    private case class IsNameAvailable(name: String) extends LoginState:
+        override def nextState(connection: TelnetConnection): Future[LoginState] =
+            storage.isNameAvailable(name)
+                .map(if _ then
+                    connection.write("What will be your name?")
+                    CreateChar(name)
+                else
+                    connection.write("That name is not available.")
+                    NewCharName)
+
+    private case class CreateChar(name: String) extends LoginState:
+        override def nextState(connection: TelnetConnection): Future[LoginState] =
+            val startingRoom = globalState.rooms("roomCenter")
+            val playerCharacter = startingRoom.createPlayerCharacter(name, connection)
+            log.info(s"Created player $name")
+            Future.successful(Done(playerCharacter))
 
     private case object NamePrompt extends LoginState:
-        override def nextState(connection: TelnetConnection): LoginState =
+        override def nextState(connection: TelnetConnection): Future[LoginState] =
             connection.write("What's your name?")
             val name = connection.readLine()
-            NameVerify(name)
+            Future.successful(NameVerify(name))
 
     private case class NameVerify(name: String) extends LoginState:
-        override def nextState(connection: TelnetConnection): LoginState =
+        override def nextState(connection: TelnetConnection): Future[LoginState] =
             connection.write(s"Is $name correct?")
             val answer = connection.readLine()
-            if "yes".startsWith(answer) then Done(name) else NamePrompt
+            Future.successful(if "yes".startsWith(answer) then LoadChar(name) else NamePrompt)
 
     private case class PasswordPrompt(name: String) extends LoginState:
-        override def nextState(connection: TelnetConnection): LoginState = ???
+        override def nextState(connection: TelnetConnection): Future[LoginState] = ???
 
-    private case class Done(name: String) extends LoginState:
-        override def nextState(connection: TelnetConnection): LoginState = throw IllegalStateException()
+    private case class LoadChar(name: String) extends LoginState:
+        override def nextState(connection: TelnetConnection): Future[LoginState] =
+            storage.loadPlayer(name, connection)
+                .map {
+                    case Some(playerCharacter) =>
+                        log.info(s"Loaded player $name")
+                        Done(playerCharacter)
+                    case None =>
+                        connection.write("No character goes by that name.")
+                        NamePrompt
+                }
+
+    private case class Done(playerCharacter: PlayerCharacter) extends LoginState:
+        override def nextState(connection: TelnetConnection): Future[LoginState] = throw IllegalStateException()

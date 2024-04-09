@@ -7,6 +7,8 @@ import core.state.GlobalState
 import core.storage.Storage
 import org.eclipse.jetty.websocket.api.Session
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class WebSocketEndPoint(private val name: String)(using globalState: GlobalState, commands: Commands, storage: Storage)
     extends Session.Listener.AbstractAutoDemanding with SLF4JLogging:
 
@@ -18,7 +20,18 @@ class WebSocketEndPoint(private val name: String)(using globalState: GlobalState
     override def onWebSocketOpen(session: Session) =
         this.session = session
         log.info(s"Connection from $name@${session.getRemoteSocketAddress}")
-        storage.loadPlayer(name, WebSocketConnection(session), playerCharacter = _)
+        val connection = WebSocketConnection(session)
+        storage.loadPlayer(name, connection)
+            .map {
+                case Some(pc) =>
+                    log.info(s"Loaded player $name")
+                    pc
+                case None =>
+                    val startingRoom = globalState.rooms("roomCenter")
+                    log.info(s"Created player $name")
+                    startingRoom.createPlayerCharacter(name, connection)
+            }
+            .foreach(playerCharacter = _)
 
     override def onWebSocketText(input: String) =
         commands.executeCommandAtNextTick(playerCharacter, input)

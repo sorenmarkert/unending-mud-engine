@@ -12,5 +12,6 @@
 
     <logger name="org.mongodb.driver" level="WARN"/>
     <logger name="org.eclipse.jetty" level="WARN"/>
+    <logger name="reactor.util" level="WARN"/>
 
 </configuration>

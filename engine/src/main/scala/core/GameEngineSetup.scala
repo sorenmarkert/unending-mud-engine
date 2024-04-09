@@ -37,6 +37,6 @@ object GameEngineSetup extends SLF4JLogging:
 
         summon[GlobalState].runState = Running
         ZoneData
-        TelnetServer(config)
+        TelnetServer()
         WebSocketServer(config)
         WebServer(config)

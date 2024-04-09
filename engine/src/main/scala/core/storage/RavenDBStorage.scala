@@ -11,6 +11,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
 import java.util.Base64
+import scala.concurrent.Future
 import scala.util.*
 
 class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
@@ -29,8 +30,6 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
     documentStore.initialize
 
     log.info(s"Connected to $hostname")
-
-    override def checkName(name: String): Boolean = ???
 
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
@@ -63,7 +62,9 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
             case Failure(exception) => log.error(s"Failed saving ${playerCharacter.name}", exception)
 
 
-    override def loadPlayer(name: String, connection: Connection, connectPlayer: PlayerCharacter => Unit): Unit = ???
+    override def loadPlayer(name: String, connection: Connection): Future[Option[PlayerCharacter]] = ???
+
+    override def isNameAvailable(name: String): Future[Boolean] = ???
 
     override def close(): Unit = documentStore.close()
 

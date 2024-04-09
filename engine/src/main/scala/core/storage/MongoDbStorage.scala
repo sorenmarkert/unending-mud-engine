@@ -12,8 +12,9 @@ import org.mongodb.scala.bson.Document
 import org.mongodb.scala.model.*
 import org.mongodb.scala.model.Aggregates.*
 import org.mongodb.scala.model.Filters.equal
-import org.mongodb.scala.result.UpdateResult
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
@@ -30,8 +31,6 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
     private val players = db.getCollection("players")
 
     log.info(s"Connected to $hostname")
-
-    override def checkName(name: String): Boolean = name != "klaus"
 
     override def savePlayer(playerCharacter: PlayerCharacter): Unit =
 
@@ -56,16 +55,13 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
                 equal("_id", playerCharacter.name),
                 playerAsDocument,
                 ReplaceOptions().upsert(true))
-            .subscribe(new Observer[UpdateResult] {
-                override def onNext(result: UpdateResult): Unit = log.debug(s"UpdateResult: $result")
-
-                override def onError(e: Throwable): Unit = log.error(s"Failed saving player ${playerCharacter.name}", e)
-
-                override def onComplete(): Unit = log.info(s"Saved player ${playerCharacter.name}")
-            })
+            .subscribe(
+                result => log.debug(s"UpdateResult: $result"),
+                e => log.error(s"Failed saving player ${playerCharacter.name}", e),
+                () => log.info(s"Saved player ${playerCharacter.name}"))
 
 
-    override def loadPlayer(name: String, connection: Connection, connectPlayer: PlayerCharacter => Unit): Unit =
+    override def loadPlayer(name: String, connection: Connection): Future[Option[PlayerCharacter]] =
 
         def mapContents(document: Document, gameUnit: GameUnit): Unit =
             document.getOrElse("contents", Seq.empty[Document]).asArray().getValues.asScala.reverse
@@ -82,37 +78,28 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
                 case (character: Mobile, true) => character.equip(item)
                 case _ =>
 
-        def mapAndConnectPlayer(document: Document): Unit =
+        def mapToPlayer(document: Document): PlayerCharacter =
             val startingRoom = globalState.rooms(document.getOrElse("room", "roomCenter").asString().getValue)
             val playerCharacter = startingRoom.createPlayerCharacter(name, connection)
-
             playerCharacter.name = document.getOrElse("name", "").asString().getValue
             playerCharacter.title = document.getOrElse("title", "").asString().getValue
             playerCharacter.description = document.getOrElse("description", "").asString().getValue
-
             mapContents(document, playerCharacter)
-            connectPlayer(playerCharacter)
+            playerCharacter
 
-        var foundOne = false
         players
             .find(equal("_id", name))
             .first
-            .subscribe(new Observer[Document] {
-                override def onNext(playerAsDocument: Document): Unit =
-                    foundOne = true
-                    mapAndConnectPlayer(playerAsDocument)
+            .map(mapToPlayer)
+            .headOption()
 
-                override def onError(e: Throwable): Unit = log.error(s"Failed loading player $name", e)
-
-                override def onComplete(): Unit =
-                    if foundOne then
-                        log.info(s"Loaded player $name")
-                    else
-                        log.info(s"Created player $name")
-                        val startingRoom = globalState.rooms("roomCenter")
-                        val playerCharacter = startingRoom.createPlayerCharacter(name, connection)
-                        connectPlayer(playerCharacter)
-            })
-
+    override def isNameAvailable(name: String): Future[Boolean] =
+        players
+            .countDocuments(
+                equal("_id", name),
+                CountOptions().limit(1))
+            .map(_ < 1L)
+            .headOption()
+            .map(_ getOrElse false)
 
     override def close(): Unit = client.close()

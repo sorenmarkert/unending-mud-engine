@@ -3,10 +3,12 @@ package core.storage
 import core.connection.Connection
 import core.gameunit.PlayerCharacter
 
-trait Storage extends AutoCloseable:
+import scala.concurrent.Future
 
-    def checkName(name: String): Boolean
+trait Storage extends AutoCloseable:
 
     def savePlayer(playerCharacter: PlayerCharacter): Unit
 
-    def loadPlayer(name: String, connection: Connection, connectPlayer: PlayerCharacter => Unit): Unit
+    def loadPlayer(name: String, connection: Connection): Future[Option[PlayerCharacter]]
+
+    def isNameAvailable(name: String): Future[Boolean]
