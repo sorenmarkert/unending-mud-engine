@@ -7,6 +7,7 @@ import core.commands.Commands.{Command, CommandResult, InstantCommand, TimedComm
 import core.gameunit.*
 import core.state.{CommandExecution, StateActorMessage}
 
+import scala.collection.SeqMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 
@@ -20,7 +21,7 @@ class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands:
     private val emptyInput = InstantCommand((char, _) => CommandResult(sendMessageToCharacter(char, "")))
     private val unknownCommand = InstantCommand((char, _) => CommandResult(sendMessageToCharacter(char, "What's that?")))
 
-    private val commandList: Seq[(String, Command)] = Seq(
+    private[commands] val commandsByWord: SeqMap[String, Command] = SeqMap(
         "quit" -> InstantCommand(quit),
 
         "north" -> InstantCommand(movement),
@@ -52,11 +53,11 @@ class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands:
 
         val (command, commandWords) =
             inputWords.toList match
-                case "" :: _ | Nil => (emptyInput, Nil)
+                case Nil => (emptyInput, Nil)
                 case receivedCommandPrefix :: arguments =>
-                    commandList
-                        .find { case (commandString, _) => commandString.startsWith(receivedCommandPrefix.toLowerCase) }
-                        .map { case (commandString, command) => (command, commandString :: arguments) }
+                    commandsByWord
+                        .find { case (commandWord, _) => commandWord.startsWith(receivedCommandPrefix.toLowerCase) }
+                        .map { case (commandWord, command) => (command, commandWord :: arguments) }
                         .getOrElse((unknownCommand, Nil))
 
         actorSystem tell CommandExecution(command, character, commandWords)
