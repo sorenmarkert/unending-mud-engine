@@ -63,6 +63,7 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
 
     override def loadPlayer(name: String, connection: Connection): Future[Option[PlayerCharacter]] =
 
+        val capitalizedName = name.toLowerCase.capitalize
         def mapContents(document: Document, gameUnit: GameUnit): Unit =
             document.getOrElse("contents", Seq.empty[Document]).asArray().getValues.asScala.reverse
                 .foreach { v => mapItem(v.asDocument(), gameUnit) }
@@ -80,7 +81,7 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
 
         def mapToPlayer(document: Document): PlayerCharacter =
             val startingRoom = globalState.rooms(document.getOrElse("room", "roomCenter").asString().getValue)
-            val playerCharacter = startingRoom.createPlayerCharacter(name, connection)
+            val playerCharacter = startingRoom.createPlayerCharacter(capitalizedName, connection)
             playerCharacter.name = document.getOrElse("name", "").asString().getValue
             playerCharacter.title = document.getOrElse("title", "").asString().getValue
             playerCharacter.description = document.getOrElse("description", "").asString().getValue
@@ -88,7 +89,7 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
             playerCharacter
 
         players
-            .find(equal("_id", name))
+            .find(equal("_id", capitalizedName))
             .first
             .map(mapToPlayer)
             .headOption()
@@ -96,7 +97,7 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
     override def isNameAvailable(name: String): Future[Boolean] =
         players
             .countDocuments(
-                equal("_id", name),
+                equal("_id", name.toLowerCase.capitalize),
                 CountOptions().limit(1))
             .map(_ < 1L)
             .headOption()

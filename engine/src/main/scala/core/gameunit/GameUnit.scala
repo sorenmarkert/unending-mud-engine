@@ -60,7 +60,7 @@ sealed trait GameUnit:
                 case _ => false
 
         listToSearch
-            .filter(u => matches((u.name.toLowerCase.split(' ').filterNot(_.isBlank)).toList, searchTerms.toList))
+            .filter(u => matches(u.name.toLowerCase.split(' ').filterNot(_.isBlank).toList, searchTerms.toList))
             .drop(index - 1)
             .headOption
 
@@ -236,8 +236,9 @@ case class Room private[gameunit](id: String, var title: String, var description
 
     def createPlayerCharacter(name: String, connection: Connection)(using globalState: GlobalState, commands: Commands, messageSender: MessageSender): PlayerCharacter =
 
-        val playerCharacter = PlayerCharacter(name, title, description, this, connection)
-        globalState.players(name) = playerCharacter
+        val capitalizedName = name.toLowerCase.capitalize
+        val playerCharacter = PlayerCharacter(capitalizedName, title, description, this, connection)
+        globalState.players(capitalizedName) = playerCharacter
         _mobiles prepend playerCharacter
 
         commands.executeCommandAtNextTick(playerCharacter, "look")

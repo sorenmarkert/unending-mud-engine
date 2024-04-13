@@ -66,7 +66,7 @@ class TelnetServer(using config: Config, globalState: GlobalState, commands: Com
     private case object CreateOrLogin extends LoginState:
         override def nextState(connection: TelnetConnection): Future[LoginState] =
             connection.write("Welcome! Create new char?")
-            val name = connection.readLine()
+            val name = connection.readLine().toLowerCase
             Future.successful(if "yes".startsWith(name) then NewCharName else NamePrompt)
 
     private case object NewCharName extends LoginState:
@@ -79,7 +79,6 @@ class TelnetServer(using config: Config, globalState: GlobalState, commands: Com
         override def nextState(connection: TelnetConnection): Future[LoginState] =
             storage.isNameAvailable(name)
                 .map(if _ then
-                    connection.write("What will be your name?")
                     CreateChar(name)
                 else
                     connection.write("That name is not available.")
@@ -103,9 +102,6 @@ class TelnetServer(using config: Config, globalState: GlobalState, commands: Com
             connection.write(s"Is $name correct?")
             val answer = connection.readLine()
             Future.successful(if "yes".startsWith(answer) then LoadChar(name) else NamePrompt)
-
-    private case class PasswordPrompt(name: String) extends LoginState:
-        override def nextState(connection: TelnetConnection): Future[LoginState] = ???
 
     private case class LoadChar(name: String) extends LoginState:
         override def nextState(connection: TelnetConnection): Future[LoginState] =
