@@ -9,10 +9,10 @@ import scala.util.matching.Regex
 
 class MessageSender:
 
-    val nounRegex: Regex = "\\$([1-3])([aemsnNpt])".r
-    val verbRegex: Regex = "\\$\\[(\\w+)\\|(\\w+)]".r
+    private val nounRegex: Regex = "\\$([1-3])([aemsnNpt])".r
+    private val verbRegex: Regex = "\\$\\[(\\w+)\\|(\\w+)]".r
 
-    val textWidth = 50
+    private val textWidth = 50
 
     def sendMessageToRoomOf(character: Mobile, message: String): Seq[PlayerCharacter] =
         character.outside.mobiles.flatMap(c => sendMessageToCharacter(c, message))

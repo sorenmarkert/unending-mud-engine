@@ -1,6 +1,6 @@
 package core
 
-import akka.event.slf4j.{Logger, SLF4JLogging}
+import akka.event.slf4j.SLF4JLogging
 import core.gameunit.Builder.*
 import core.gameunit.Direction.*
 import core.gameunit.ItemSlot.*
