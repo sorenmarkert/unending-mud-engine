@@ -21,6 +21,8 @@ object GameEngineSetup extends SLF4JLogging:
     given CombatCommands = CombatCommands()
 
     given EquipmentCommands = EquipmentCommands()
+    
+    given UtilityCommands = UtilityCommands()
 
     given Commands = Commands()
 

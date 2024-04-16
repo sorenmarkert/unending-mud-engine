@@ -72,9 +72,9 @@ class MessageSender:
         def format3rdPersonUnit(unit: Findable, formatterLetter: String) =
             formatterLetter match
                 case "a" => if Set('a', 'e', 'i', 'o').contains(unit.name.head) then "an" else "a"
-                case "e" => formatGender(unit, _.subject)
-                case "m" => formatGender(unit, _.obJect)
-                case "s" => formatGender(unit, _.possessive)
+                case "e" => formatGender(unit, _.asSubject)
+                case "m" => formatGender(unit, _.asObject)
+                case "s" => formatGender(unit, _.asPossessive)
                 case "n" => unitDisplay(unit, includePlayerTitle = false)
                 case "N" => unit.name
                 case "p" => "unit.position"

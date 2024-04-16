@@ -11,11 +11,12 @@ import scala.collection.SeqMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 
-class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, messageSender: MessageSender):
+class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, utilityCommands: UtilityCommands, messageSender: MessageSender):
 
     import basicCommands.*
     import combatCommands.*
     import equipmentCommands.*
+    import utilityCommands.*
     import messageSender.*
 
     private val emptyInput = InstantCommand((char, _) => CommandResult(sendMessageToCharacter(char, "")))
@@ -43,6 +44,7 @@ class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands:
         "give" -> InstantCommand(give),
         "wear" -> InstantCommand(wear),
         "remove" -> InstantCommand(remove),
+        "path" -> InstantCommand(path),
 
         "slash" -> TimedCommand(2.seconds, prepareSlash, doSlash),
     )

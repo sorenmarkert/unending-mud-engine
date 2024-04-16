@@ -30,7 +30,7 @@ enum ItemSlot(val display: String):
     case ItemSlotBothHands extends ItemSlot("Two hand wielded")
 
 
-enum Gender(val subject: String, val obJect: String, val possessive: String):
+enum Gender(val asSubject: String, val asObject: String, val asPossessive: String):
     case GenderMale extends Gender("he", "him", "his")
     case GenderFemale extends Gender("she", "her", "her")
     case GenderNeutral extends Gender("it", "it", "its")
