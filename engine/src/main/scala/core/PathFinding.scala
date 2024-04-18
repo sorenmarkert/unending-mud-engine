@@ -35,6 +35,6 @@ object PathFinding:
                     directionToOrigin.opposite :: backtrackToOrigin(previousRoom)
 
             roomsWithDirectionToOrigin.get(destination)
-                .map(_ => backtrackToOrigin(destination))
+                .map(_ => backtrackToOrigin(destination).reverse)
                 .toRight("No path found to the destination.")
             

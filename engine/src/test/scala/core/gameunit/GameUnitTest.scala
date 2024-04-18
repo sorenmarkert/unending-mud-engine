@@ -155,13 +155,13 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             newPlayer.outside shouldBe room
 
             And("On the global players list")
-            globalState.players should contain only ("newPlayer" -> newPlayer)
+            globalState.players should contain only ("Newplayer" -> newPlayer)
 
             And("The player looks")
             verify(commandsMock).executeCommandAtNextTick(newPlayer, "look")
 
             And("Surrounding players see the player enter the game")
-            verify(messageSenderMock).sendMessageToBystandersOf(newPlayer, "newPlayer has entered the game.")
+            verify(messageSenderMock).sendMessageToBystandersOf(newPlayer, "Newplayer has entered the game.")
         }
     }
 

@@ -1,4 +1,4 @@
-WEBSOCKET ws://{{websockethost}}/ws/main
+WEBSOCKET ws://{{websockethost}}/ws
 Content-Type: application-json // Used for content highlighting only
 
 // Request body, for example:

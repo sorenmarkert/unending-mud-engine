@@ -25,6 +25,8 @@ class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
     given CombatCommands = CombatCommands()
 
+    given UtilityCommands = UtilityCommands()
+
     given equipmentCommands: EquipmentCommands = EquipmentCommands()
 
     val commands = Commands()

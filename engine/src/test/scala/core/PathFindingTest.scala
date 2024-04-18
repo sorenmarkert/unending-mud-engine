@@ -77,7 +77,7 @@ class PathFindingTest extends AnyWordSpec with GivenWhenThen with Matchers with 
 
         "Find the path to a room" in {
 
-            Given("Two unconnected rooms")
+            Given("Some connected rooms")
             val roomCenter = Room("roomCenter")
             val roomNorth = Room("roomNorth")
                 .southTo(roomCenter)
@@ -92,15 +92,15 @@ class PathFindingTest extends AnyWordSpec with GivenWhenThen with Matchers with 
                 .westTo(roomNorth)
             Room("roomEastNorth")
                 .southTo(roomEast)
-            val roomSouthWest = Room("roomSouthWest")
+            Room("roomSouthWest")
                 .eastTo(roomSouth)
-            Room("roomWestSouth")
+            val roomWestSouth = Room("roomWestSouth")
                 .northTo(roomWest)
 
             When("Calling findPath to the unconnected room")
-            val result = findPath(roomSouthWest, roomNorthEast)
+            val result = findPath(roomWestSouth, roomNorthEast)
 
             Then("The response says so")
-            result shouldBe Right(Seq(East, North, North, East))
+            result shouldBe Right(Seq(North, East, North, East))
         }
     }
