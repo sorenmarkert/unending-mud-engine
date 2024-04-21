@@ -1,10 +1,11 @@
 package core.gameunit
 
+import akka.actor.typed.ActorSystem
 import core.MessageSender
 import core.commands.Commands
 import core.connection.Connection
 import core.gameunit.ItemSlot.*
-import core.state.GlobalState
+import core.state.{GlobalState, StateActorMessage}
 import org.mockito.Mockito.verify
 import org.scalatest.*
 import org.scalatest.matchers.should.Matchers
@@ -14,7 +15,8 @@ import org.scalatestplus.mockito.MockitoSugar
 
 class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with Matchers with BeforeAndAfterEach with OptionValues:
 
-    given globalState: GlobalState = new GlobalState()
+    given actorSystem: ActorSystem[StateActorMessage] = mock[ActorSystem[StateActorMessage]]
+    given globalState: GlobalState = GlobalState()
 
     override def beforeEach(): Unit =
         globalState.clear()
