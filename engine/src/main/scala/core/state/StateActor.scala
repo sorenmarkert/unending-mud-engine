@@ -57,11 +57,10 @@ object StateActor extends SLF4JLogging:
                 else same
         }
 
-    private def executeCommands()(using messageSender: MessageSender): Unit = {
+    private def executeCommands(): Unit =
         val recipientsOfTimed = executeEndOfTimedCommands()
         val (recipientsOfQueued, recipientsWhoNeedMiniMap) = executeQueuedCommands()
         sendQueuedMessagesAndAddPrompts(recipientsOfTimed ++ recipientsOfQueued, recipientsWhoNeedMiniMap)
-    }
 
     private def executeEndOfTimedCommands() =
         val playersWhoReceivedMessages = timedCommandsWaitingMap.get(tickCounter).toSet

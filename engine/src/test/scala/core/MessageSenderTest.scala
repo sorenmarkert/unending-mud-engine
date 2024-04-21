@@ -15,11 +15,11 @@ import org.scalatestplus.mockito.MockitoSugar
 
 class MessageSenderTest extends AnyWordSpec with MockitoSugar with Matchers with GivenWhenThen with BeforeAndAfterEach:
 
-    given globalState: GlobalState = new GlobalState()
+    given globalState: GlobalState = GlobalState()
 
     val thePrompt = "(12/20) fake-prompt (12/20)"
 
-    val messageSender = new MessageSender
+    val messageSender = MessageSender()
 
     val actingPlayerMock = mock[PlayerCharacter]
     val targetPlayerMock = mock[PlayerCharacter]

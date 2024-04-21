@@ -13,3 +13,7 @@ class CombatCommands(using messageSender: MessageSender):
 
     private[commands] def doSlash(character: Mobile, arg: Seq[String]): CommandResult =
         CommandResult(act("$1n $[split|splits] thin air with a wide slash.", ActVisibility.Always, Some(character)))
+
+
+object CombatCommands:
+    given CombatCommands = CombatCommands()

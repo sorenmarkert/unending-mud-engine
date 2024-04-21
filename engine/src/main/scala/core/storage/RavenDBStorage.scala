@@ -22,7 +22,7 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
     private val hostname = ravenConfig.getString("hostname")
     private val database = ravenConfig.getString("database")
 
-    private val documentStore = new DocumentStore
+    private val documentStore = DocumentStore()
     documentStore.setCertificate(getKeyStore)
     documentStore.setDatabase(database)
     documentStore.setUrls(Array("https://" + hostname))
@@ -69,7 +69,7 @@ class RavenDBStorage(using config: Config) extends Storage with SLF4JLogging:
     override def close(): Unit = documentStore.close()
 
     private def getKeyStore =
-        val keyStore = KeyStore.getInstance("PKCS12", new BouncyCastleProvider())
+        val keyStore = KeyStore.getInstance("PKCS12", BouncyCastleProvider())
         keyStore.load(ByteArrayInputStream(Base64.getDecoder.decode(certificate)), password.toCharArray)
         keyStore
 

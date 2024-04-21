@@ -11,15 +11,15 @@ import scala.util.Random
 
 class AreaGeneratorTest extends AnyWordSpec with GivenWhenThen with Matchers with BeforeAndAfterEach with PrivateMethodTester:
 
-    given random: Random = new Random
+    given random: Random = Random
 
-    given globalState: GlobalState = new GlobalState
+    given globalState: GlobalState = GlobalState()
 
     override def beforeEach() =
         random.setSeed(1L)
         globalState.clear()
 
-    val testObj = new AreaGenerator
+    val testObj = AreaGenerator()
 
     "generate" should {
 

@@ -23,7 +23,7 @@ class GlobalState extends Clearable:
 
 
 object GlobalState:
-    given GlobalState = new GlobalState
+    given GlobalState = GlobalState()
 
 
 enum RunState:

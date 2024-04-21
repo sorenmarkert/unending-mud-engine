@@ -45,7 +45,7 @@ object MiniMap:
         val (centerX, centerY) = (3 * maxX, 2 * maxY)
         val theMap = tabulate(4 * maxY + 1, 6 * maxX + 1)((_, _) => ' ')
 
-        def drawMiniMap(mapNode: MapNode): Unit = {
+        def drawMiniMap(mapNode: MapNode): Unit =
             val (fromX, fromY) = (centerX + 3 * mapNode.x, centerY + 2 * mapNode.y)
 
             Vector(mapNode.north, mapNode.south, mapNode.east, mapNode.west)
@@ -59,7 +59,6 @@ object MiniMap:
                         min(fromX, toX) until max(fromX, toX) foreach (theMap(toY)(_) = '-')
                     theMap(toY)(toX) = '#'
                 }
-        }
 
         drawMiniMap(graphMap)
         theMap(centerY)(centerX) = 'X'

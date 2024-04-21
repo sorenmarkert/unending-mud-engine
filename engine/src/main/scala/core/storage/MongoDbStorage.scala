@@ -18,7 +18,7 @@ import scala.concurrent.Future
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
-class MongoDbStorage()(using config: Config, globalState: GlobalState, commands: Commands) extends Storage with SLF4JLogging:
+class MongoDbStorage()(using config: Config, commands: Commands) extends Storage with SLF4JLogging:
 
     private val mongoConfig = config.getConfig("storage.mongodb")
     private val username = mongoConfig.getString("username")
@@ -79,7 +79,7 @@ class MongoDbStorage()(using config: Config, globalState: GlobalState, commands:
                 case (character: Mobile, true) => character.equip(item)
                 case _ =>
 
-        def mapToPlayer(document: Document): PlayerCharacter =
+        def mapToPlayer(document: Document)(using globalState: GlobalState): PlayerCharacter =
             val startingRoom = globalState.rooms(document.getOrElse("room", "roomCenter").asString().getValue)
             val playerCharacter = startingRoom.createPlayerCharacter(capitalizedName, connection)
             playerCharacter.name = document.getOrElse("name", "").asString().getValue

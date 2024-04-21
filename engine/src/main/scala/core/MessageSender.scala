@@ -95,7 +95,7 @@ class MessageSender:
 
         val nounUnits = Map("1" -> actor, "2" -> medium, "3" -> target)
 
-        def replaceFormatters(msg: String, indexOf2ndPerson: String) = {
+        def replaceFormatters(msg: String, indexOf2ndPerson: String) =
             val messageWithNouns = nounRegex.replaceAllIn(msg, {
                 case nounRegex(unitIndex, formatterLetter) =>
                     val formatUnit = if unitIndex == indexOf2ndPerson then format2ndPersonUnit else format3rdPersonUnit
@@ -108,7 +108,6 @@ class MessageSender:
                     if indexOf2ndPerson == "1" then secondPerson else thirdPerson
             })
             messageWithNounsAndVerbs
-        }
 
         val actorRecipient = actor.toSeq.flatMap(sendMessageToCharacter(_, replaceFormatters(message, "1")))
         val bystanderRecipients = bystanders.flatMap(sendMessageToCharacter(_, replaceFormatters(message, "")))
@@ -122,7 +121,7 @@ class MessageSender:
 
 
 object MessageSender:
-    given MessageSender = new MessageSender
+    given MessageSender = MessageSender()
 
 
 enum ActVisibility:

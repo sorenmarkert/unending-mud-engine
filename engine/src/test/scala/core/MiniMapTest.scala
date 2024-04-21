@@ -9,7 +9,7 @@ import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
 
 class MiniMapTest extends AnyWordSpec with GivenWhenThen with Matchers with BeforeAndAfterEach:
 
-    given globalState: GlobalState = new GlobalState()
+    given globalState: GlobalState = GlobalState()
 
     override def beforeEach() =
         globalState.clear()

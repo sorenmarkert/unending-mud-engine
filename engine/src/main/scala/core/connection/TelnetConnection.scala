@@ -10,8 +10,8 @@ class TelnetConnection(private val socket: Socket) extends Connection:
 
     private val usualMiniMapWidth = 21
 
-    private val reader = new BufferedReader(new InputStreamReader(socket.getInputStream))
-    private val writer = new PrintWriter(socket.getOutputStream, true)
+    private val reader = BufferedReader(InputStreamReader(socket.getInputStream))
+    private val writer = PrintWriter(socket.getOutputStream, true)
 
     override def readLine(): String = reader.readLine()
 

@@ -41,7 +41,7 @@ class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
     "executeCommandAtNextTick" when {
 
-        "Calling the actor systen" should {
+        "Calling the actor system" should {
 
             "Use the emptyInput command" in {
 

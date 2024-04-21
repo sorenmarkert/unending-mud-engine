@@ -5,7 +5,7 @@ import com.typesafe.config.Config
 
 object WebServer extends SLF4JLogging:
 
-    def apply(config: Config) =
+    def apply()(using config: Config): Unit =
 
         val interface = config.getString("http.interface")
         val port = config.getInt("http.port")

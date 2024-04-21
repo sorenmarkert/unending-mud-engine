@@ -10,7 +10,7 @@ import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
 
 class PathFindingTest extends AnyWordSpec with GivenWhenThen with Matchers with BeforeAndAfterEach:
 
-    given globalState: GlobalState = new GlobalState()
+    given globalState: GlobalState = GlobalState()
 
     override def beforeEach(): Unit =
         globalState.clear()

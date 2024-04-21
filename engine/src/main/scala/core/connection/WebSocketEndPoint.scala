@@ -1,18 +1,17 @@
 package core.connection
 
+import akka.actor.typed.ActorSystem
 import akka.event.slf4j.SLF4JLogging
 import core.commands.Commands
 import core.gameunit.PlayerCharacter
-import core.state.GlobalState
+import core.state.{GlobalState, StateActorMessage}
 import core.storage.Storage
 import org.eclipse.jetty.websocket.api.Session
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class WebSocketEndPoint(private val name: String)(using globalState: GlobalState, commands: Commands, storage: Storage)
+class WebSocketEndPoint(private val name: String)(using globalState: GlobalState, commands: Commands, storage: Storage)(using ActorSystem[StateActorMessage])
     extends Session.Listener.AbstractAutoDemanding with SLF4JLogging:
-
-    import globalState.*
 
     private var session: Session = null
     private var playerCharacter: PlayerCharacter = null

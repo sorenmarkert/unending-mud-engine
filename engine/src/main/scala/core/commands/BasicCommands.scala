@@ -50,7 +50,7 @@ class BasicCommands()(using messageSender: MessageSender):
             case "look" :: "at" :: argumentWords => lookAt(character, argumentWords)
             case "look" :: argumentWords => lookAt(character, argumentWords)
 
-    private def lookAtRoom(character: Mobile) = {
+    private def lookAtRoom(character: Mobile) =
         val room = character.outside
         val otherChars = room.mobiles diff Seq(character)
         val exits = joinOrElse(room.exits.keys map (_.toString), ", ", "none")
@@ -63,9 +63,8 @@ class BasicCommands()(using messageSender: MessageSender):
                    |$$BrightYellowExits: $exits$$Reset
                    |${titles mkString "\n"}""".stripMargin),
             addMiniMap = true)
-    }
 
-    private def lookInside(character: Mobile, argumentWords: List[String]) = {
+    private def lookInside(character: Mobile, argumentWords: List[String]) =
         val recipients = character.findItemInOrNextToMe(argumentWords mkString " ") match
             case None => sendMessageToCharacter(character, "No such thing here to look inside.")
             case Some(unitToLookAt) =>
@@ -74,9 +73,8 @@ class BasicCommands()(using messageSender: MessageSender):
                     s"""You look inside the ${unitToLookAt.name}. It contains:
                        |$itemsDisplay""".stripMargin)
         CommandResult(recipients)
-    }
 
-    private def lookAt(character: Mobile, argumentWords: Seq[String]) = {
+    private def lookAt(character: Mobile, argumentWords: Seq[String]) =
         val recipients = character.findInOrNextToMe(argumentWords mkString " ") match
             case None => sendMessageToCharacter(character, "No such thing here to look at.")
             case Some(itemToLookAt: Item) =>
@@ -92,4 +90,7 @@ class BasicCommands()(using messageSender: MessageSender):
                        |${characterToLookAt.description}
                        |$equipmentDisplay""".stripMargin)
         CommandResult(recipients)
-    }
+
+
+object BasicCommands:
+    given BasicCommands = BasicCommands()

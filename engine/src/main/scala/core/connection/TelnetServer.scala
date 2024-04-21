@@ -1,10 +1,11 @@
 package core.connection
 
+import akka.actor.typed.ActorSystem
 import akka.event.slf4j.SLF4JLogging
 import com.typesafe.config.Config
 import core.commands.Commands
 import core.gameunit.PlayerCharacter
-import core.state.GlobalState
+import core.state.{GlobalState, StateActorMessage}
 import core.state.RunState.Running
 import core.storage.Storage
 
@@ -14,9 +15,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Try, Using}
 
-class TelnetServer(using config: Config, globalState: GlobalState, commands: Commands, storage: Storage) extends SLF4JLogging:
+class TelnetServer(using actorSystem: ActorSystem[StateActorMessage], config: Config, globalState: GlobalState, commands: Commands, storage: Storage) extends SLF4JLogging:
 
-    import globalState.*
+    import globalState.runState
 
     private val port = config.getInt("telnet.port")
     log.info("Starting telnet client on port " + port)

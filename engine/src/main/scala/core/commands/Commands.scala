@@ -71,7 +71,7 @@ object Commands:
 
     case class CommandResult(playersWhoReceivedMessages: Seq[PlayerCharacter], addMiniMap: Boolean = false)
 
-    type CommandFunction = (Mobile, Seq[String]) => CommandResult
+    private type CommandFunction = (Mobile, Seq[String]) => CommandResult
 
     sealed trait Command
 

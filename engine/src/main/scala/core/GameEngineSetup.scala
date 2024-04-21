@@ -14,15 +14,7 @@ object GameEngineSetup extends SLF4JLogging:
 
     given config: Config = ConfigFactory.load()
 
-    given actorSystem: ActorSystem[StateActorMessage] = ActorSystem(StateActor(), "unending")
-
-    given BasicCommands = BasicCommands()
-
-    given CombatCommands = CombatCommands()
-
-    given EquipmentCommands = EquipmentCommands()
-    
-    given UtilityCommands = UtilityCommands()
+    given ActorSystem[StateActorMessage] = ActorSystem(StateActor(), "unending")
 
     given Commands = Commands()
 
@@ -40,5 +32,5 @@ object GameEngineSetup extends SLF4JLogging:
         summon[GlobalState].runState = Running
         ZoneData
         TelnetServer()
-        WebSocketServer(config)
-        WebServer(config)
+        WebSocketServer()
+        WebServer()

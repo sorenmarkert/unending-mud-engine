@@ -66,7 +66,7 @@ class EquipmentCommands(using messageSender: MessageSender):
         CommandResult(recipients)
     end put
 
-    private[commands] def give(character: Mobile, commandWords: Seq[String]): CommandResult = {
+    private[commands] def give(character: Mobile, commandWords: Seq[String]): CommandResult =
         val recipients = commandWords splitAt (commandWords indexOf "to") match
             case (_ :: mediumWords, "to" :: targetWords) =>
                 val mediumOption = character.findInInventory(mediumWords mkString " ")
@@ -81,7 +81,6 @@ class EquipmentCommands(using messageSender: MessageSender):
                         sendMessageToCharacter(character, s"There's nobody here by that name to ${commandWords.head} things to.")
             case _ => sendMessageToCharacter(character, commandWords.head + " 'what' to 'whom' ?")
         CommandResult(recipients)
-    }
 
     private[commands] def examine(character: Mobile, commandWords: Seq[String]): CommandResult =
         val recipients = commandWords match
@@ -117,4 +116,6 @@ class EquipmentCommands(using messageSender: MessageSender):
                     case Some(errorMessage) => sendMessageToCharacter(character, errorMessage)
         CommandResult(recipients)
 
-end EquipmentCommands
+
+object EquipmentCommands:
+    given EquipmentCommands = EquipmentCommands()
