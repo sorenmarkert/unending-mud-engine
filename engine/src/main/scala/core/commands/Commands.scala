@@ -5,13 +5,14 @@ import core.*
 import core.MessageSender.*
 import core.commands.Commands.{Command, CommandResult, InstantCommand, TimedCommand}
 import core.gameunit.*
-import core.state.{CommandExecution, StateActorMessage}
+import core.state.StateActor
+import core.state.StateActor.Execute
 
 import scala.collection.SeqMap
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 
-class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, utilityCommands: UtilityCommands, messageSender: MessageSender):
+class Commands(using actorSystem: ActorSystem[StateActor.Message], basicCommands: BasicCommands, combatCommands: CombatCommands, equipmentCommands: EquipmentCommands, utilityCommands: UtilityCommands, messageSender: MessageSender):
 
     import basicCommands.*
     import combatCommands.*
@@ -62,7 +63,7 @@ class Commands(using actorSystem: ActorSystem[StateActorMessage], basicCommands:
                         .map { case (commandWord, command) => (command, commandWord :: arguments) }
                         .getOrElse((unknownCommand, Nil))
 
-        actorSystem tell CommandExecution(command, character, commandWords)
+        actorSystem tell Execute(command, character, commandWords)
 
 end Commands
 

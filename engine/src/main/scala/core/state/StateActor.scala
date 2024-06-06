@@ -14,26 +14,26 @@ import scala.collection.mutable.{LinkedHashMap, ListBuffer, Map as MMap, SortedM
 import scala.concurrent.duration.DurationInt
 
 
-sealed trait StateActorMessage
-
-case object Tick extends StateActorMessage
-
-case class CommandExecution(command: Command, character: Mobile, argument: List[String]) extends StateActorMessage
-
-case class Interrupt(character: Mobile) extends StateActorMessage
-
-case class Destroy(character: Mobile) extends StateActorMessage
-
-
 object StateActor extends SLF4JLogging:
+
+    sealed trait Message
+
+    case object Tick extends Message
+
+    case class Execute(command: Command, character: Mobile, argument: List[String]) extends Message
+
+    case class Interrupt(character: Mobile) extends Message
+
+    case class Destroy(character: Mobile) extends Message
+
 
     private val tickInterval = 100.milliseconds
     private var tickCounter = 0
-    private val commandQueue: MMap[UUID, ListBuffer[CommandExecution]] = LinkedHashMap()
-    private val timedCommandsWaitingMap = MSortedMap.empty[Int, ListBuffer[CommandExecution]]
-    private val charactersInActionMap = MMap.empty[Mobile, Int]
+    private val commandQueue: MMap[UUID, ListBuffer[Execute]] = LinkedHashMap()
+    private val timedCommandsOngoingMap = MSortedMap.empty[Int, ListBuffer[Execute]]
+    private val charactersInActionMap = MMap.empty[Mobile, Int] // TODO: use UUID as key, or override .equals
 
-    def apply(): Behavior[StateActorMessage] =
+    def apply(): Behavior[Message] =
         setup { context =>
             withTimers { timers =>
                 log.info("Starting state actor with tick interval " + tickInterval)
@@ -42,26 +42,18 @@ object StateActor extends SLF4JLogging:
             }
         }
 
-    private def handleActorMessage()(using globalState: GlobalState, messageSender: MessageSender): Behavior[StateActorMessage] =
+    private def handleActorMessage()(using globalState: GlobalState, messageSender: MessageSender): Behavior[Message] =
         receiveMessage {
-            case commandExecution: CommandExecution =>
-                log.info("Received command: " + commandExecution.argument.mkString(" "))
-                commandQueue.getOrElseUpdate(commandExecution.character.uuid, ListBuffer()).append(commandExecution)
+            case execute: Execute =>
+                log.info("Received command: " + execute.argument.mkString(" "))
+                commandQueue.getOrElseUpdate(execute.character.uuid, ListBuffer()).append(execute)
                 same
             case Interrupt(character) =>
-                charactersInActionMap remove character foreach { tick =>
-                    timedCommandsWaitingMap(tick) = timedCommandsWaitingMap(tick) filterNot (_.character == character)
-                }
+                removeOngoingTimedCommand(character)
                 same
             case Destroy(character) =>
-                commandQueue remove character.uuid
-                charactersInActionMap remove character
-                timedCommandsWaitingMap.foreach {
-                    case (_, commandExecutions) =>
-                        commandExecutions
-                            .filter { case CommandExecution(_, char, _) => char == character}
-                            .foreach(commandExecutions.subtractOne)
-                }
+                commandQueue.remove(character.uuid)
+                removeOngoingTimedCommand(character)
                 same
             case Tick =>
                 executeCommands()
@@ -70,46 +62,56 @@ object StateActor extends SLF4JLogging:
                 else same
         }
 
+    private def removeOngoingTimedCommand(character: Mobile): Unit = {
+        charactersInActionMap.remove(character)
+            .foreach { tickCount =>
+                val updatedExecutes = timedCommandsOngoingMap(tickCount) filterNot (_.character == character)
+                timedCommandsOngoingMap(tickCount) = updatedExecutes
+                if updatedExecutes.isEmpty then
+                    timedCommandsOngoingMap.remove(tickCount)
+            }
+    }
+
     private def executeCommands(): Unit =
         val recipientsOfTimed = executeEndOfTimedCommands()
         val (recipientsOfQueued, recipientsWhoNeedMiniMap) = executeQueuedCommands()
-        sendQueuedMessagesAndAddPrompts(recipientsOfTimed ++ recipientsOfQueued, recipientsWhoNeedMiniMap)
+        sendQueuedMessages(recipientsOfTimed ++ recipientsOfQueued, recipientsWhoNeedMiniMap)
 
     private def executeEndOfTimedCommands() =
-        val playersWhoReceivedMessages = timedCommandsWaitingMap.get(tickCounter).toSet
+        val playersWhoReceivedMessages = timedCommandsOngoingMap.get(tickCounter).toSet
             .flatMap {
                 _.flatMap {
-                    case CommandExecution(TimedCommand(_, _, endFunc), character, argument) =>
+                    case Execute(TimedCommand(_, _, endFunc), character, argument) =>
                         val commandResult = endFunc(character, argument)
                         commandResult.playersWhoReceivedMessages
                     case _ => Seq()
                 }
             }
-        timedCommandsWaitingMap remove tickCounter
+        timedCommandsOngoingMap.remove(tickCounter)
         playersWhoReceivedMessages
 
     private def executeQueuedCommands(): (Set[PlayerCharacter], Set[Mobile]) =
         val (playersWhoReceivedMessages, recipientsWhoNeedMiniMap) = commandQueue.map {
-            case (characterUuid, commandExecutions) =>
-                val (commandResult, character) = commandExecutions.head match
-                    case CommandExecution(InstantCommand(func, canInterrupt), character, argument) =>
+            case (characterUuid, executes) =>
+                val (commandResult, character) = executes.head match
+                    case Execute(InstantCommand(func, canInterrupt), character, argument) =>
                         (func(character, argument), character)
-                    case commandExecution@CommandExecution(TimedCommand(duration, beginFunc, _), character, argument) =>
+                    case execute@Execute(TimedCommand(duration, beginFunc, _), character, argument) =>
                         val tickToExecuteEndFuncAt = tickCounter + (duration / tickInterval).toInt
-                        timedCommandsWaitingMap.getOrElse(tickToExecuteEndFuncAt, ListBuffer()).append(commandExecution)
+                        timedCommandsOngoingMap.getOrElse(tickToExecuteEndFuncAt, ListBuffer()).append(execute)
                         charactersInActionMap(character) = tickToExecuteEndFuncAt
                         (beginFunc(character, argument), character)
-                commandExecutions.remove(0)
-                if commandExecutions.isEmpty then
+                executes.remove(0)
+                if executes.isEmpty then
                     commandQueue.remove(characterUuid)
                 (commandResult.playersWhoReceivedMessages, if commandResult.addMiniMap then Seq(character) else Seq())
         }.unzip
 
         (playersWhoReceivedMessages.flatten.toSet, recipientsWhoNeedMiniMap.flatten.toSet)
 
-    private def sendQueuedMessagesAndAddPrompts(playersWhoReceivedMessages: Set[PlayerCharacter],
-                                                recipientsWhoNeedMiniMap: Set[Mobile])
-                                               (using messageSender: MessageSender): Unit =
+    private def sendQueuedMessages(playersWhoReceivedMessages: Set[PlayerCharacter],
+                                   recipientsWhoNeedMiniMap: Set[Mobile])
+                                  (using messageSender: MessageSender): Unit =
         playersWhoReceivedMessages.foreach {
             playerCharacter =>
                 messageSender.sendAllEnqueuedMessages(

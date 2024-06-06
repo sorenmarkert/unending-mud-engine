@@ -8,7 +8,7 @@ import core.connection.Connection
 import core.gameunit.Direction.*
 import core.gameunit.Gender.GenderMale
 import core.gameunit.Position.Standing
-import core.state.{Destroy, GlobalState, StateActorMessage}
+import core.state.{GlobalState, StateActor}
 
 import java.util.UUID
 import scala.annotation.tailrec
@@ -34,7 +34,7 @@ sealed trait GameUnit:
         itemToAdd._outside = this
         _contents prepend itemToAdd
 
-    def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActorMessage]): Unit =
+    def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActor.Message]): Unit =
         while _contents.nonEmpty do _contents.head.destroy
 
     def canContain[T <: GameUnit](unit: Containable[T]): Boolean = ???
@@ -95,11 +95,11 @@ sealed trait Mobile extends Containable[Room]:
     var target: Option[Mobile] = None
     var targetOf: Option[Mobile] = None
 
-    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActorMessage]): Unit =
+    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActor.Message]): Unit =
         super.destroy
         _equipped.iterator.foreach { case (_, item) => item.destroy}
         removeFromContainer()
-        actorSystem tell Destroy(this)
+        actorSystem tell StateActor.Destroy(this)
 
     def equippedItems: Seq[Item] = contents filter _equipped.values.toList.contains
 
@@ -150,7 +150,7 @@ end Mobile
 case class PlayerCharacter private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: Room, var connection: Connection)
     extends Mobile:
 
-    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActorMessage]): Unit =
+    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActor.Message]): Unit =
         super.destroy
         globalState.players remove name
 
@@ -160,7 +160,7 @@ end PlayerCharacter
 case class NonPlayerCharacter private[gameunit](var name: String, var title: String, var description: String, private[gameunit] var _outside: Room)
     extends Mobile:
 
-    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActorMessage]): Unit =
+    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActor.Message]): Unit =
         super.destroy
         val charactersWithName = globalState.nonPlayerCharacters(name) subtractOne this
         if charactersWithName.isEmpty then
@@ -175,7 +175,7 @@ case class Item private[gameunit](var name: String, var title: String, var descr
     override private[gameunit] def removeFromContainer(): Unit =
         _outside._contents subtractOne this
 
-    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActorMessage]): Unit =
+    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActor.Message]): Unit =
         super.destroy
         removeFromContainer()
         val itemsWithName = globalState.items(name) subtractOne this
@@ -202,7 +202,7 @@ case class Room private[gameunit](id: String, var title: String, var description
 
     def mobiles: Seq[Mobile] = _mobiles.toSeq
 
-    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActorMessage]): Unit =
+    override def destroy(using globalState: GlobalState, actorSystem: ActorSystem[StateActor.Message]): Unit =
         super.destroy
         while _mobiles.nonEmpty do _mobiles.head.destroy
         _exits foreach { case (direction, Exit(toRoom, _)) => toRoom.removeLink(direction.opposite) }

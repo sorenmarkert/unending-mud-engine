@@ -55,7 +55,7 @@ class AreaGenerator()(using random: Random, globalState: GlobalState):
         }
 
 
-    extension (thisOne: (Int, Int))
+    extension (thisOne: Pos | Dir)
 
         private def opposite = (thisOne._1 * -1, thisOne._2 * -1)
 

@@ -5,7 +5,7 @@ import akka.event.slf4j.SLF4JLogging
 import com.typesafe.config.Config
 import core.commands.Commands
 import core.gameunit.PlayerCharacter
-import core.state.{GlobalState, StateActorMessage}
+import core.state.{GlobalState, StateActor}
 import core.state.RunState.Running
 import core.storage.Storage
 
@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Try, Using}
 
-class TelnetServer(using actorSystem: ActorSystem[StateActorMessage], config: Config, globalState: GlobalState, commands: Commands, storage: Storage) extends SLF4JLogging:
+class TelnetServer(using actorSystem: ActorSystem[StateActor.Message], config: Config, globalState: GlobalState, commands: Commands, storage: Storage) extends SLF4JLogging:
 
     import globalState.runState
 

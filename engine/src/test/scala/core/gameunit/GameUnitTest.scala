@@ -5,7 +5,7 @@ import core.MessageSender
 import core.commands.Commands
 import core.connection.Connection
 import core.gameunit.ItemSlot.*
-import core.state.{GlobalState, StateActorMessage}
+import core.state.{GlobalState, StateActor}
 import org.mockito.Mockito.verify
 import org.scalatest.*
 import org.scalatest.matchers.should.Matchers
@@ -15,7 +15,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with Matchers with BeforeAndAfterEach with OptionValues:
 
-    given actorSystem: ActorSystem[StateActorMessage] = mock[ActorSystem[StateActorMessage]]
+    given actorSystem: ActorSystem[StateActor.Message] = mock[ActorSystem[StateActor.Message]]
     given globalState: GlobalState = GlobalState()
 
     override def beforeEach(): Unit =
@@ -144,7 +144,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
             given messageSenderMock: MessageSender = mock[MessageSender]
 
-            given connectionMock: Connection = mock[Connection]
+            val connectionMock: Connection = mock[Connection]
 
             Given("An empty room")
             val room = Room("emptyRoom")
@@ -175,7 +175,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
             given messageSenderMock: MessageSender = mock[MessageSender]
 
-            given connectionMock: Connection = mock[Connection]
+            val connectionMock: Connection = mock[Connection]
 
             Given("An room containing a player character")
             val room = Room("roomWithPlayer")
@@ -451,13 +451,13 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
         "Not find an item that isn't there" in {
 
-            Given("A player with 3 out of 5 items equipped")
+            Given("A room with 3 out of 5 items equipped")
             val room = Room("room")
             val container = room.createItem("container")
             val itemNotToBeFound = container.createItem("itemNotToBeFound")
             itemNotToBeFound.name = "otherName"
 
-            When("The player searches for the item")
+            When("Searching for the item")
             val result = container.findInside("itemName")
 
             Then("No item is returned")
@@ -476,7 +476,7 @@ class GameUnitTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
             val topItem = container.createItem("topItem")
             topItem.name = "itemName"
 
-            When("The player searches for the third item")
+            When("Searching for the third item")
             val result = container.findInside("3.itemname")
 
             Then("The correct item is returned")

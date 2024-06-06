@@ -4,7 +4,7 @@ import akka.actor.typed.ActorSystem
 import core.MessageSender
 import core.commands.Commands.InstantCommand
 import core.gameunit.NonPlayerCharacter
-import core.state.{CommandExecution, StateActorMessage}
+import core.state.StateActor
 import core.storage.Storage
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.{doNothing, verify}
@@ -15,7 +15,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with Matchers with BeforeAndAfterEach with OptionValues:
 
-    given actorSystemMock: ActorSystem[StateActorMessage] = mock[ActorSystem[StateActorMessage]]
+    given actorSystemMock: ActorSystem[StateActor.Message] = mock[ActorSystem[StateActor.Message]]
 
     given messageSenderMock: MessageSender = mock[MessageSender]
 
@@ -33,11 +33,11 @@ class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
 
     val characterMock = mock[NonPlayerCharacter]
 
-    var commandExecutionCaptor: ArgumentCaptor[CommandExecution] = null
+    var executeCaptor: ArgumentCaptor[StateActor.Execute] = null
 
     override def beforeEach() =
-        commandExecutionCaptor = ArgumentCaptor.forClass(classOf[CommandExecution])
-        doNothing().when(actorSystemMock).tell(commandExecutionCaptor.capture())
+        executeCaptor = ArgumentCaptor.forClass(classOf[StateActor.Execute])
+        doNothing().when(actorSystemMock).tell(executeCaptor.capture())
 
     "executeCommandAtNextTick" when {
 
@@ -51,13 +51,13 @@ class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
                 When("Executing the command")
                 commands.executeCommandAtNextTick(characterMock, commandString)
 
-                Then("The correct CommandExecution is sent to the actor system")
-                val capturedCommandExecution = commandExecutionCaptor.getValue
-                capturedCommandExecution.character shouldBe characterMock
-                capturedCommandExecution.argument shouldBe Nil
+                Then("The correct Execute is sent to the actor system")
+                val capturedExecute = executeCaptor.getValue
+                capturedExecute.character shouldBe characterMock
+                capturedExecute.argument shouldBe Nil
 
-                capturedCommandExecution.command shouldBe a[InstantCommand]
-                val instantCommand: InstantCommand = capturedCommandExecution.command.asInstanceOf[InstantCommand]
+                capturedExecute.command shouldBe a[InstantCommand]
+                val instantCommand: InstantCommand = capturedExecute.command.asInstanceOf[InstantCommand]
                 instantCommand.func(characterMock, null)
                 verify(messageSenderMock).sendMessageToCharacter(characterMock, "")
             }
@@ -70,13 +70,13 @@ class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
                 When("Executing the command")
                 commands.executeCommandAtNextTick(characterMock, commandString)
 
-                Then("The correct CommandExecution is sent to the actor system")
-                val capturedCommandExecution = commandExecutionCaptor.getValue
-                capturedCommandExecution.character shouldBe characterMock
-                capturedCommandExecution.argument shouldBe Nil
+                Then("The correct Execute is sent to the actor system")
+                val capturedExecute = executeCaptor.getValue
+                capturedExecute.character shouldBe characterMock
+                capturedExecute.argument shouldBe Nil
 
-                capturedCommandExecution.command shouldBe a[InstantCommand]
-                val instantCommand: InstantCommand = capturedCommandExecution.command.asInstanceOf[InstantCommand]
+                capturedExecute.command shouldBe a[InstantCommand]
+                val instantCommand: InstantCommand = capturedExecute.command.asInstanceOf[InstantCommand]
                 instantCommand.func(characterMock, null)
                 verify(messageSenderMock).sendMessageToCharacter(characterMock, "What's that?")
             }
@@ -90,11 +90,11 @@ class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
                 When("Executing the command")
                 commands.executeCommandAtNextTick(characterMock, commandString)
 
-                Then("The correct CommandExecution is sent to the actor system")
-                val capturedCommandExecution = commandExecutionCaptor.getValue
-                capturedCommandExecution.character shouldBe characterMock
-                capturedCommandExecution.argument shouldBe expectedCommandWords
-                capturedCommandExecution.command shouldBe commands.commandsByWord("inventory")
+                Then("The correct Execute is sent to the actor system")
+                val capturedExecute = executeCaptor.getValue
+                capturedExecute.character shouldBe characterMock
+                capturedExecute.argument shouldBe expectedCommandWords
+                capturedExecute.command shouldBe commands.commandsByWord("inventory")
             }
 
             "Expand the command word and include arguments" in {
@@ -106,11 +106,11 @@ class CommandsTest extends AnyWordSpec with MockitoSugar with GivenWhenThen with
                 When("Executing the command")
                 commands.executeCommandAtNextTick(characterMock, commandString)
 
-                Then("The correct CommandExecution is sent to the actor system")
-                val capturedCommandExecution = commandExecutionCaptor.getValue
-                capturedCommandExecution.character shouldBe characterMock
-                capturedCommandExecution.argument shouldBe expectedCommandWords
-                capturedCommandExecution.command shouldBe commands.commandsByWord("get")
+                Then("The correct Execute is sent to the actor system")
+                val capturedExecute = executeCaptor.getValue
+                capturedExecute.character shouldBe characterMock
+                capturedExecute.argument shouldBe expectedCommandWords
+                capturedExecute.command shouldBe commands.commandsByWord("get")
             }
         }
     }

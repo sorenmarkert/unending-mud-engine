@@ -6,7 +6,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import core.commands.*
 import core.connection.{TelnetServer, WebSocketServer}
 import core.state.RunState.Running
-import core.state.{GlobalState, StateActor, StateActorMessage}
+import core.state.{GlobalState, StateActor}
 import core.storage.*
 import webserver.WebServer
 
@@ -14,7 +14,7 @@ object GameEngineSetup extends SLF4JLogging:
 
     given config: Config = ConfigFactory.load()
 
-    given ActorSystem[StateActorMessage] = ActorSystem(StateActor(), "unending")
+    given ActorSystem[StateActor.Message] = ActorSystem(StateActor(), "unending")
 
     given Commands = Commands()
 
